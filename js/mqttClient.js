@@ -37,7 +37,9 @@
         handlers.status.forEach(h => h('error', err));
       });
 
+      // Treat broker 'close' or 'offline' events as disconnects
       client.on('close', handleDisconnect);
+      client.on('offline', handleDisconnect);
     };
 
     const handleDisconnect = () => {
