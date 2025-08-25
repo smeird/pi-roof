@@ -8,8 +8,11 @@
     let ended = false;
     let currentStatus;
     let lastError;
+    let reconnectTimer;
 
     const connect = () => {
+      if (ended) return;
+      reconnectTimer = undefined;
       currentStatus = 'connecting';
       handlers.status.forEach(h => h('connecting'));
       client = mqtt.connect(brokerUrl, { ...options, reconnectPeriod: 0 });
@@ -45,7 +48,7 @@
       reconnectDelay = Math.min(maxDelay, reconnectDelay * 2);
       currentStatus = 'reconnecting';
       handlers.status.forEach(h => h('reconnecting', delay));
-      setTimeout(connect, delay);
+      reconnectTimer = setTimeout(connect, delay);
     };
 
     connect();
@@ -66,6 +69,10 @@
       },
       end: () => {
         ended = true;
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = undefined;
+        }
         if (client) client.end();
       }
     };
