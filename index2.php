@@ -1,1 +1,0 @@
-<iframe src="http://admin.smeird.com:3000/d-solo/d739eacd-bb69-4b66-9966-c42c157c4b60/deep-sky?orgId=1&from=1702899341423&to=1702920941423&theme=light&panelId=1" width="450" height="200" frameborder="0"></iframe>
