@@ -11,6 +11,8 @@
 
 - Sensor data uses Highcharts solid gauges with Tailwind indicators; the SkyCam image sits in its own card.
 
+- Sensors include red/green status dots driven by per-sensor thresholds configurable in settings.
+
 - Use `js/mqttClient.js` for all MQTT connections instead of direct library calls.
 - Highcharts solid gauges require `highcharts-more.js` and are placed inside Tailwind card wrappers.
 - Main page background uses a subtle top-to-bottom gray gradient.

@@ -82,6 +82,7 @@ try {
 }
 
 const sensorValueEls = {};
+const sensorIndicators = {};
 const indicatorEls = {};
 const topics = new Set(dashboardTopics);
 const toggleStates = {};
@@ -91,22 +92,28 @@ function addSensorCards() {
   sensors.forEach(s => {
     const card = document.createElement('div');
     card.className = 'p-4 bg-white rounded shadow flex items-center justify-between';
+
+    const left = document.createElement('span');
+    left.className = 'flex items-center';
+    const indicator = document.createElement('span');
+    indicator.className = 'h-3 w-3 rounded-full bg-red-500 mr-2';
+    left.appendChild(indicator);
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = s.name;
+    left.appendChild(nameSpan);
+    card.appendChild(left);
+
     const valueEl = document.createElement('span');
     valueEl.className = 'sensor-value font-mono';
     valueEl.textContent = '--';
     valueEl.setAttribute('data-topic', s.path);
     valueEl.setAttribute('data-static', '');
     if (s.unit) valueEl.setAttribute('data-unit', s.unit);
-    card.innerHTML = `<span>${s.name}</span>`;
     card.appendChild(valueEl);
-    if (s.unit) {
-      const unitSpan = document.createElement('span');
-      unitSpan.className = 'ml-1';
-      unitSpan.textContent = s.unit;
-      card.appendChild(unitSpan);
-    }
+
     container.appendChild(card);
     sensorValueEls[s.path] = valueEl;
+    sensorIndicators[s.path] = { el: indicator, green: parseFloat(s.green) };
     topics.add(s.path);
   });
 }
@@ -248,10 +255,10 @@ if (mqttClient) {
     const value = message.toString();
     if (sensorValueEls[topic]) {
       const el = sensorValueEls[topic];
-      el.textContent = value;
       const unit = el.getAttribute('data-unit');
-      if (unit) el.textContent = value + ' ' + unit;
+      el.textContent = unit ? value + ' ' + unit : value;
     }
+    if (sensorIndicators[topic]) updateSensorIndicator(topic, value);
     if (indicatorEls[topic]) updateIndicatorEl(indicatorEls[topic], value);
     if (bulletCharts[topic]) {
       bulletCharts[topic].series[0].points[0].update({ y: parseFloat(value) });
@@ -274,6 +281,19 @@ if (mqttClient) {
 function updateIndicatorEl(el, value) {
   el.classList.remove('bg-green-500','bg-red-500','bg-gray-400');
   el.classList.add(value === '1' ? 'bg-green-500' : 'bg-red-500');
+}
+
+function updateSensorIndicator(topic, value) {
+  const data = sensorIndicators[topic];
+  if (!data) return;
+  const num = parseFloat(value);
+  if (!isNaN(num) && !isNaN(data.green) && num <= data.green) {
+    data.el.classList.remove('bg-red-500');
+    data.el.classList.add('bg-green-500');
+  } else {
+    data.el.classList.remove('bg-green-500');
+    data.el.classList.add('bg-red-500');
+  }
 }
 
 function updateToggleButton(topic, value) {
