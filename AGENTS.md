@@ -5,3 +5,4 @@
 - No automated tests are configured; run `npm test` to confirm.
 - Navigation links now live in a Tailwind-styled sidebar instead of a top bar.
 - Toggle controls should use Tailwind switch-style buttons with a sliding knob.
+
