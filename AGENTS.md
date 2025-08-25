@@ -9,6 +9,8 @@
 - Toggle controls should use Tailwind switch-style buttons with a sliding knob.
 - Main layout uses a full-height flex container with a sticky sidebar and wider grid spacing.
 
+- Sidebar collapses into a hamburger menu on small screens so mobile users can access controls.
+
 - Sensor data uses Highcharts solid gauges with Tailwind indicators; the SkyCam image sits in its own card.
 
 - Use `js/mqttClient.js` for all MQTT connections instead of direct library calls.

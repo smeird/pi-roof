@@ -10,8 +10,9 @@
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/bullet.js"></script>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex">
-<aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
+<body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 md:flex">
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden md:hidden"></div>
+<aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-900 text-white transform -translate-x-full md:translate-x-0 md:relative md:flex-shrink-0 flex flex-col transition-transform duration-200 z-40">
   <div class="p-4 text-lg font-bold">Observatory Control Panel</div>
   <nav class="px-2 flex-1">
     <ul class="space-y-2">
@@ -25,7 +26,14 @@
     </ul>
   </nav>
 </aside>
-<main class="flex-1 p-6 space-y-8">
+<div class="flex flex-col min-h-screen flex-1">
+  <header class="md:hidden bg-gray-900 text-white p-4 flex items-center justify-between">
+    <div class="text-lg font-bold">Observatory Control Panel</div>
+    <button id="menuButton" class="focus:outline-none">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+    </button>
+  </header>
+  <main class="flex-1 p-6 space-y-8">
   <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
   <div id="connectionStatus" class="flex items-center text-sm text-gray-700">
     <span id="statusDot" class="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
@@ -63,8 +71,22 @@
   </section>
 </main>
 
+</div>
+
 <script type="module">
 import { loadConfig } from './js/mqttConfig.js';
+
+const menuButton = document.getElementById('menuButton');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+if (menuButton && sidebar && overlay) {
+  const toggleSidebar = () => {
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
+  };
+  menuButton.addEventListener('click', toggleSidebar);
+  overlay.addEventListener('click', toggleSidebar);
+}
 
 let brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof;
 let mqttClient;
