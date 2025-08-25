@@ -5,6 +5,8 @@ Web interface for monitoring and controlling a small observatory and related har
 ## Features
 
 - **Observatory control panel** (`index.html`): displays sensor values such as clouds, rain, light, dew point, SQM and star count via MQTT and provides toggle buttons for devices.
+
+
 - **Roof and GPIO control** (`script.php`, `manualjob.php`): PHP endpoints that run system scripts to open/close the roof or toggle specific GPIO pins on the Raspberry Pi.
 
 The site depends on MQTT for live updates and on external Python scripts for hardware actions.
