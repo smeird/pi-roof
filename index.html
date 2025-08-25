@@ -61,13 +61,7 @@
   <!-- Graphs -->
   <section class="bg-white rounded shadow p-6">
     <h2 class="text-xl font-semibold mb-4">Graphs</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div id="bullet-clouds" class="h-32"></div>
-      <div id="bullet-light" class="h-32"></div>
-      <div id="bullet-rain" class="h-32"></div>
-      <div id="bullet-hum" class="h-32"></div>
-      <div id="bullet-sqm" class="h-32"></div>
-    </div>
+    <div id="bulletContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
   </section>
 </main>
 
@@ -89,13 +83,8 @@ if (menuButton && sidebar && overlay) {
 }
 
 let brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof;
-let mqttClient;
 try {
   ({ brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof } = await loadConfig());
-  mqttClient = createClient({
-    brokerUrl: `${brokerUrl}:${port}`,
-    options: { username, password }
-  });
 } catch (err) {
   const statusEl = document.getElementById('statusText');
   if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
@@ -188,6 +177,7 @@ function addSwitchCards() {
 addSensorCards();
 addRoofControls();
 addSwitchCards();
+addSensorCharts();
 
 const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
 const staticTopics = new Set(
@@ -231,7 +221,7 @@ function updateConnectionStatus(status, info) {
 }
 setToggleDisabled(true);
 
-function createBullet(id, title, min, max, target, color, neg) {
+function createBullet(id, title, min, max, target) {
   return Highcharts.chart(id, {
     chart: { type: 'bullet', inverted: true },
     title: { text: title, align: 'left' },
@@ -239,30 +229,44 @@ function createBullet(id, title, min, max, target, color, neg) {
     yAxis: { min: min, max: max, title: null, plotBands: [] },
     series: [{
       data: [{ y: 0, target: target }],
-      threshold: target,
-      color: color,
-      negativeColor: neg
+      color: 'red'
     }],
     tooltip: { enabled: false },
     credits: { enabled: false }
   });
 }
 
-const bulletConfigs = {
-  'Observatory/Graph/clouds': { id: 'bullet-clouds', title: 'Clouds', min: -40, max: 40, target: -12, color: 'red', neg: 'green' },
-  'Observatory/Graph/light': { id: 'bullet-light', title: 'Light', min: 0, max: 20000, target: 10000, color: 'green', neg: 'red' },
-  'Observatory/Graph/rain': { id: 'bullet-rain', title: 'Rain', min: 0, max: 10000, target: 4200, color: 'green', neg: 'red' },
-  'Observatory/Graph/hum': { id: 'bullet-hum', title: 'Humidity', min: 0, max: 100, target: 95, color: 'red', neg: 'green' },
-  'Observatory/Graph/sqm': { id: 'bullet-sqm', title: 'Darkness', min: 0, max: 22, target: 15, color: 'green', neg: 'red' }
-};
-
 const bulletCharts = {};
-Object.entries(bulletConfigs).forEach(([topic, cfg]) => {
-  bulletCharts[topic] = createBullet(cfg.id, cfg.title, cfg.min, cfg.max, cfg.target, cfg.color, cfg.neg);
-  topics.add(topic);
-});
+const bulletTargets = {};
 
-if (mqttClient) {
+function defaultRange(green) {
+  const g = parseFloat(green);
+  if (isNaN(g) || g === 0) return { min: 0, max: 100 };
+  if (g > 0) return { min: 0, max: g * 2 };
+  return { min: g * 2, max: 0 };
+}
+
+function addSensorCharts() {
+  const container = document.getElementById('bulletContainer');
+  sensors.forEach((s, idx) => {
+    const id = `bullet-${idx}`;
+    const div = document.createElement('div');
+    div.id = id;
+    div.className = 'h-32';
+    container.appendChild(div);
+    const range = defaultRange(s.green);
+    const target = parseFloat(s.green);
+    bulletCharts[s.path] = createBullet(id, s.name, range.min, range.max, target);
+    bulletTargets[s.path] = target;
+  });
+}
+
+let mqttClient;
+try {
+  mqttClient = createClient({
+    brokerUrl: `${brokerUrl}:${port}`,
+    options: { username, password }
+  });
   mqttClient.on('status', updateConnectionStatus);
   mqttClient.on('error', err => console.error('MQTT client error:', err));
 
@@ -283,7 +287,10 @@ if (mqttClient) {
     if (sensorIndicators[topic]) updateSensorIndicator(topic, value);
     if (indicatorEls[topic]) updateIndicatorEl(indicatorEls[topic], value);
     if (bulletCharts[topic]) {
-      bulletCharts[topic].series[0].points[0].update({ y: parseFloat(value) });
+      const y = parseFloat(value);
+      const target = bulletTargets[topic];
+      const color = (!isNaN(target) && y <= target) ? 'green' : 'red';
+      bulletCharts[topic].series[0].points[0].update({ y, color });
     }
     if (!staticTopics.has(topic)) {
       toggleStates[topic] = value;
@@ -298,6 +305,11 @@ if (mqttClient) {
       mqttClient.publish(topic, newState, { qos: 2, retain: true });
     });
   });
+} catch (err) {
+  const statusEl = document.getElementById('statusText');
+  if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
+  setToggleDisabled(true);
+  console.error('MQTT init error:', err);
 }
 
 function updateIndicatorEl(el, value) {
