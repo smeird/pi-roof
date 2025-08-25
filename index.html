@@ -1,499 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Observatory Control Panel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Observatory Control Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
 </head>
 <body class="min-h-screen bg-gray-100 flex">
-      <aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
-        <div class="p-4 text-lg font-bold">Observatory Control Panel</div>
-        <nav class="px-2 flex-1">
-          <ul class="space-y-2">
-          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
-          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
-          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
-          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
-          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
-          <li><a class="block px-2 py-1 hover:bg-gray-700" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forcast</a></li>
-        </ul>
-      </nav>
-    </aside>
-      <main class="flex-1 p-6 space-y-6">
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <div class="container mx-auto">
+<aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
+  <div class="p-4 text-lg font-bold">Observatory Control Panel</div>
+  <nav class="px-2 flex-1">
+    <ul class="space-y-2">
+      <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forecast</a></li>
+    </ul>
+  </nav>
+</aside>
+<main class="flex-1 p-6 space-y-8">
+  <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-    <div>
-        <div id="cloudsCard" class="card bg-white text-gray-800 shadow rounded-lg">
-            <div class="card-header px-4 py-2 font-semibold border-b">Clouds</div>
-            <div class="card-body p-4">
-                <p class="card-text" id="cloudsStatus" data-topic="Observatory/clouds">Loading...</p>
-            </div>
-        </div>
+  <!-- Sensor Data -->
+  <section>
+    <h2 class="text-xl font-semibold mb-4">Sensor Data</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="gauge-clouds" class="h-48"></div>
+      <div id="gauge-rain" class="h-48"></div>
+      <div id="gauge-light" class="h-48"></div>
+      <div id="gauge-dew" class="h-48"></div>
+      <div id="gauge-sqm" class="h-48"></div>
+      <div id="gauge-stars" class="h-48"></div>
     </div>
-    <div>
-        <div id="rainCard" class="card bg-white text-gray-800 shadow rounded-lg">
-            <div class="card-header px-4 py-2 font-semibold border-b">Rain</div>
-            <div class="card-body p-4">
-                <p class="card-text" id="rainStatus" data-topic="Observatory/rain">Loading...</p>
-            </div>
-        </div>
+  </section>
+
+  <!-- SkyCam and Graph -->
+  <section>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <a href="http://skycam.smeird.com">
+        <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto">
+      </a>
+      <iframe src="realtimegraph.php" class="w-full h-64 md:h-full border" title="Real-time graph"></iframe>
     </div>
-    <div>
-        <div id="lightCard" class="card bg-white text-gray-800 shadow rounded-lg">
-            <div class="card-header px-4 py-2 font-semibold border-b">Light</div>
-            <div class="card-body p-4">
-                <p class="card-text" id="lightStatus" data-topic="Observatory/light">Loading...</p>
-            </div>
-        </div>
+  </section>
+
+  <!-- Roof Controls -->
+  <section>
+    <h2 class="text-xl font-semibold mb-4">Roof Controls</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Open Roof</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/open">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Close Roof</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/close">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center">
+        <span class="mr-2">Open Limit</span>
+        <span id="openLimitIndicator" class="h-3 w-3 rounded-full bg-gray-400"></span>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center">
+        <span class="mr-2">Close Limit</span>
+        <span id="closeLimitIndicator" class="h-3 w-3 rounded-full bg-gray-400"></span>
+      </div>
     </div>
-    <div>
-        <div id="dewCard" class="card bg-white text-gray-800 shadow rounded-lg">
-            <div class="card-header px-4 py-2 font-semibold border-b">Dew</div>
-            <div class="card-body p-4">
-                <p class="card-text" id="dewStatus" data-topic="Observatory/dewp">Loading...</p>
-            </div>
-        </div>
+  </section>
+
+  <!-- Observatory Switches -->
+  <section>
+    <h2 class="text-xl font-semibold mb-4">Observatory Switches</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>12V Power</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/power">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>White Lights</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/white">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Red Lights</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/red">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Desk Lights</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/desk">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>PC</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Computer">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Focus</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Focus">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Dew</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Dew">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Scope</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Scope">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Patio Sensor</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/PatioSensor">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Veg Sensor</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/ObservatorySensor">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
+      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
+        <span>Workshop Motion</span>
+        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="workshop/sensors/motion">
+          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+        </button>
+      </div>
     </div>
-  <div>
-        <div id="sqmCard" class="card bg-white text-gray-800 shadow rounded-lg">
-            <div class="card-header px-4 py-2 font-semibold border-b">SQM</div>
-            <div class="card-body p-4">
-                <p class="card-text" id="sqmStatus" data-topic="Observatory/sqm">Loading...</p>
-            </div>
-        </div>
-    </div>
+  </section>
+</main>
 
- <div>
-        <div id="starsCard" class="card bg-white text-gray-800 shadow rounded-lg">
-            <div class="card-header px-4 py-2 font-semibold border-b">Stars</div>
-            <div class="card-body p-4">
-                <p class="card-text" id="starsStatus" data-topic="skycam/stars">Loading...</p>
-            </div>
-        </div>
-    </div>
+<script>
+// Highcharts gauge setup
+function createGauge(id, title, min, max) {
+  return Highcharts.chart(id, {
+    chart: { type: 'solidgauge' },
+    title: { text: title },
+    pane: { center: ['50%', '85%'], size: '140%', startAngle: -90, endAngle: 90,
+      background: { innerRadius: '60%', outerRadius: '100%', shape: 'arc' } },
+    yAxis: { min: min, max: max, lineWidth: 0, tickAmount: 2,
+      labels: { y: 16 }, stops: [[0.1, '#f87171'], [0.5, '#fbbf24'], [0.9, '#34d399']] },
+    series: [{ data: [0], dataLabels: { format: '<span class="text-xl">{y}</span>' } }],
+    tooltip: { enabled: false },
+    credits: { enabled: false }
+  });
+}
 
+const gaugeConfigs = {
+  'Observatory/clouds': { id: 'gauge-clouds', title: 'Clouds', min: -40, max: 40 },
+  'Observatory/rain': { id: 'gauge-rain', title: 'Rain', min: 0, max: 10000 },
+  'Observatory/light': { id: 'gauge-light', title: 'Light', min: 0, max: 20000 },
+  'Observatory/dewp': { id: 'gauge-dew', title: 'Dew', min: -10, max: 30 },
+  'Observatory/sqm': { id: 'gauge-sqm', title: 'SQM', min: 0, max: 22 },
+  'skycam/stars': { id: 'gauge-stars', title: 'Stars', min: 0, max: 50 }
+};
 
+const gaugeCharts = {};
+Object.entries(gaugeConfigs).forEach(([topic, cfg]) => {
+  gaugeCharts[topic] = createGauge(cfg.id, cfg.title, cfg.min, cfg.max);
+});
 
+// MQTT handling
+const mqttClient = mqtt.connect('ws://homeassistant.smeird.com:1884', {
+  username: 'smeird',
+  password: '92987974'
+});
 
+const toggleStates = {};
+const topics = Object.keys(gaugeConfigs).concat([
+  'Observatory/roof/open','Observatory/roof/close','Observatory/roof/openlimit','Observatory/roof/closelimit',
+  'Observatory/roof/power','Observatory/lights/white','Observatory/lights/red','Observatory/lights/desk',
+  'Observatory/Scope/Computer','Observatory/Scope/Focus','Observatory/Scope/Dew','Observatory/Scope/Scope',
+  'Observatory/Hue/PatioSensor','Observatory/Hue/ObservatorySensor','workshop/sensors/motion'
+]);
 
+mqttClient.on('connect', function() {
+  topics.forEach(t => { mqttClient.subscribe(t); toggleStates[t] = '0'; });
+});
 
+mqttClient.on('message', function(topic, message) {
+  const value = message.toString();
+  if (gaugeCharts[topic]) {
+    const point = gaugeCharts[topic].series[0].points[0];
+    point.update(parseFloat(value));
+  }
+  if (topic === 'Observatory/roof/openlimit') updateIndicator('openLimitIndicator', value);
+  if (topic === 'Observatory/roof/closelimit') updateIndicator('closeLimitIndicator', value);
+  toggleStates[topic] = value;
+  updateToggleButton(topic, value);
+});
 
+document.querySelectorAll('.toggleButton').forEach(button => {
+  button.addEventListener('click', function() {
+    const topic = this.getAttribute('data-topic');
+    const newState = toggleStates[topic] === '1' ? '0' : '1';
+    mqttClient.publish(topic, newState, { qos: 2, retain: true });
+  });
+});
 
-</div>
+function updateIndicator(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('bg-green-500','bg-red-500','bg-gray-400');
+  el.classList.add(value === '1' ? 'bg-green-500' : 'bg-red-500');
+}
 
-<hr>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-                <!-- 12V Power Card -->
-              <div>
-                  <div id="powerCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                      <div class="card-header px-4 py-2 font-semibold border-b">12V Power</div>
-
-                          <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/power">
-                              <span class="sr-only">Toggle</span>
-                              <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                          </button>
-
-                  </div>
-              </div>
-
-              <!-- White Lights Card -->
-            <div>
-                <div id="whiteLightsCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    
-                    <div class="card-header px-4 py-2 font-semibold border-b">White Lights</div>
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/white">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-
-            <!-- Red Lights Card -->
-            <div>
-                <div id="redLightsCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Red Lights</div>
-                   
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/red">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-
-            <!-- Desk Lights Card -->
-            <div>
-                <div id="deskLightsCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Desk Lights</div>
-                   
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/desk">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-        </div>
- 
-     <hr>  
-
-<!-- Existing Roof Cards -->
-<!-- ... -->
-
-            <!-- Close Limit Switch Card -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            <div>
-                <div id="openLimitSwitchCard" class="card bg-white text-gray-800 shadow rounded-lg">
-               
-                    <div class="card-body p-4">Open Limit Switch
-                        <p class="card-text" id="openLimitStatus" data-topic="Observatory/roof/openlimit"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Open Limit Switch Card -->
-            <div>
-                <div id="closeLimitSwitchCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                  
-                    <div class="card-body p-4">Close Limit Switch
-                        <p class="card-text" id="closeLimitStatus" data-topic="Observatory/roof/closelimit"></p>
-                    </div>
-                </div>
-            </div>
-        </div>   
-<hr>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            <!-- Open Roof Card -->
-            <div>
-                <div id="openRoofCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Open Roof</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/open">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-
-            <!-- Close Roof Card -->
-            <div>
-                <div id="closeRoofCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Close Roof</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/close">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-        </div>
-   
-        <hr>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            <!-- Computer Card -->
-            <div>
-                <div id="computerCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">PC</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Computer">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-
-            <!-- Focuser Card -->
-            <div>
-                <div id="focuserCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Focus</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Focus">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-
-            <!-- Dew Heater Card -->
-            <div>
-                <div id="dewHeaterCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Dew</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Dew">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                   
-                </div>
-            </div>
-
-            <!-- Scope Card -->
-            <div>
-                <div id="scopeCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Scope</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Scope">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-            <!-- Patio Sensor Card -->
-            <div>
-                <div id="patioCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Patio Sensor</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/PatioSensor">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-            <!-- Veg Garden sensor -->
-            <div>
-                <div id="vegCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Veg Sensor</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/ObservatorySensor">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>
-            <!-- Workshop Lights sensor -->
-            <div>
-                <div id="workshopmotionCard" class="card bg-white text-gray-800 shadow rounded-lg">
-                    <div class="card-header px-4 py-2 font-semibold border-b">Workshop Motion</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="workshop/sensors/motion">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-                
-            </div>
-        </div>
-    </div>
-
-
-
-  <div class="container mx-auto my-4">
-      <a href=http://skycam.smeird.com><img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto"></a>
-  </div>
-    </main>
-  <script>
-    function refreshImage() {
-        const image = document.getElementById('liveImage');
-        const timestamp = new Date().getTime();
-        image.src = 'http://skycam.local/current/tmp/image.jpg?' + timestamp;
-
-        // Clear the message initially
-        document.getElementById('imageMessage').textContent = '';
-        
-        // Create a new image element for checking load/error
-        const imgLoader = new Image();
-        imgLoader.src = image.src;
-
-        imgLoader.onload = function() {
-            // Image loaded successfully, do nothing
-        };
-
-        imgLoader.onerror = function() {
-            // Image failed to load, display message
-            document.getElementById('imageMessage').textContent = 'Image failed to load. Please try refreshing the page.';
-        };
-    }
-
-    // Refresh the image every 120 seconds
-    setInterval(refreshImage, 120000);
-</script>
-
-
-
-
-
-    <!-- JavaScript Integration -->
-<script type="text/javascript">
-    const mqttClient = mqtt.connect('ws://homeassistant.smeird.com:1884', {
-        username: 'smeird',
-        password: '92987974' // Secure handling of credentials is essential
-    });
-
-    const toggleStates = {}; // Store the current state of each toggle
-
-    mqttClient.on('connect', function () {
-        const topics = [
-            'Observatory/lights/white',
-            'Observatory/lights/red',
-            'Observatory/lights/desk',
-            'Observatory/roof/open',
-            'Observatory/roof/close',
-            'Observatory/roof/power',
-            'Observatory/Scope/Computer',
-            'Observatory/Scope/Focus',
-            'Observatory/Scope/Dew',
-            'Observatory/Scope/Scope',
-            'Observatory/Hue/ObservatorySensor',
-            'Observatory/Hue/PatioSensor',
-            'Observatory/roof/closelimit',
-            'Observatory/roof/openlimit',
-            'workshop/sensors/motion',
-            'Observatory/clouds',
-            'Observatory/rain',
-            'Observatory/light',
-            'Observatory/dewp',
-            'skycam/stars',
-            'Observatory/sqm'
-        ];
-        
-        topics.forEach(topic => {
-            mqttClient.subscribe(topic);
-            toggleStates[topic] = '0'; // Initialize states to 'off'
-        });
-    });
-
-      mqttClient.on('message', function (topic, message) {
-          const messageStr = message.toString();
-          toggleStates[topic] = messageStr; // Update the current state
-          updateCard(topic, messageStr);
-          updateValueDisplay(topic, messageStr); // New function to update text
-          updateToggleButton(topic, messageStr);
-      });
-
-    document.querySelectorAll('.toggleButton').forEach(button => {
-        button.addEventListener('click', function() {
-            const topic = this.getAttribute('data-topic');
-            const newState = toggleStates[topic] === '1' ? '0' : '1'; // Toggle the value
-            mqttClient.publish(topic, newState,{ qos: 2, retain: true });
-        });
-    });
-
-
-    const nonColourChangeTopics = [
-        'Observatory/clouds',
-        'Observatory/rain',
-        'Observatory/light',
-        'Observatory/dewp',
-        'skycam/stars',
-        'Observatory/sqm'
-        // ... add other 6 topics here
-    ];
-
-
-
-    //function updateCard(topic, value) {
-    //    const card = document.querySelector(`[data-topic='${topic}']`).closest('.card');
-    //    card.className = 'card text-white text-center bg-' + (value === '1' ? 'success' : 'danger');
-    //}
-
-    function updateCard(topic, value) {
-        const card = document.querySelector(`[data-topic='${topic}']`).closest('.card');
-
-        // Check if the topic is in the nonColourChangeTopics array
-        if (nonColourChangeTopics.includes(topic)) {
-            // Keep the original colour for these topics
-            card.classList.remove('bg-green-500', 'text-white');
-            card.classList.add('bg-gray-100', 'text-black');
-        } else {
-            // For other topics, apply the colour change logic
-            if (value === '1') {
-                card.classList.remove('bg-gray-100', 'text-black');
-                card.classList.add('bg-green-500', 'text-white');
-            } else {
-                card.classList.remove('bg-green-500', 'text-white');
-                card.classList.add('bg-gray-100', 'text-black');
-            }
-        }
-    }
-
-
-    // New function to update card text based on topic
-    //function updateValueDisplay(topic, value) {
-    //    const valueDisplay = document.querySelector(`[data-topic='${topic}']`);
-    //    if (valueDisplay) {
-    //        valueDisplay.textContent = value;
-    //    }
-    //}
-      function updateValueDisplay(topic, value) {
-        // Check if the topic is in the nonColourChangeTopics array
-        if (nonColourChangeTopics.includes(topic)) {
-            const valueDisplay = document.querySelector(`[data-topic='${topic}']`);
-            if (valueDisplay) {
-                valueDisplay.textContent = value; // Update the text only for these topics
-                const cardBody= valueDisplay.closest('.card-body');
-
-        switch (topic) {
-            case 'Observatory/clouds':
-                updateCardBackground(cardBody, parseFloat(value) < -15, 'bg-green-500');
-                break;
-            case 'Observatory/rain':
-                updateCardBackground(cardBody, parseFloat(value) > 4000, 'bg-green-500');
-                break;
-            case 'Observatory/light':
-                updateCardBackground(cardBody, parseFloat(value) > 10000, 'bg-green-500');
-                break;
-            case 'Observatory/dewp':
-                updateCardBackground(cardBody, parseFloat(value) < 5, 'bg-green-500');
-                break;
-            case 'Observatory/sqm':
-                updateCardBackground(cardBody, parseFloat(value) > 18, 'bg-green-500');
-                break;
-            case 'skycam/stars':
-                updateCardBackground(cardBody, parseFloat(value) > 20, 'bg-green-500');
-                break;
-        }
-
-            }
-        }
-    }
-
-    function updateToggleButton(topic, value) {
-        const button = document.querySelector(`.toggleButton[data-topic='${topic}']`);
-        if (button) {
-            const knob = button.querySelector('span:last-child');
-            if (value === '1') {
-                button.classList.remove('bg-gray-200');
-                button.classList.add('bg-green-500');
-                knob.classList.add('translate-x-5');
-            } else {
-                button.classList.remove('bg-green-500');
-                button.classList.add('bg-gray-200');
-                knob.classList.remove('translate-x-5');
-            }
-        }
-    }
-
-function updateCardBackground(cardBody, condition, className) {
-    console.log("Updating card body background", { cardBody, condition, className });
-
-    // Remove any previously set background classes
-    cardBody.classList.remove('bg-gray-100', 'bg-green-500', 'bg-yellow-500', 'bg-blue-500', 'bg-gray-500');
-
-    if (condition) {
-        cardBody.classList.add(className); // Apply new background class
+function updateToggleButton(topic, value) {
+  const button = document.querySelector(`.toggleButton[data-topic='${topic}']`);
+  if (button) {
+    const knob = button.querySelector('span');
+    if (value === '1') {
+      button.classList.remove('bg-gray-200');
+      button.classList.add('bg-green-500');
+      knob.classList.add('translate-x-5');
     } else {
-        cardBody.classList.add('bg-gray-100'); // Default background class
+      button.classList.remove('bg-green-500');
+      button.classList.add('bg-gray-200');
+      knob.classList.remove('translate-x-5');
     }
+  }
 }
 </script>
 
+<script>
+function refreshImage() {
+  const image = document.getElementById('liveImage');
+  const timestamp = new Date().getTime();
+  image.src = 'http://skycam.local/current/tmp/image.jpg?' + timestamp;
+}
+setInterval(refreshImage, 120000);
+</script>
 </body>
-
 </html>
-
-
