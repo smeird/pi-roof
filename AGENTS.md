@@ -11,6 +11,7 @@
 - Main layout uses a full-height flex container with a sticky sidebar and wider grid spacing.
 
 - Sidebar collapses into a hamburger menu on small screens so mobile users can access controls.
+- MQTT connection status indicator sits at the bottom of the sidebar.
 
 - Sensor data uses Highcharts solid gauges with Tailwind indicators; the SkyCam image sits in its own card.
 

@@ -25,6 +25,10 @@
       <li><a class="block px-2 py-1 hover:bg-gray-700" href="settings.html">Settings</a></li>
     </ul>
   </nav>
+  <div id="connectionStatus" class="p-4 text-sm flex items-center text-gray-300">
+    <span id="statusDot" class="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
+    <span id="statusText">Connecting...</span>
+  </div>
 </aside>
 <div class="flex flex-col min-h-screen flex-1">
   <header class="md:hidden bg-gray-900 text-white p-4 flex items-center justify-between">
@@ -35,10 +39,6 @@
   </header>
   <main class="flex-1 p-6 space-y-8">
   <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-  <div id="connectionStatus" class="flex items-center text-sm text-gray-700">
-    <span id="statusDot" class="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
-    <span id="statusText">Connecting...</span>
-  </div>
 
   <!-- Sensors -->
   <section class="bg-white rounded shadow p-6">
