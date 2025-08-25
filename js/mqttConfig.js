@@ -1,5 +1,5 @@
 export async function loadConfig() {
-  const res = await fetch('./get_config.php');
+  const res = await fetch('/get_config.php');
   if (!res.ok) {
     throw new Error('Failed to load config');
   }
