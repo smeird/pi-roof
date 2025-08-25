@@ -11,6 +11,6 @@ Web interface for monitoring and controlling a small observatory and related har
 The site depends on MQTT for live updates.
 
 ## MQTT Configuration
-Connection details are stored in a SQLite `config.db` database. Client-side scripts load these settings through `js/mqttConfig.js` which fetches `/get_config.php`.
+Connection details are stored in a SQLite `config.db` database located at `/var/www/data/config.db` outside the web root. Client-side scripts load these settings through `js/mqttConfig.js` which fetches `/get_config.php`.
 
 Use `settings.html` to edit values such as broker URL, port, username, password and dashboard topics. Changes are saved via `/save_config.php` and take effect immediately on subsequent page loads.
