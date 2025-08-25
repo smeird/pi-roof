@@ -13,4 +13,4 @@ export const port = parseInt(getEnv('MQTT_PORT', '1884'), 10);
 export const username = getEnv('MQTT_USERNAME', '');
 export const password = getEnv('MQTT_PASSWORD', '');
 export const dashboardTopics = getEnv('MQTT_DASHBOARD_TOPICS', '').split(',').filter(Boolean);
-export const graphTopic = getEnv('MQTT_GRAPH_TOPIC', 'Observatory/Graph/#');
+

@@ -46,15 +46,12 @@
     </div>
   </section>
 
-  <!-- SkyCam and Graph -->
-  <section>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <a href="http://skycam.smeird.com">
-        <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto">
-      </a>
-      <iframe src="realtimegraph.php" class="w-full h-64 md:h-full border" title="Real-time graph"></iframe>
-
-    </div>
+  <!-- SkyCam -->
+  <section class="bg-white rounded shadow p-6">
+    <h2 class="text-xl font-semibold mb-4">SkyCam</h2>
+    <a href="http://skycam.smeird.com" class="block">
+      <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto rounded">
+    </a>
   </section>
 
   <!-- Roof Controls -->
@@ -157,18 +154,6 @@
     </div>
   </section>
 
-  <!-- SkyCam and Graph -->
-  <section class="bg-white rounded shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">SkyCam & Real-time Graph</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <a href="http://skycam.smeird.com" class="block p-4 bg-gray-50 rounded shadow">
-        <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto rounded">
-      </a>
-      <div class="p-4 bg-gray-50 rounded shadow">
-        <iframe src="realtimegraph.php" class="w-full h-64 md:h-full border rounded" title="Real-time graph"></iframe>
-      </div>
-    </div>
-  </section>
 </main>
 
 <script type="module">
