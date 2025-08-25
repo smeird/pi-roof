@@ -10,43 +10,35 @@
   <script src="https://code.highcharts.com/modules/data.js"></script>
   <script src="https://code.highcharts.com/modules/exporting.js"></script>
   <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="js/mqttClient.js"></script>
 </head>
 <body>
   <div id="containery" style="height: 800px;"></div>
   <script type="text/javascript">
 //settings BEGIN
-var MQTTbroker = 'mqtt.smeird.com';
-var MQTTport = 8083;
+var MQTTbroker = 'wss://mqtt.smeird.com:8083';
 var MQTTsubTopic = 'Observatory/Graph/#'; //works with wildcard # and + topics dynamically now
 //settings END
 var chart; // global variable for chart
-var dataTopics = new Array();
-//mqtt broker
-var clientA = new Paho.MQTT.Client(MQTTbroker, MQTTport, "myclientid_" + parseInt(Math.random() * 1000, 10));
+var dataTopics = [];
 
-// Connect the client, with a Username and Password
-clientA.onMessageArrived = onMessageArrived;
-clientA.onConnectionLost = onConnectionLost;
-//mqtt connection options including the mqtt broker subscriptions
-var options = {
-  timeout: 3,
-  useSSL: true,
-  onSuccess: function () {
-    console.log("Graph mqtt connected");
-    // Connection succeeded; subscribe to our topics
-    clientA.subscribe(MQTTsubTopic, {qos: 0});
-  },
-  onFailure: function (message) {
-    console.log("Connection failed, ERROR: " + message.errorMessage);
-    //window.setTimeout(location.reload(),20000); //wait 20seconds before trying to connect again.
-  }
-};
-//can be used to reconnect on connection lost
-function onConnectionLost(responseObject) {
-  console.log("connection lost: " + responseObject.errorMessage);
-  //window.setTimeout(location.reload(),20000); //wait 20seconds before trying to connect again.
-}
+const mqttClient = createClient({ brokerUrl: MQTTbroker });
+
+mqttClient.on('connect', function () {
+  console.log("Graph mqtt connected");
+  mqttClient.subscribe(MQTTsubTopic);
+});
+
+mqttClient.on('error', function (err) {
+  console.log("Connection failed, ERROR: " + err.message);
+});
+
+mqttClient.on('message', function (topic, payload) {
+  const message = { destinationName: topic, payloadString: payload.toString() };
+  onMessageArrived(message);
+});
+
 //what is done when a message arrives from the broker
 function onMessageArrived(message) {
   //check if it is a new topic, if not add it to the array
@@ -128,8 +120,6 @@ function init() {
       useUTC: true
     }
   });
-  // Connect to MQTT broker
-  clientA.connect(options);
 }
 //this adds the plots to the chart
 function plot(point, chartno) {

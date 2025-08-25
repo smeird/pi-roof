@@ -6,6 +6,7 @@
 <title>Observatory Control Panel</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="js/mqttClient.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
 </head>
@@ -181,9 +182,12 @@ Object.entries(gaugeConfigs).forEach(([topic, cfg]) => {
 });
 
 // MQTT handling
-const mqttClient = mqtt.connect('ws://homeassistant.smeird.com:1884', {
-  username: 'smeird',
-  password: '92987974'
+const mqttClient = createClient({
+  brokerUrl: 'ws://homeassistant.smeird.com:1884',
+  options: {
+    username: 'smeird',
+    password: '92987974'
+  }
 });
 
 const toggleStates = {};
