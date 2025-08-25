@@ -263,8 +263,10 @@ function addSensorCharts() {
 
 let mqttClient;
 try {
+  const url = new URL(brokerUrl);
+  if (port) url.port = port;
   mqttClient = createClient({
-    brokerUrl: `${brokerUrl}:${port}`,
+    brokerUrl: url.toString(),
     options: { username, password }
   });
   mqttClient.on('status', updateConnectionStatus);
