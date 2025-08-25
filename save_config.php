@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+// Always return JSON so the client can parse the response reliably
+header('Content-Type: application/json');
+
 $allowed = [
     'MQTT_BROKER_URL',
     'MQTT_PORT',

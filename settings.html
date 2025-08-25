@@ -53,12 +53,17 @@
     document.getElementById('settingsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.target).entries());
-      const res = await fetch('/save_config.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      document.getElementById('status').textContent = res.ok ? 'Saved' : 'Error';
+      try {
+        const res = await fetch('/save_config.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const body = await res.json();
+        document.getElementById('status').textContent = res.ok ? 'Saved' : (body.error || 'Error');
+      } catch {
+        document.getElementById('status').textContent = 'Error';
+      }
     });
   </script>
 </body>
