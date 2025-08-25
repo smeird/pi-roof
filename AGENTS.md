@@ -27,4 +27,4 @@
 - Client-side config fetches should use absolute paths (e.g. `/get_config.php`) to ensure correct resolution from nested directories.
 
 - Configuration endpoints respond with JSON and proper `Content-Type` headers; client pages should surface server error messages.
-
+- Database migrations should verify column existence using `PRAGMA table_info` before attempting schema alterations.
