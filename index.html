@@ -8,7 +8,6 @@
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="js/mqttClient.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/bullet.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 md:flex">
 <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden md:hidden"></div>
@@ -61,7 +60,7 @@
   <!-- Graphs -->
   <section class="bg-white rounded shadow p-6">
     <h2 class="text-xl font-semibold mb-4">Graphs</h2>
-    <div id="bulletContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <div id="lineChart" class="h-96"></div>
   </section>
 </main>
 
@@ -97,8 +96,8 @@ const sensorIndicators = {};
 const indicatorEls = {};
 const topics = new Set(dashboardTopics);
 const toggleStates = {};
-const bulletCharts = {};
-const bulletTargets = {};
+let lineChart;
+const lineSeries = {};
 
 function addSensorCards() {
   const container = document.getElementById('sensorsContainer');
@@ -179,7 +178,7 @@ function addSwitchCards() {
 addSensorCards();
 addRoofControls();
 addSwitchCards();
-addSensorCharts();
+initLineChart();
 
 const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
 const staticTopics = new Set(
@@ -223,40 +222,18 @@ function updateConnectionStatus(status, info) {
 }
 setToggleDisabled(true);
 
-function createBullet(id, title, min, max, target) {
-  return Highcharts.chart(id, {
-    chart: { type: 'bullet', inverted: true },
-    title: { text: title, align: 'left' },
-    xAxis: { categories: [''], title: null },
-    yAxis: { min: min, max: max, title: null, plotBands: [] },
-    series: [{
-      data: [{ y: 0, target: target }],
-      color: 'red'
-    }],
-    tooltip: { enabled: false },
+function initLineChart() {
+  const series = sensors.map(s => ({ name: s.name, data: [] }));
+  lineChart = Highcharts.chart('lineChart', {
+    chart: { type: 'line' },
+    title: { text: null },
+    xAxis: { type: 'datetime' },
+    yAxis: { title: { text: null } },
+    series,
     credits: { enabled: false }
   });
-}
-
-function defaultRange(green) {
-  const g = parseFloat(green);
-  if (isNaN(g) || g === 0) return { min: 0, max: 100 };
-  if (g > 0) return { min: 0, max: g * 2 };
-  return { min: g * 2, max: 0 };
-}
-
-function addSensorCharts() {
-  const container = document.getElementById('bulletContainer');
   sensors.forEach((s, idx) => {
-    const id = `bullet-${idx}`;
-    const div = document.createElement('div');
-    div.id = id;
-    div.className = 'h-32';
-    container.appendChild(div);
-    const range = defaultRange(s.green);
-    const target = parseFloat(s.green);
-    bulletCharts[s.path] = createBullet(id, s.name, range.min, range.max, target);
-    bulletTargets[s.path] = { target, direction: s.greenDirection || 'below' };
+    lineSeries[s.path] = lineChart.series[idx];
   });
 }
 
@@ -287,14 +264,13 @@ try {
     }
     if (sensorIndicators[topic]) updateSensorIndicator(topic, value);
     if (indicatorEls[topic]) updateIndicatorEl(indicatorEls[topic], value);
-    if (bulletCharts[topic]) {
+    if (lineSeries[topic]) {
       const y = parseFloat(value);
-      const info = bulletTargets[topic];
-      const target = info.target;
-      const dir = info.direction;
-      const isGreen = (!isNaN(target) && (dir === 'above' ? y >= target : y <= target));
-      const color = isGreen ? 'green' : 'red';
-      bulletCharts[topic].series[0].points[0].update({ y, color });
+      if (!isNaN(y)) {
+        const series = lineSeries[topic];
+        const shift = series.data.length > 50;
+        series.addPoint([Date.now(), y], true, shift);
+      }
     }
     if (!staticTopics.has(topic)) {
       toggleStates[topic] = value;
