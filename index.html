@@ -97,6 +97,8 @@ const sensorIndicators = {};
 const indicatorEls = {};
 const topics = new Set(dashboardTopics);
 const toggleStates = {};
+const bulletCharts = {};
+const bulletTargets = {};
 
 function addSensorCards() {
   const container = document.getElementById('sensorsContainer');
@@ -235,9 +237,6 @@ function createBullet(id, title, min, max, target) {
     credits: { enabled: false }
   });
 }
-
-const bulletCharts = {};
-const bulletTargets = {};
 
 function defaultRange(green) {
   const g = parseFloat(green);
