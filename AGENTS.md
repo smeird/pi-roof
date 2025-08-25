@@ -15,4 +15,5 @@
 - Main page background uses a subtle top-to-bottom gray gradient.
 - SkyCam image and real-time bullet charts sit in a bottom card section; the standalone realtimegraph page was removed.
 - MQTT helper now emits `status` events (`connecting`, `connected`, `disconnected`, `reconnecting`, `error`) and uses exponential backoff reconnects up to 30s.
+- MQTT topics should be derived from DOM elements with `data-topic`; flag topics without UI colour changes using `data-static`.
 
