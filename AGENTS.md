@@ -6,3 +6,4 @@
 - Removed obsolete `cold.html` panel.
 - Navigation links now live in a Tailwind-styled sidebar instead of a top bar.
 - Toggle controls should use Tailwind switch-style buttons with a sliding knob.
+- Main layout uses a full-height flex container with a sticky sidebar and wider grid spacing.
