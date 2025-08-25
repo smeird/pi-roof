@@ -223,12 +223,25 @@ function updateConnectionStatus(status, info) {
 setToggleDisabled(true);
 
 function initLineChart() {
-  const series = sensors.map(s => ({ name: s.name, data: [] }));
+  const yAxis = sensors.map((s, idx) => ({
+    title: { text: s.name },
+    opposite: idx % 2 === 1
+  }));
+  const series = sensors.map((s, idx) => {
+    const green = parseFloat(s.green);
+    let zones;
+    if (!isNaN(green)) {
+      zones = s.greenDirection === 'above'
+        ? [{ value: green, dashStyle: 'Dot' }, {}]
+        : [{ value: green }, { dashStyle: 'Dot' }];
+    }
+    return { name: s.name, data: [], yAxis: idx, zones };
+  });
   lineChart = Highcharts.chart('lineChart', {
     chart: { type: 'line' },
     title: { text: null },
     xAxis: { type: 'datetime' },
-    yAxis: { title: { text: null } },
+    yAxis,
     series,
     credits: { enabled: false }
   });
