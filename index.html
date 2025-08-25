@@ -36,12 +36,24 @@
   <section class="bg-white rounded shadow p-6">
     <h2 class="text-xl font-semibold mb-4">Sensor Data</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div class="p-4 bg-gray-50 rounded shadow"><div id="gauge-clouds" class="h-48"></div></div>
-      <div class="p-4 bg-gray-50 rounded shadow"><div id="gauge-rain" class="h-48"></div></div>
-      <div class="p-4 bg-gray-50 rounded shadow"><div id="gauge-light" class="h-48"></div></div>
-      <div class="p-4 bg-gray-50 rounded shadow"><div id="gauge-dew" class="h-48"></div></div>
-      <div class="p-4 bg-gray-50 rounded shadow"><div id="gauge-sqm" class="h-48"></div></div>
-      <div class="p-4 bg-gray-50 rounded shadow"><div id="gauge-stars" class="h-48"></div></div>
+
+      <div id="gauge-clouds" class="h-48" data-topic="Observatory/clouds" data-static></div>
+      <div id="gauge-rain" class="h-48" data-topic="Observatory/rain" data-static></div>
+      <div id="gauge-light" class="h-48" data-topic="Observatory/light" data-static></div>
+      <div id="gauge-dew" class="h-48" data-topic="Observatory/dewp" data-static></div>
+      <div id="gauge-sqm" class="h-48" data-topic="Observatory/sqm" data-static></div>
+      <div id="gauge-stars" class="h-48" data-topic="skycam/stars" data-static></div>
+    </div>
+  </section>
+
+  <!-- SkyCam and Graph -->
+  <section>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <a href="http://skycam.smeird.com">
+        <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto">
+      </a>
+      <iframe src="realtimegraph.php" class="w-full h-64 md:h-full border" title="Real-time graph"></iframe>
+
     </div>
   </section>
 
@@ -63,11 +75,11 @@
       </div>
       <div class="p-4 bg-white rounded shadow flex items-center">
         <span class="mr-2">Open Limit</span>
-        <span id="openLimitIndicator" class="h-3 w-3 rounded-full bg-gray-400"></span>
+        <span id="openLimitIndicator" class="h-3 w-3 rounded-full bg-gray-400" data-topic="Observatory/roof/openlimit"></span>
       </div>
       <div class="p-4 bg-white rounded shadow flex items-center">
         <span class="mr-2">Close Limit</span>
-        <span id="closeLimitIndicator" class="h-3 w-3 rounded-full bg-gray-400"></span>
+        <span id="closeLimitIndicator" class="h-3 w-3 rounded-full bg-gray-400" data-topic="Observatory/roof/closelimit"></span>
       </div>
     </div>
   </section>
@@ -199,12 +211,13 @@ const mqttClient = createClient({
 });
 
 const toggleStates = {};
-const topics = Object.keys(gaugeConfigs).concat([
-  'Observatory/roof/open','Observatory/roof/close','Observatory/roof/openlimit','Observatory/roof/closelimit',
-  'Observatory/roof/power','Observatory/lights/white','Observatory/lights/red','Observatory/lights/desk',
-  'Observatory/Scope/Computer','Observatory/Scope/Focus','Observatory/Scope/Dew','Observatory/Scope/Scope',
-  'Observatory/Hue/PatioSensor','Observatory/Hue/ObservatorySensor','workshop/sensors/motion'
-]);
+const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
+const topics = Array.from(new Set(topicElements.map(el => el.getAttribute('data-topic'))));
+const staticTopics = new Set(
+  topicElements
+    .filter(el => el.hasAttribute('data-static'))
+    .map(el => el.getAttribute('data-topic'))
+);
 
 function setToggleDisabled(disabled) {
   document.querySelectorAll('.toggleButton').forEach(button => {
@@ -247,7 +260,10 @@ mqttClient.on('error', err => console.error('MQTT client error:', err));
 setToggleDisabled(true);
 
 mqttClient.on('connect', function() {
-  topics.forEach(t => { mqttClient.subscribe(t); toggleStates[t] = '0'; });
+  topics.forEach(t => {
+    mqttClient.subscribe(t);
+    if (!staticTopics.has(t)) toggleStates[t] = '0';
+  });
 });
 
 mqttClient.on('message', function(topic, message) {
@@ -258,8 +274,10 @@ mqttClient.on('message', function(topic, message) {
   }
   if (topic === 'Observatory/roof/openlimit') updateIndicator('openLimitIndicator', value);
   if (topic === 'Observatory/roof/closelimit') updateIndicator('closeLimitIndicator', value);
-  toggleStates[topic] = value;
-  updateToggleButton(topic, value);
+  if (!staticTopics.has(topic)) {
+    toggleStates[topic] = value;
+    updateToggleButton(topic, value);
+  }
 });
 
 document.querySelectorAll('.toggleButton').forEach(button => {
