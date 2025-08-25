@@ -162,7 +162,24 @@
 <script type="module">
 import { loadConfig } from './js/mqttConfig.js';
 
-const { brokerUrl, port, username, password, dashboardTopics } = await loadConfig();
+let brokerUrl, port, username, password;
+let dashboardTopics = [];
+let mqttClient;
+try {
+  ({ brokerUrl, port, username, password, dashboardTopics } = await loadConfig());
+  mqttClient = createClient({
+    brokerUrl: `${brokerUrl}:${port}`,
+    options: {
+      username,
+      password
+    }
+  });
+} catch (err) {
+  const statusEl = document.getElementById('statusText');
+  if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
+  setToggleDisabled(true);
+  console.error('MQTT init error:', err);
+}
 
 // Highcharts gauge setup
 function createGauge(id, title, min, max) {
@@ -224,14 +241,6 @@ Object.entries(bulletConfigs).forEach(([topic, cfg]) => {
 });
 
 // MQTT handling
-const mqttClient = createClient({
-  brokerUrl: `${brokerUrl}:${port}`,
-  options: {
-    username,
-    password
-  }
-});
-
 const toggleStates = {};
 
 const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
@@ -281,43 +290,45 @@ function updateConnectionStatus(status, info) {
   if (dot) dot.className = `h-2 w-2 rounded-full mr-2 ${color}`;
   if (text) text.textContent = message;
 }
-
-mqttClient.on('status', updateConnectionStatus);
-mqttClient.on('error', err => console.error('MQTT client error:', err));
 setToggleDisabled(true);
 
-mqttClient.on('connect', function() {
-  topics.forEach(t => {
-    mqttClient.subscribe(t);
-    if (!staticTopics.has(t)) toggleStates[t] = '0';
-  });
-});
+if (mqttClient) {
+  mqttClient.on('status', updateConnectionStatus);
+  mqttClient.on('error', err => console.error('MQTT client error:', err));
 
-mqttClient.on('message', function(topic, message) {
-  const value = message.toString();
-  if (gaugeCharts[topic]) {
-    const point = gaugeCharts[topic].series[0].points[0];
-    point.update(parseFloat(value));
-  }
-  if (bulletCharts[topic]) {
-    const chart = bulletCharts[topic];
-    chart.series[0].points[0].update({ y: parseFloat(value) });
-  }
-  if (topic === 'Observatory/roof/openlimit') updateIndicator('openLimitIndicator', value);
-  if (topic === 'Observatory/roof/closelimit') updateIndicator('closeLimitIndicator', value);
-  if (!staticTopics.has(topic)) {
-    toggleStates[topic] = value;
-    updateToggleButton(topic, value);
-  }
-});
-
-document.querySelectorAll('.toggleButton').forEach(button => {
-  button.addEventListener('click', function() {
-    const topic = this.getAttribute('data-topic');
-    const newState = toggleStates[topic] === '1' ? '0' : '1';
-    mqttClient.publish(topic, newState, { qos: 2, retain: true });
+  mqttClient.on('connect', function() {
+    topics.forEach(t => {
+      mqttClient.subscribe(t);
+      if (!staticTopics.has(t)) toggleStates[t] = '0';
+    });
   });
-});
+
+  mqttClient.on('message', function(topic, message) {
+    const value = message.toString();
+    if (gaugeCharts[topic]) {
+      const point = gaugeCharts[topic].series[0].points[0];
+      point.update(parseFloat(value));
+    }
+    if (bulletCharts[topic]) {
+      const chart = bulletCharts[topic];
+      chart.series[0].points[0].update({ y: parseFloat(value) });
+    }
+    if (topic === 'Observatory/roof/openlimit') updateIndicator('openLimitIndicator', value);
+    if (topic === 'Observatory/roof/closelimit') updateIndicator('closeLimitIndicator', value);
+    if (!staticTopics.has(topic)) {
+      toggleStates[topic] = value;
+      updateToggleButton(topic, value);
+    }
+  });
+
+  document.querySelectorAll('.toggleButton').forEach(button => {
+    button.addEventListener('click', function() {
+      const topic = this.getAttribute('data-topic');
+      const newState = toggleStates[topic] === '1' ? '0' : '1';
+      mqttClient.publish(topic, newState, { qos: 2, retain: true });
+    });
+  });
+}
 
 function updateIndicator(id, value) {
   const el = document.getElementById(id);
