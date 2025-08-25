@@ -167,7 +167,11 @@
           body: JSON.stringify(data)
         });
         const body = await res.json();
-        document.getElementById('status').textContent = res.ok ? 'Saved' : (body.error || 'Error');
+        if (res.ok) {
+          window.location.href = '/';
+        } else {
+          document.getElementById('status').textContent = body.error || 'Error';
+        }
       } catch {
         document.getElementById('status').textContent = 'Error';
       }

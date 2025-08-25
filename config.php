@@ -1,6 +1,6 @@
 <?php
 function getDb() {
-    $db = new SQLite3(__DIR__ . '/config.db');
+    $db = new SQLite3('/var/www/data/config.db');
     // create tables for simple key/value settings as well as dynamic lists
     $db->exec('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)');
     $db->exec('CREATE TABLE IF NOT EXISTS sensors (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, unit TEXT, name TEXT, green_value TEXT)');
