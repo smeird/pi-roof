@@ -10,6 +10,7 @@
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/highcharts-more.js"></script>
 <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+<script src="https://code.highcharts.com/modules/bullet.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex">
 <aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
@@ -152,8 +153,12 @@
       <a href="http://skycam.smeird.com" class="block p-4 bg-gray-50 rounded shadow">
         <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto rounded">
       </a>
-      <div class="p-4 bg-gray-50 rounded shadow">
-        <iframe src="realtimegraph.php" class="w-full h-64 md:h-full border rounded" title="Real-time graph"></iframe>
+      <div class="p-4 bg-gray-50 rounded shadow space-y-4">
+        <div id="bullet-clouds" class="h-20"></div>
+        <div id="bullet-light" class="h-20"></div>
+        <div id="bullet-rain" class="h-20"></div>
+        <div id="bullet-hum" class="h-20"></div>
+        <div id="bullet-sqm" class="h-20"></div>
       </div>
     </div>
   </section>
@@ -175,6 +180,23 @@ function createGauge(id, title, min, max) {
   });
 }
 
+function createBullet(id, title, min, max, target, color, neg) {
+  return Highcharts.chart(id, {
+    chart: { type: 'bullet', inverted: true },
+    title: { text: title, align: 'left' },
+    xAxis: { categories: [''], title: null },
+    yAxis: { min: min, max: max, title: null, plotBands: [] },
+    series: [{
+      data: [{ y: 0, target: target }],
+      threshold: target,
+      color: color,
+      negativeColor: neg
+    }],
+    tooltip: { enabled: false },
+    credits: { enabled: false }
+  });
+}
+
 const gaugeConfigs = {
   'Observatory/clouds': { id: 'gauge-clouds', title: 'Clouds', min: -40, max: 40 },
   'Observatory/rain': { id: 'gauge-rain', title: 'Rain', min: 0, max: 10000 },
@@ -189,6 +211,19 @@ Object.entries(gaugeConfigs).forEach(([topic, cfg]) => {
   gaugeCharts[topic] = createGauge(cfg.id, cfg.title, cfg.min, cfg.max);
 });
 
+const bulletConfigs = {
+  'Observatory/Graph/clouds': { id: 'bullet-clouds', title: 'Clouds', min: -40, max: 40, target: -12, color: 'red', neg: 'green' },
+  'Observatory/Graph/light': { id: 'bullet-light', title: 'Light', min: 0, max: 20000, target: 10000, color: 'green', neg: 'red' },
+  'Observatory/Graph/rain': { id: 'bullet-rain', title: 'Rain', min: 0, max: 10000, target: 4200, color: 'green', neg: 'red' },
+  'Observatory/Graph/hum': { id: 'bullet-hum', title: 'Humidity', min: 0, max: 100, target: 95, color: 'red', neg: 'green' },
+  'Observatory/Graph/sqm': { id: 'bullet-sqm', title: 'Darkness', min: 0, max: 22, target: 15, color: 'green', neg: 'red' }
+};
+
+const bulletCharts = {};
+Object.entries(bulletConfigs).forEach(([topic, cfg]) => {
+  bulletCharts[topic] = createBullet(cfg.id, cfg.title, cfg.min, cfg.max, cfg.target, cfg.color, cfg.neg);
+});
+
 // MQTT handling
 const mqttClient = createClient({
   brokerUrl: 'ws://homeassistant.smeird.com:1884',
@@ -199,7 +234,7 @@ const mqttClient = createClient({
 });
 
 const toggleStates = {};
-const topics = Object.keys(gaugeConfigs).concat([
+const topics = Object.keys(gaugeConfigs).concat(Object.keys(bulletConfigs)).concat([
   'Observatory/roof/open','Observatory/roof/close','Observatory/roof/openlimit','Observatory/roof/closelimit',
   'Observatory/roof/power','Observatory/lights/white','Observatory/lights/red','Observatory/lights/desk',
   'Observatory/Scope/Computer','Observatory/Scope/Focus','Observatory/Scope/Dew','Observatory/Scope/Scope',
@@ -255,6 +290,10 @@ mqttClient.on('message', function(topic, message) {
   if (gaugeCharts[topic]) {
     const point = gaugeCharts[topic].series[0].points[0];
     point.update(parseFloat(value));
+  }
+  if (bulletCharts[topic]) {
+    const chart = bulletCharts[topic];
+    chart.series[0].points[0].update({ y: parseFloat(value) });
   }
   if (topic === 'Observatory/roof/openlimit') updateIndicator('openLimitIndicator', value);
   if (topic === 'Observatory/roof/closelimit') updateIndicator('closeLimitIndicator', value);

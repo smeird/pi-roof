@@ -13,6 +13,6 @@
 - Use `js/mqttClient.js` for all MQTT connections instead of direct library calls.
 - Highcharts solid gauges require `highcharts-more.js` and are placed inside Tailwind card wrappers.
 - Main page background uses a subtle top-to-bottom gray gradient.
-- SkyCam image and real-time graph sit in a bottom card section.
+- SkyCam image and real-time bullet charts sit in a bottom card section; the standalone realtimegraph page was removed.
 - MQTT helper now emits `status` events (`connecting`, `connected`, `disconnected`, `reconnecting`, `error`) and uses exponential backoff reconnects up to 30s.
 
