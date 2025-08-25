@@ -9,3 +9,5 @@
 - Main layout uses a full-height flex container with a sticky sidebar and wider grid spacing.
 
 - Sensor data uses Highcharts solid gauges with Tailwind indicators; SkyCam image shares a two-column layout with the real-time graph.
+
+- Use `js/mqttClient.js` for all MQTT connections instead of direct library calls.
