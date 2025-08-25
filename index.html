@@ -47,15 +47,12 @@
     </div>
   </section>
 
-  <!-- SkyCam and Graph -->
-  <section>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <a href="http://skycam.smeird.com">
-        <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto">
-      </a>
-      <iframe src="realtimegraph.php" class="w-full h-64 md:h-full border" title="Real-time graph"></iframe>
-
-    </div>
+  <!-- SkyCam -->
+  <section class="bg-white rounded shadow p-6">
+    <h2 class="text-xl font-semibold mb-4">SkyCam</h2>
+    <a href="http://skycam.smeird.com" class="block">
+      <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto rounded">
+    </a>
   </section>
 
   <!-- Roof Controls -->
@@ -158,25 +155,12 @@
     </div>
   </section>
 
-  <!-- SkyCam and Graph -->
-  <section class="bg-white rounded shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">SkyCam & Real-time Graph</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <a href="http://skycam.smeird.com" class="block p-4 bg-gray-50 rounded shadow">
-        <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto rounded">
-      </a>
-      <div class="p-4 bg-gray-50 rounded shadow space-y-4">
-        <div id="bullet-clouds" class="h-20"></div>
-        <div id="bullet-light" class="h-20"></div>
-        <div id="bullet-rain" class="h-20"></div>
-        <div id="bullet-hum" class="h-20"></div>
-        <div id="bullet-sqm" class="h-20"></div>
-      </div>
-    </div>
-  </section>
+
 </main>
 
-<script>
+<script type="module">
+import { brokerUrl, port, username, password, dashboardTopics } from './js/mqttConfig.js';
+
 // Highcharts gauge setup
 function createGauge(id, title, min, max) {
   return Highcharts.chart(id, {
@@ -238,21 +222,25 @@ Object.entries(bulletConfigs).forEach(([topic, cfg]) => {
 
 // MQTT handling
 const mqttClient = createClient({
-  brokerUrl: 'ws://homeassistant.smeird.com:1884',
+  brokerUrl: `${brokerUrl}:${port}`,
   options: {
-    username: 'smeird',
-    password: '92987974'
+    username,
+    password
   }
 });
 
 const toggleStates = {};
 
-const topics = Object.keys(gaugeConfigs).concat(Object.keys(bulletConfigs)).concat([
-  'Observatory/roof/open','Observatory/roof/close','Observatory/roof/openlimit','Observatory/roof/closelimit',
-  'Observatory/roof/power','Observatory/lights/white','Observatory/lights/red','Observatory/lights/desk',
-  'Observatory/Scope/Computer','Observatory/Scope/Focus','Observatory/Scope/Dew','Observatory/Scope/Scope',
-  'Observatory/Hue/PatioSensor','Observatory/Hue/ObservatorySensor','workshop/sensors/motion'
-]);
+const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
+const topics = Array.from(new Set([
+  ...topicElements.map(el => el.getAttribute('data-topic')),
+  ...dashboardTopics
+]));
+const staticTopics = new Set(
+  topicElements
+    .filter(el => el.hasAttribute('data-static'))
+    .map(el => el.getAttribute('data-topic'))
+);
 
 
 function setToggleDisabled(disabled) {

@@ -8,12 +8,14 @@
 - Toggle controls should use Tailwind switch-style buttons with a sliding knob.
 - Main layout uses a full-height flex container with a sticky sidebar and wider grid spacing.
 
-- Sensor data uses Highcharts solid gauges with Tailwind indicators; SkyCam image shares a two-column layout with the real-time graph.
+- Sensor data uses Highcharts solid gauges with Tailwind indicators; the SkyCam image sits in its own card.
 
 - Use `js/mqttClient.js` for all MQTT connections instead of direct library calls.
 - Highcharts solid gauges require `highcharts-more.js` and are placed inside Tailwind card wrappers.
 - Main page background uses a subtle top-to-bottom gray gradient.
-- SkyCam image and real-time bullet charts sit in a bottom card section; the standalone realtimegraph page was removed.
+
+- SkyCam image sits in a bottom card section.
 - MQTT helper now emits `status` events (`connecting`, `connected`, `disconnected`, `reconnecting`, `error`) and uses exponential backoff reconnects up to 30s.
 - MQTT topics should be derived from DOM elements with `data-topic`; flag topics without UI colour changes using `data-static`.
+- MQTT connection settings are centralised in `js/mqttConfig.js`, which reads from environment variables or a `window.__ENV` object.
 
