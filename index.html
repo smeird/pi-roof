@@ -159,7 +159,9 @@
 </main>
 
 <script type="module">
-import { brokerUrl, port, username, password, dashboardTopics } from './js/mqttConfig.js';
+import { loadConfig } from './js/mqttConfig.js';
+
+const { brokerUrl, port, username, password, dashboardTopics } = await loadConfig();
 
 // Highcharts gauge setup
 function createGauge(id, title, min, max) {
