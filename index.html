@@ -7,12 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
-<body>
-  <div class="flex">
-    <aside class="w-64 bg-gray-800 text-white min-h-screen">
-      <div class="p-4 text-lg font-bold">Observatory Control Panel</div>
-      <nav class="px-2">
-        <ul class="space-y-2">
+<body class="min-h-screen bg-gray-100 flex">
+      <aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
+        <div class="p-4 text-lg font-bold">Observatory Control Panel</div>
+        <nav class="px-2 flex-1">
+          <ul class="space-y-2">
           <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
           <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
           <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
@@ -22,14 +21,13 @@
         </ul>
       </nav>
     </aside>
-    <main class="flex-1 p-4">
-      <div class="container mx-auto mt-5">
+      <main class="flex-1 p-6 space-y-6">
+        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div class="container mx-auto">
 
-<!-- New Rows for Additional Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-    <!-- Example Card (Repeat for each new topic) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
     <div>
-        <div id="cloudsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+        <div id="cloudsCard" class="card bg-white text-gray-800 shadow rounded-lg">
             <div class="card-header px-4 py-2 font-semibold border-b">Clouds</div>
             <div class="card-body p-4">
                 <p class="card-text" id="cloudsStatus" data-topic="Observatory/clouds">Loading...</p>
@@ -37,7 +35,7 @@
         </div>
     </div>
     <div>
-        <div id="rainCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+        <div id="rainCard" class="card bg-white text-gray-800 shadow rounded-lg">
             <div class="card-header px-4 py-2 font-semibold border-b">Rain</div>
             <div class="card-body p-4">
                 <p class="card-text" id="rainStatus" data-topic="Observatory/rain">Loading...</p>
@@ -45,7 +43,7 @@
         </div>
     </div>
     <div>
-        <div id="lightCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+        <div id="lightCard" class="card bg-white text-gray-800 shadow rounded-lg">
             <div class="card-header px-4 py-2 font-semibold border-b">Light</div>
             <div class="card-body p-4">
                 <p class="card-text" id="lightStatus" data-topic="Observatory/light">Loading...</p>
@@ -53,7 +51,7 @@
         </div>
     </div>
     <div>
-        <div id="dewCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+        <div id="dewCard" class="card bg-white text-gray-800 shadow rounded-lg">
             <div class="card-header px-4 py-2 font-semibold border-b">Dew</div>
             <div class="card-body p-4">
                 <p class="card-text" id="dewStatus" data-topic="Observatory/dewp">Loading...</p>
@@ -61,7 +59,7 @@
         </div>
     </div>
   <div>
-        <div id="sqmCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+        <div id="sqmCard" class="card bg-white text-gray-800 shadow rounded-lg">
             <div class="card-header px-4 py-2 font-semibold border-b">SQM</div>
             <div class="card-body p-4">
                 <p class="card-text" id="sqmStatus" data-topic="Observatory/sqm">Loading...</p>
@@ -70,7 +68,7 @@
     </div>
 
  <div>
-        <div id="starsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+        <div id="starsCard" class="card bg-white text-gray-800 shadow rounded-lg">
             <div class="card-header px-4 py-2 font-semibold border-b">Stars</div>
             <div class="card-body p-4">
                 <p class="card-text" id="starsStatus" data-topic="skycam/stars">Loading...</p>
@@ -85,29 +83,27 @@
 
 
 
-    <!-- Repeat for other 7 cards in the row -->
 </div>
-<!-- Repeat for the second row with different topics -->
 
 <hr>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+                <!-- 12V Power Card -->
+              <div>
+                  <div id="powerCard" class="card bg-white text-gray-800 shadow rounded-lg">
+                      <div class="card-header px-4 py-2 font-semibold border-b">12V Power</div>
+
+                          <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/power">
+                              <span class="sr-only">Toggle</span>
+                              <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                          </button>
+
+                  </div>
+              </div>
+
               <!-- White Lights Card -->
             <div>
-                <div id="whiteLightsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
-                    <div class="card-header px-4 py-2 font-semibold border-b">12V Power</div>
-                    
-                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/power">
-                            <span class="sr-only">Toggle</span>
-                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-                        </button>
-                    
-                </div>
-            </div>          
-                
-            <!-- White Lights Card -->
-            <div>
-                <div id="whiteLightsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="whiteLightsCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     
                     <div class="card-header px-4 py-2 font-semibold border-b">White Lights</div>
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/white">
@@ -120,7 +116,7 @@
 
             <!-- Red Lights Card -->
             <div>
-                <div id="redLightsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="redLightsCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Red Lights</div>
                    
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/red">
@@ -133,7 +129,7 @@
 
             <!-- Desk Lights Card -->
             <div>
-                <div id="deskLightsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="deskLightsCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Desk Lights</div>
                    
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/desk">
@@ -151,9 +147,9 @@
 <!-- ... -->
 
             <!-- Close Limit Switch Card -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
             <div>
-                <div id="openLimitSwitchCard" class="card bg-white text-gray-800 shadow rounded mb-6">
+                <div id="openLimitSwitchCard" class="card bg-white text-gray-800 shadow rounded-lg">
                
                     <div class="card-body p-4">Open Limit Switch
                         <p class="card-text" id="openLimitStatus" data-topic="Observatory/roof/openlimit"></p>
@@ -163,7 +159,7 @@
 
             <!-- Open Limit Switch Card -->
             <div>
-                <div id="closeLimitSwitchCard" class="card bg-white text-gray-800 shadow rounded mb-6">
+                <div id="closeLimitSwitchCard" class="card bg-white text-gray-800 shadow rounded-lg">
                   
                     <div class="card-body p-4">Close Limit Switch
                         <p class="card-text" id="closeLimitStatus" data-topic="Observatory/roof/closelimit"></p>
@@ -173,10 +169,10 @@
         </div>   
 <hr>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
             <!-- Open Roof Card -->
             <div>
-                <div id="openRoofCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="openRoofCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Open Roof</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/open">
@@ -189,7 +185,7 @@
 
             <!-- Close Roof Card -->
             <div>
-                <div id="closeRoofCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="closeRoofCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Close Roof</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/close">
@@ -202,10 +198,10 @@
         </div>
    
         <hr>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
             <!-- Computer Card -->
             <div>
-                <div id="computerCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="computerCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">PC</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Computer">
@@ -218,7 +214,7 @@
 
             <!-- Focuser Card -->
             <div>
-                <div id="focuserCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="focuserCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Focus</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Focus">
@@ -231,7 +227,7 @@
 
             <!-- Dew Heater Card -->
             <div>
-                <div id="dewHeaterCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="dewHeaterCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Dew</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Dew">
@@ -244,7 +240,7 @@
 
             <!-- Scope Card -->
             <div>
-                <div id="scopeCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="scopeCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Scope</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Scope">
@@ -256,7 +252,7 @@
             </div>
             <!-- Patio Sensor Card -->
             <div>
-                <div id="patioCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="patioCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Patio Sensor</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/PatioSensor">
@@ -268,7 +264,7 @@
             </div>
             <!-- Veg Garden sensor -->
             <div>
-                <div id="vegCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="vegCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Veg Sensor</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/ObservatorySensor">
@@ -280,7 +276,7 @@
             </div>
             <!-- Workshop Lights sensor -->
             <div>
-                <div id="workshopmotionCard" class="card bg-white text-gray-800 shadow rounded mb-2">
+                <div id="workshopmotionCard" class="card bg-white text-gray-800 shadow rounded-lg">
                     <div class="card-header px-4 py-2 font-semibold border-b">Workshop Motion</div>
                     
                         <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="workshop/sensors/motion">
@@ -300,8 +296,7 @@
       <a href=http://skycam.smeird.com><img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto"></a>
   </div>
     </main>
-  </div>
-<script>
+  <script>
     function refreshImage() {
         const image = document.getElementById('liveImage');
         const timestamp = new Date().getTime();
