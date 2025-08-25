@@ -8,8 +8,6 @@
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="js/mqttClient.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/highcharts-more.js"></script>
-<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
 <script src="https://code.highcharts.com/modules/bullet.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex">
@@ -34,145 +32,47 @@
     <span id="statusText">Connecting...</span>
   </div>
 
-  <!-- Sensor Data -->
+  <!-- Sensors -->
   <section class="bg-white rounded shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">Sensor Data</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-      <div id="gauge-clouds" class="h-48" data-topic="Observatory/clouds" data-static></div>
-      <div id="gauge-rain" class="h-48" data-topic="Observatory/rain" data-static></div>
-      <div id="gauge-light" class="h-48" data-topic="Observatory/light" data-static></div>
-      <div id="gauge-dew" class="h-48" data-topic="Observatory/dewp" data-static></div>
-      <div id="gauge-sqm" class="h-48" data-topic="Observatory/sqm" data-static></div>
-      <div id="gauge-stars" class="h-48" data-topic="skycam/stars" data-static></div>
-    </div>
+    <h2 class="text-xl font-semibold mb-4">Sensors</h2>
+    <div id="sensorsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
   </section>
 
-  <!-- SkyCam -->
-  <section class="bg-white rounded shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">SkyCam</h2>
-    <a href="http://skycam.smeird.com" class="block">
-      <img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto rounded">
-    </a>
-  </section>
-
-  <!-- Roof Controls -->
+  <!-- Roof -->
   <section class="bg-white rounded shadow p-6">
     <h2 class="text-xl font-semibold mb-4">Roof Controls</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Open Roof</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/open">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Close Roof</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/close">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center">
-        <span class="mr-2">Open Limit</span>
-        <span id="openLimitIndicator" class="h-3 w-3 rounded-full bg-gray-400" data-topic="Observatory/roof/openlimit"></span>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center">
-        <span class="mr-2">Close Limit</span>
-        <span id="closeLimitIndicator" class="h-3 w-3 rounded-full bg-gray-400" data-topic="Observatory/roof/closelimit"></span>
-      </div>
-    </div>
+    <div id="roofControls" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
   </section>
 
-  <!-- Observatory Switches -->
+  <!-- Switches -->
   <section class="bg-white rounded shadow p-6">
-    <h2 class="text-xl font-semibold mb-4">Observatory Switches</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>12V Power</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/power">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>White Lights</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/white">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Red Lights</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/red">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Desk Lights</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/desk">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>PC</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Computer">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Focus</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Focus">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Dew</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Dew">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Scope</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Scope">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Patio Sensor</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/PatioSensor">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Veg Sensor</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/ObservatorySensor">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-      <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-        <span>Workshop Motion</span>
-        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="workshop/sensors/motion">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-        </button>
-      </div>
-    </div>
+    <h2 class="text-xl font-semibold mb-4">Switches</h2>
+    <div id="switchesContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
   </section>
 
-
+  <!-- Graphs -->
+  <section class="bg-white rounded shadow p-6">
+    <h2 class="text-xl font-semibold mb-4">Graphs</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="bullet-clouds" class="h-32"></div>
+      <div id="bullet-light" class="h-32"></div>
+      <div id="bullet-rain" class="h-32"></div>
+      <div id="bullet-hum" class="h-32"></div>
+      <div id="bullet-sqm" class="h-32"></div>
+    </div>
+  </section>
 </main>
 
 <script type="module">
 import { loadConfig } from './js/mqttConfig.js';
 
-let brokerUrl, port, username, password;
-let dashboardTopics = [];
+let brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof;
 let mqttClient;
 try {
-  ({ brokerUrl, port, username, password, dashboardTopics } = await loadConfig());
+  ({ brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof } = await loadConfig());
   mqttClient = createClient({
     brokerUrl: `${brokerUrl}:${port}`,
-    options: {
-      username,
-      password
-    }
+    options: { username, password }
   });
 } catch (err) {
   const statusEl = document.getElementById('statusText');
@@ -181,79 +81,89 @@ try {
   console.error('MQTT init error:', err);
 }
 
-// Highcharts gauge setup
-function createGauge(id, title, min, max) {
-  return Highcharts.chart(id, {
-    chart: { type: 'solidgauge' },
-    title: { text: title },
-    pane: { center: ['50%', '85%'], size: '140%', startAngle: -90, endAngle: 90,
-      background: { innerRadius: '60%', outerRadius: '100%', shape: 'arc' } },
-    yAxis: { min: min, max: max, lineWidth: 0, tickAmount: 2,
-      labels: { y: 16 }, stops: [[0.1, '#f87171'], [0.5, '#fbbf24'], [0.9, '#34d399']] },
-    series: [{ data: [0], dataLabels: { format: '<span class="text-xl">{y}</span>' } }],
-    tooltip: { enabled: false },
-    credits: { enabled: false }
-  });
-}
-
-function createBullet(id, title, min, max, target, color, neg) {
-  return Highcharts.chart(id, {
-    chart: { type: 'bullet', inverted: true },
-    title: { text: title, align: 'left' },
-    xAxis: { categories: [''], title: null },
-    yAxis: { min: min, max: max, title: null, plotBands: [] },
-    series: [{
-      data: [{ y: 0, target: target }],
-      threshold: target,
-      color: color,
-      negativeColor: neg
-    }],
-    tooltip: { enabled: false },
-    credits: { enabled: false }
-  });
-}
-
-const gaugeConfigs = {
-  'Observatory/clouds': { id: 'gauge-clouds', title: 'Clouds', min: -40, max: 40 },
-  'Observatory/rain': { id: 'gauge-rain', title: 'Rain', min: 0, max: 10000 },
-  'Observatory/light': { id: 'gauge-light', title: 'Light', min: 0, max: 20000 },
-  'Observatory/dewp': { id: 'gauge-dew', title: 'Dew', min: -10, max: 30 },
-  'Observatory/sqm': { id: 'gauge-sqm', title: 'SQM', min: 0, max: 22 },
-  'skycam/stars': { id: 'gauge-stars', title: 'Stars', min: 0, max: 50 }
-};
-
-const gaugeCharts = {};
-Object.entries(gaugeConfigs).forEach(([topic, cfg]) => {
-  gaugeCharts[topic] = createGauge(cfg.id, cfg.title, cfg.min, cfg.max);
-});
-
-const bulletConfigs = {
-  'Observatory/Graph/clouds': { id: 'bullet-clouds', title: 'Clouds', min: -40, max: 40, target: -12, color: 'red', neg: 'green' },
-  'Observatory/Graph/light': { id: 'bullet-light', title: 'Light', min: 0, max: 20000, target: 10000, color: 'green', neg: 'red' },
-  'Observatory/Graph/rain': { id: 'bullet-rain', title: 'Rain', min: 0, max: 10000, target: 4200, color: 'green', neg: 'red' },
-  'Observatory/Graph/hum': { id: 'bullet-hum', title: 'Humidity', min: 0, max: 100, target: 95, color: 'red', neg: 'green' },
-  'Observatory/Graph/sqm': { id: 'bullet-sqm', title: 'Darkness', min: 0, max: 22, target: 15, color: 'green', neg: 'red' }
-};
-
-const bulletCharts = {};
-Object.entries(bulletConfigs).forEach(([topic, cfg]) => {
-  bulletCharts[topic] = createBullet(cfg.id, cfg.title, cfg.min, cfg.max, cfg.target, cfg.color, cfg.neg);
-});
-
-// MQTT handling
+const sensorValueEls = {};
+const indicatorEls = {};
+const topics = new Set(dashboardTopics);
 const toggleStates = {};
 
-const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
-const topics = Array.from(new Set([
-  ...topicElements.map(el => el.getAttribute('data-topic')),
-  ...dashboardTopics
-]));
-const staticTopics = new Set(
-  topicElements
-    .filter(el => el.hasAttribute('data-static'))
-    .map(el => el.getAttribute('data-topic'))
-);
+function addSensorCards() {
+  const container = document.getElementById('sensorsContainer');
+  sensors.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'p-4 bg-white rounded shadow flex items-center justify-between';
+    const valueEl = document.createElement('span');
+    valueEl.className = 'sensor-value font-mono';
+    valueEl.textContent = '--';
+    valueEl.setAttribute('data-topic', s.path);
+    valueEl.setAttribute('data-static', '');
+    if (s.unit) valueEl.setAttribute('data-unit', s.unit);
+    card.innerHTML = `<span>${s.name}</span>`;
+    card.appendChild(valueEl);
+    if (s.unit) {
+      const unitSpan = document.createElement('span');
+      unitSpan.className = 'ml-1';
+      unitSpan.textContent = s.unit;
+      card.appendChild(unitSpan);
+    }
+    container.appendChild(card);
+    sensorValueEls[s.path] = valueEl;
+    topics.add(s.path);
+  });
+}
 
+function addRoofControls() {
+  const container = document.getElementById('roofControls');
+  if (roof.open.path) {
+    const openDiv = document.createElement('div');
+    openDiv.className = 'p-4 bg-white rounded shadow flex items-center justify-between';
+    openDiv.innerHTML = `<span>Open Roof</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="${roof.open.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
+    container.appendChild(openDiv);
+    topics.add(roof.open.path);
+  }
+  if (roof.close.path) {
+    const closeDiv = document.createElement('div');
+    closeDiv.className = 'p-4 bg-white rounded shadow flex items-center justify-between';
+    closeDiv.innerHTML = `<span>Close Roof</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="${roof.close.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
+    container.appendChild(closeDiv);
+    topics.add(roof.close.path);
+  }
+  if (roof.open.limit) {
+    const openLimitDiv = document.createElement('div');
+    openLimitDiv.className = 'p-4 bg-white rounded shadow flex items-center';
+    openLimitDiv.innerHTML = `<span class="mr-2">Open Limit</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.open.limit}" data-static></span>`;
+    container.appendChild(openLimitDiv);
+    indicatorEls[roof.open.limit] = openLimitDiv.querySelector('span[data-topic]');
+    topics.add(roof.open.limit);
+  }
+  if (roof.close.limit) {
+    const closeLimitDiv = document.createElement('div');
+    closeLimitDiv.className = 'p-4 bg-white rounded shadow flex items-center';
+    closeLimitDiv.innerHTML = `<span class="mr-2">Close Limit</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.close.limit}" data-static></span>`;
+    container.appendChild(closeLimitDiv);
+    indicatorEls[roof.close.limit] = closeLimitDiv.querySelector('span[data-topic]');
+    topics.add(roof.close.limit);
+  }
+}
+
+function addSwitchCards() {
+  const container = document.getElementById('switchesContainer');
+  switches.forEach(sw => {
+    const card = document.createElement('div');
+    card.className = 'p-4 bg-white rounded shadow flex items-center justify-between';
+    card.innerHTML = `<span>${sw.name}</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="${sw.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
+    container.appendChild(card);
+    topics.add(sw.path);
+  });
+}
+
+addSensorCards();
+addRoofControls();
+addSwitchCards();
+
+const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
+const staticTopics = new Set(
+  topicElements.filter(el => el.hasAttribute('data-static')).map(el => el.getAttribute('data-topic'))
+);
 
 function setToggleDisabled(disabled) {
   document.querySelectorAll('.toggleButton').forEach(button => {
@@ -292,6 +202,37 @@ function updateConnectionStatus(status, info) {
 }
 setToggleDisabled(true);
 
+function createBullet(id, title, min, max, target, color, neg) {
+  return Highcharts.chart(id, {
+    chart: { type: 'bullet', inverted: true },
+    title: { text: title, align: 'left' },
+    xAxis: { categories: [''], title: null },
+    yAxis: { min: min, max: max, title: null, plotBands: [] },
+    series: [{
+      data: [{ y: 0, target: target }],
+      threshold: target,
+      color: color,
+      negativeColor: neg
+    }],
+    tooltip: { enabled: false },
+    credits: { enabled: false }
+  });
+}
+
+const bulletConfigs = {
+  'Observatory/Graph/clouds': { id: 'bullet-clouds', title: 'Clouds', min: -40, max: 40, target: -12, color: 'red', neg: 'green' },
+  'Observatory/Graph/light': { id: 'bullet-light', title: 'Light', min: 0, max: 20000, target: 10000, color: 'green', neg: 'red' },
+  'Observatory/Graph/rain': { id: 'bullet-rain', title: 'Rain', min: 0, max: 10000, target: 4200, color: 'green', neg: 'red' },
+  'Observatory/Graph/hum': { id: 'bullet-hum', title: 'Humidity', min: 0, max: 100, target: 95, color: 'red', neg: 'green' },
+  'Observatory/Graph/sqm': { id: 'bullet-sqm', title: 'Darkness', min: 0, max: 22, target: 15, color: 'green', neg: 'red' }
+};
+
+const bulletCharts = {};
+Object.entries(bulletConfigs).forEach(([topic, cfg]) => {
+  bulletCharts[topic] = createBullet(cfg.id, cfg.title, cfg.min, cfg.max, cfg.target, cfg.color, cfg.neg);
+  topics.add(topic);
+});
+
 if (mqttClient) {
   mqttClient.on('status', updateConnectionStatus);
   mqttClient.on('error', err => console.error('MQTT client error:', err));
@@ -305,16 +246,16 @@ if (mqttClient) {
 
   mqttClient.on('message', function(topic, message) {
     const value = message.toString();
-    if (gaugeCharts[topic]) {
-      const point = gaugeCharts[topic].series[0].points[0];
-      point.update(parseFloat(value));
+    if (sensorValueEls[topic]) {
+      const el = sensorValueEls[topic];
+      el.textContent = value;
+      const unit = el.getAttribute('data-unit');
+      if (unit) el.textContent = value + ' ' + unit;
     }
+    if (indicatorEls[topic]) updateIndicatorEl(indicatorEls[topic], value);
     if (bulletCharts[topic]) {
-      const chart = bulletCharts[topic];
-      chart.series[0].points[0].update({ y: parseFloat(value) });
+      bulletCharts[topic].series[0].points[0].update({ y: parseFloat(value) });
     }
-    if (topic === 'Observatory/roof/openlimit') updateIndicator('openLimitIndicator', value);
-    if (topic === 'Observatory/roof/closelimit') updateIndicator('closeLimitIndicator', value);
     if (!staticTopics.has(topic)) {
       toggleStates[topic] = value;
       updateToggleButton(topic, value);
@@ -330,9 +271,7 @@ if (mqttClient) {
   });
 }
 
-function updateIndicator(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
+function updateIndicatorEl(el, value) {
   el.classList.remove('bg-green-500','bg-red-500','bg-gray-400');
   el.classList.add(value === '1' ? 'bg-green-500' : 'bg-red-500');
 }
@@ -352,15 +291,6 @@ function updateToggleButton(topic, value) {
     }
   }
 }
-</script>
-
-<script>
-function refreshImage() {
-  const image = document.getElementById('liveImage');
-  const timestamp = new Date().getTime();
-  image.src = 'http://skycam.local/current/tmp/image.jpg?' + timestamp;
-}
-setInterval(refreshImage, 120000);
 </script>
 </body>
 </html>

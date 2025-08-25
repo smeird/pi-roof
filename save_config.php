@@ -25,5 +25,23 @@ foreach ($allowed as $key) {
     }
 }
 
+if (isset($input['sensors']) && is_array($input['sensors'])) {
+    replaceSensors($input['sensors']);
+}
+
+if (isset($input['switches']) && is_array($input['switches'])) {
+    replaceSwitches($input['switches']);
+}
+
+if (isset($input['roof']) && is_array($input['roof'])) {
+    $roof = [
+        'open_path' => $input['roof']['open']['path'] ?? '',
+        'open_limit' => $input['roof']['open']['limit'] ?? '',
+        'close_path' => $input['roof']['close']['path'] ?? '',
+        'close_limit' => $input['roof']['close']['limit'] ?? ''
+    ];
+    setRoof($roof);
+}
+
 echo json_encode(['status' => 'ok']);
 ?>

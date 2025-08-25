@@ -9,6 +9,9 @@ export async function loadConfig() {
     port: parseInt(data.port, 10),
     username: data.username,
     password: data.password,
-    dashboardTopics: data.dashboardTopics
+    dashboardTopics: data.dashboardTopics,
+    sensors: data.sensors || [],
+    switches: data.switches || [],
+    roof: data.roof || { open: { path: '', limit: '' }, close: { path: '', limit: '' } }
   };
 }

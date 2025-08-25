@@ -5,54 +5,144 @@
   <title>Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-  <div class="bg-white p-6 rounded shadow w-full max-w-md">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div class="bg-white p-6 rounded shadow w-full max-w-3xl">
     <h1 class="text-xl mb-4">Configuration</h1>
-    <form id="settingsForm" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium">MQTT Broker URL</label>
-        <input name="MQTT_BROKER_URL" class="mt-1 p-2 border w-full" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">MQTT Port</label>
-        <input name="MQTT_PORT" type="number" class="mt-1 p-2 border w-full" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">MQTT Username</label>
-        <input name="MQTT_USERNAME" class="mt-1 p-2 border w-full" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">MQTT Password</label>
-        <input name="MQTT_PASSWORD" type="password" class="mt-1 p-2 border w-full" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Dashboard Topics (comma-separated)</label>
+    <form id="settingsForm" class="space-y-6">
+      <section>
+        <h2 class="text-lg font-semibold mb-2">MQTT Server</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Host</label>
+            <input name="MQTT_BROKER_URL" class="mt-1 p-2 border w-full" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Port</label>
+            <input name="MQTT_PORT" type="number" class="mt-1 p-2 border w-full" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Username</label>
+            <input name="MQTT_USERNAME" class="mt-1 p-2 border w-full" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Password</label>
+            <input name="MQTT_PASSWORD" type="password" class="mt-1 p-2 border w-full" />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold mb-2">Sensors</h2>
+        <div id="sensorsList" class="space-y-2"></div>
+        <button type="button" id="addSensor" class="mt-2 bg-gray-200 px-2 py-1 rounded">Add Sensor</button>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold mb-2">Roof</h2>
+        <div class="space-y-2">
+          <div class="flex space-x-2">
+            <input id="roofOpenPath" class="p-2 border flex-1" placeholder="Open Path" />
+            <input id="roofOpenLimit" class="p-2 border flex-1" placeholder="Open Limit" />
+          </div>
+          <div class="flex space-x-2">
+            <input id="roofClosePath" class="p-2 border flex-1" placeholder="Close Path" />
+            <input id="roofCloseLimit" class="p-2 border flex-1" placeholder="Close Limit" />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold mb-2">Switches</h2>
+        <div id="switchesList" class="space-y-2"></div>
+        <button type="button" id="addSwitch" class="mt-2 bg-gray-200 px-2 py-1 rounded">Add Switch</button>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold mb-2">Dashboard Topics (comma separated)</h2>
         <input name="MQTT_DASHBOARD_TOPICS" class="mt-1 p-2 border w-full" />
-      </div>
+      </section>
+
       <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
     </form>
     <div id="status" class="mt-4 text-sm"></div>
   </div>
+
   <script type="module">
+    import { loadConfig } from './js/mqttConfig.js';
+
+    const sensorsList = document.getElementById('sensorsList');
+    const switchesList = document.getElementById('switchesList');
+
+    function createSensorRow(data = {}) {
+      const row = document.createElement('div');
+      row.className = 'flex space-x-2 sensor-row';
+      row.innerHTML = `
+        <input class="p-2 border flex-1 sensor-path" placeholder="Path" value="${data.path || ''}">
+        <input class="p-2 border w-24 sensor-unit" placeholder="Unit" value="${data.unit || ''}">
+        <input class="p-2 border flex-1 sensor-name" placeholder="Name" value="${data.name || ''}">
+        <button type="button" class="remove bg-red-500 text-white px-2 rounded">X</button>`;
+      row.querySelector('.remove').addEventListener('click', () => row.remove());
+      sensorsList.appendChild(row);
+    }
+
+    function createSwitchRow(data = {}) {
+      const row = document.createElement('div');
+      row.className = 'flex space-x-2 switch-row';
+      row.innerHTML = `
+        <input class="p-2 border flex-1 switch-path" placeholder="Path" value="${data.path || ''}">
+        <input class="p-2 border flex-1 switch-name" placeholder="Name" value="${data.name || ''}">
+        <button type="button" class="remove bg-red-500 text-white px-2 rounded">X</button>`;
+      row.querySelector('.remove').addEventListener('click', () => row.remove());
+      switchesList.appendChild(row);
+    }
+
+    document.getElementById('addSensor').addEventListener('click', () => createSensorRow());
+    document.getElementById('addSwitch').addEventListener('click', () => createSwitchRow());
+
     async function loadSettings() {
-      const res = await fetch('/get_config.php');
-      const cfg = await res.json();
-      const map = {
-        MQTT_BROKER_URL: cfg.brokerUrl,
-        MQTT_PORT: cfg.port,
-        MQTT_USERNAME: cfg.username,
-        MQTT_PASSWORD: cfg.password,
-        MQTT_DASHBOARD_TOPICS: cfg.dashboardTopics.join(',')
-      };
-      Object.entries(map).forEach(([k,v]) => {
-        document.querySelector(`[name="${k}"]`).value = v;
-      });
+      const cfg = await loadConfig();
+      document.querySelector('[name="MQTT_BROKER_URL"]').value = cfg.brokerUrl;
+      document.querySelector('[name="MQTT_PORT"]').value = cfg.port;
+      document.querySelector('[name="MQTT_USERNAME"]').value = cfg.username;
+      document.querySelector('[name="MQTT_PASSWORD"]').value = cfg.password;
+      document.querySelector('[name="MQTT_DASHBOARD_TOPICS"]').value = cfg.dashboardTopics.join(',');
+      cfg.sensors.forEach(s => createSensorRow(s));
+      cfg.switches.forEach(s => createSwitchRow(s));
+      document.getElementById('roofOpenPath').value = cfg.roof.open.path || '';
+      document.getElementById('roofOpenLimit').value = cfg.roof.open.limit || '';
+      document.getElementById('roofClosePath').value = cfg.roof.close.path || '';
+      document.getElementById('roofCloseLimit').value = cfg.roof.close.limit || '';
     }
     loadSettings();
 
     document.getElementById('settingsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const data = Object.fromEntries(new FormData(e.target).entries());
+      const data = {
+        MQTT_BROKER_URL: document.querySelector('[name="MQTT_BROKER_URL"]').value,
+        MQTT_PORT: document.querySelector('[name="MQTT_PORT"]').value,
+        MQTT_USERNAME: document.querySelector('[name="MQTT_USERNAME"]').value,
+        MQTT_PASSWORD: document.querySelector('[name="MQTT_PASSWORD"]').value,
+        MQTT_DASHBOARD_TOPICS: document.querySelector('[name="MQTT_DASHBOARD_TOPICS"]').value,
+        sensors: Array.from(document.querySelectorAll('.sensor-row')).map(r => ({
+          path: r.querySelector('.sensor-path').value,
+          unit: r.querySelector('.sensor-unit').value,
+          name: r.querySelector('.sensor-name').value
+        })),
+        switches: Array.from(document.querySelectorAll('.switch-row')).map(r => ({
+          path: r.querySelector('.switch-path').value,
+          name: r.querySelector('.switch-name').value
+        })),
+        roof: {
+          open: {
+            path: document.getElementById('roofOpenPath').value,
+            limit: document.getElementById('roofOpenLimit').value
+          },
+          close: {
+            path: document.getElementById('roofClosePath').value,
+            limit: document.getElementById('roofCloseLimit').value
+          }
+        }
+      };
       try {
         const res = await fetch('/save_config.php', {
           method: 'POST',
