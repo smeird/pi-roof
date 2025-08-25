@@ -35,6 +35,15 @@
         lastError = err;
         currentStatus = 'error';
         handlers.status.forEach(h => h('error', err));
+        // Force a close to trigger reconnect logic. If the client is already
+        // closed, invoke the disconnect handler directly. Avoid interfering
+        // with an intentional end() call by respecting the ended flag.
+        if (ended) return;
+        if (client && !client.disconnected && !client.disconnecting) {
+          client.end();
+        } else {
+          handleDisconnect();
+        }
       });
 
       // Treat broker 'close' or 'offline' events as disconnects
