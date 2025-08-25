@@ -126,7 +126,7 @@ function addSensorCards() {
 
     container.appendChild(card);
     sensorValueEls[s.path] = valueEl;
-    sensorIndicators[s.path] = { el: indicator, green: parseFloat(s.green) };
+    sensorIndicators[s.path] = { el: indicator, green: parseFloat(s.green), direction: s.greenDirection || 'below' };
     topics.add(s.path);
   });
 }
@@ -256,7 +256,7 @@ function addSensorCharts() {
     const range = defaultRange(s.green);
     const target = parseFloat(s.green);
     bulletCharts[s.path] = createBullet(id, s.name, range.min, range.max, target);
-    bulletTargets[s.path] = target;
+    bulletTargets[s.path] = { target, direction: s.greenDirection || 'below' };
   });
 }
 
@@ -289,8 +289,11 @@ try {
     if (indicatorEls[topic]) updateIndicatorEl(indicatorEls[topic], value);
     if (bulletCharts[topic]) {
       const y = parseFloat(value);
-      const target = bulletTargets[topic];
-      const color = (!isNaN(target) && y <= target) ? 'green' : 'red';
+      const info = bulletTargets[topic];
+      const target = info.target;
+      const dir = info.direction;
+      const isGreen = (!isNaN(target) && (dir === 'above' ? y >= target : y <= target));
+      const color = isGreen ? 'green' : 'red';
       bulletCharts[topic].series[0].points[0].update({ y, color });
     }
     if (!staticTopics.has(topic)) {
@@ -322,12 +325,15 @@ function updateSensorIndicator(topic, value) {
   const data = sensorIndicators[topic];
   if (!data) return;
   const num = parseFloat(value);
-  if (!isNaN(num) && !isNaN(data.green) && num <= data.green) {
-    data.el.classList.remove('bg-red-500');
-    data.el.classList.add('bg-green-500');
-  } else {
-    data.el.classList.remove('bg-green-500');
-    data.el.classList.add('bg-red-500');
+  if (!isNaN(num) && !isNaN(data.green)) {
+    const isGreen = data.direction === 'above' ? num >= data.green : num <= data.green;
+    if (isGreen) {
+      data.el.classList.remove('bg-red-500');
+      data.el.classList.add('bg-green-500');
+    } else {
+      data.el.classList.remove('bg-green-500');
+      data.el.classList.add('bg-red-500');
+    }
   }
 }
 

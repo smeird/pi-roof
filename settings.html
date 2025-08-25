@@ -96,6 +96,10 @@
         <input class="p-2 border w-24 sensor-unit" placeholder="Unit" value="${data.unit || ''}">
         <input class="p-2 border flex-1 sensor-name" placeholder="Name" value="${data.name || ''}">
         <input class="p-2 border w-24 sensor-green" type="number" step="any" placeholder="Green" value="${data.green || ''}">
+        <select class="p-2 border w-28 sensor-direction">
+          <option value="below" ${data.greenDirection === 'above' ? '' : 'selected'}>Below</option>
+          <option value="above" ${data.greenDirection === 'above' ? 'selected' : ''}>Above</option>
+        </select>
         <button type="button" class="remove bg-red-500 text-white px-2 rounded">X</button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       sensorsList.appendChild(row);
@@ -143,7 +147,8 @@
           path: r.querySelector('.sensor-path').value,
           unit: r.querySelector('.sensor-unit').value,
           name: r.querySelector('.sensor-name').value,
-          green: r.querySelector('.sensor-green').value
+          green: r.querySelector('.sensor-green').value,
+          greenDirection: r.querySelector('.sensor-direction').value
         })),
         switches: Array.from(document.querySelectorAll('.switch-row')).map(r => ({
           path: r.querySelector('.switch-path').value,

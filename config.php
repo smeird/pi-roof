@@ -3,17 +3,23 @@ function getDb() {
     $db = new SQLite3('/var/www/data/config.db');
     // create tables for simple key/value settings as well as dynamic lists
     $db->exec('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)');
-    $db->exec('CREATE TABLE IF NOT EXISTS sensors (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, unit TEXT, name TEXT, green_value TEXT)');
+    $db->exec('CREATE TABLE IF NOT EXISTS sensors (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, unit TEXT, name TEXT, green_value TEXT, green_direction TEXT)');
     $cols = $db->query('PRAGMA table_info(sensors)');
     $hasGreen = false;
+    $hasDirection = false;
     while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
         if ($col['name'] === 'green_value') {
             $hasGreen = true;
-            break;
+        }
+        if ($col['name'] === 'green_direction') {
+            $hasDirection = true;
         }
     }
     if (!$hasGreen) {
         $db->exec('ALTER TABLE sensors ADD COLUMN green_value TEXT');
+    }
+    if (!$hasDirection) {
+        $db->exec('ALTER TABLE sensors ADD COLUMN green_direction TEXT');
     }
     $db->exec('CREATE TABLE IF NOT EXISTS switches (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, name TEXT)');
     $db->exec('CREATE TABLE IF NOT EXISTS roof (id INTEGER PRIMARY KEY CHECK (id = 1), open_path TEXT, open_limit TEXT, close_path TEXT, close_limit TEXT)');
@@ -48,14 +54,15 @@ function setSetting($key, $value) {
 
 function getSensors() {
     $db = getDb();
-    $res = $db->query('SELECT path, unit, name, green_value FROM sensors ORDER BY id');
+    $res = $db->query('SELECT path, unit, name, green_value, green_direction FROM sensors ORDER BY id');
     $sensors = [];
     if (!$res) {
         return $sensors;
     }
     while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
         $row['green'] = $row['green_value'];
-        unset($row['green_value']);
+        $row['greenDirection'] = $row['green_direction'];
+        unset($row['green_value'], $row['green_direction']);
         $sensors[] = $row;
     }
     return $sensors;
@@ -64,13 +71,14 @@ function getSensors() {
 function replaceSensors($sensors) {
     $db = getDb();
     $db->exec('DELETE FROM sensors');
-    $stmt = $db->prepare('INSERT INTO sensors (path, unit, name, green_value) VALUES (:path, :unit, :name, :green_value)');
+    $stmt = $db->prepare('INSERT INTO sensors (path, unit, name, green_value, green_direction) VALUES (:path, :unit, :name, :green_value, :green_direction)');
     foreach ($sensors as $sensor) {
         if (!isset($sensor['path'])) continue;
         $stmt->bindValue(':path', $sensor['path'], SQLITE3_TEXT);
         $stmt->bindValue(':unit', $sensor['unit'] ?? '', SQLITE3_TEXT);
         $stmt->bindValue(':name', $sensor['name'] ?? '', SQLITE3_TEXT);
         $stmt->bindValue(':green_value', $sensor['green'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(':green_direction', $sensor['greenDirection'] ?? 'below', SQLITE3_TEXT);
         $stmt->execute();
     }
 }
