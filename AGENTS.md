@@ -6,6 +6,7 @@
 - Removed obsolete `cold.html` panel.
 - Removed legacy PHP and HTML files (e.g. `script.php`, `manualjob.php`, `recipies.html`, `api.php.old`, `getvaluestatus.php.old`, `index.php.old`, `index2.php`, `base.css`).
 - Navigation links now live in a Tailwind-styled sidebar instead of a top bar.
+- Main header includes a telescope icon linking back to the home screen.
 - Toggle controls should use Tailwind switch-style buttons with a sliding knob.
 - Main layout uses a full-height flex container with a sticky sidebar and wider grid spacing.
 
