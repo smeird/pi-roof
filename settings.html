@@ -5,8 +5,23 @@
   <title>Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
-  <div class="bg-white p-6 rounded shadow w-full max-w-3xl">
+<body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex">
+  <aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
+    <div class="p-4 text-lg font-bold">Observatory Control Panel</div>
+    <nav class="px-2 flex-1">
+      <ul class="space-y-2">
+        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forecast</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700" href="settings.html">Settings</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="flex-1 p-6">
+  <div class="bg-white p-6 rounded shadow w-full max-w-3xl mx-auto">
     <h1 class="text-xl mb-4">Configuration</h1>
     <form id="settingsForm" class="space-y-6">
       <section>
@@ -66,7 +81,7 @@
     </form>
     <div id="status" class="mt-4 text-sm"></div>
   </div>
-
+  </main>
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
 
@@ -80,6 +95,7 @@
         <input class="p-2 border flex-1 sensor-path" placeholder="Path" value="${data.path || ''}">
         <input class="p-2 border w-24 sensor-unit" placeholder="Unit" value="${data.unit || ''}">
         <input class="p-2 border flex-1 sensor-name" placeholder="Name" value="${data.name || ''}">
+        <input class="p-2 border w-24 sensor-green" type="number" step="any" placeholder="Green" value="${data.green || ''}">
         <button type="button" class="remove bg-red-500 text-white px-2 rounded">X</button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       sensorsList.appendChild(row);
@@ -126,7 +142,8 @@
         sensors: Array.from(document.querySelectorAll('.sensor-row')).map(r => ({
           path: r.querySelector('.sensor-path').value,
           unit: r.querySelector('.sensor-unit').value,
-          name: r.querySelector('.sensor-name').value
+          name: r.querySelector('.sensor-name').value,
+          green: r.querySelector('.sensor-green').value
         })),
         switches: Array.from(document.querySelectorAll('.switch-row')).map(r => ({
           path: r.querySelector('.switch-path').value,
