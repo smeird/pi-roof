@@ -4,7 +4,17 @@ function getDb() {
     // create tables for simple key/value settings as well as dynamic lists
     $db->exec('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)');
     $db->exec('CREATE TABLE IF NOT EXISTS sensors (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, unit TEXT, name TEXT, green_value TEXT)');
-    @$db->exec('ALTER TABLE sensors ADD COLUMN green_value TEXT');
+    $cols = $db->query('PRAGMA table_info(sensors)');
+    $hasGreen = false;
+    while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
+        if ($col['name'] === 'green_value') {
+            $hasGreen = true;
+            break;
+        }
+    }
+    if (!$hasGreen) {
+        $db->exec('ALTER TABLE sensors ADD COLUMN green_value TEXT');
+    }
     $db->exec('CREATE TABLE IF NOT EXISTS switches (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, name TEXT)');
     $db->exec('CREATE TABLE IF NOT EXISTS roof (id INTEGER PRIMARY KEY CHECK (id = 1), open_path TEXT, open_limit TEXT, close_path TEXT, close_limit TEXT)');
     return $db;
@@ -40,6 +50,9 @@ function getSensors() {
     $db = getDb();
     $res = $db->query('SELECT path, unit, name, green_value FROM sensors ORDER BY id');
     $sensors = [];
+    if (!$res) {
+        return $sensors;
+    }
     while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
         $row['green'] = $row['green_value'];
         unset($row['green_value']);
