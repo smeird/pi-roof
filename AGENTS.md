@@ -16,4 +16,5 @@
 - SkyCam image and real-time graph sit in a bottom card section.
 - MQTT helper now emits `status` events (`connecting`, `connected`, `disconnected`, `reconnecting`, `error`) and uses exponential backoff reconnects up to 30s.
 - MQTT topics should be derived from DOM elements with `data-topic`; flag topics without UI colour changes using `data-static`.
+- MQTT connection settings are centralised in `js/mqttConfig.js`, which reads from environment variables or a `window.__ENV` object.
 

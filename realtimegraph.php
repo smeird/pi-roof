@@ -15,10 +15,11 @@
 </head>
 <body>
   <div id="containery" style="height: 800px;"></div>
-  <script type="text/javascript">
+  <script type="module">
+import { brokerUrl, port, graphTopic } from './js/mqttConfig.js';
 //settings BEGIN
-var MQTTbroker = 'wss://mqtt.smeird.com:8083';
-var MQTTsubTopic = 'Observatory/Graph/#'; //works with wildcard # and + topics dynamically now
+const MQTTbroker = `${brokerUrl}:${port}`;
+const MQTTsubTopic = graphTopic; //works with wildcard # and + topics dynamically now
 //settings END
 var chart; // global variable for chart
 var dataTopics = [];

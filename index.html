@@ -171,7 +171,9 @@
   </section>
 </main>
 
-<script>
+<script type="module">
+import { brokerUrl, port, username, password, dashboardTopics } from './js/mqttConfig.js';
+
 // Highcharts gauge setup
 function createGauge(id, title, min, max) {
   return Highcharts.chart(id, {
@@ -203,16 +205,19 @@ Object.entries(gaugeConfigs).forEach(([topic, cfg]) => {
 
 // MQTT handling
 const mqttClient = createClient({
-  brokerUrl: 'ws://homeassistant.smeird.com:1884',
+  brokerUrl: `${brokerUrl}:${port}`,
   options: {
-    username: 'smeird',
-    password: '92987974'
+    username,
+    password
   }
 });
 
 const toggleStates = {};
 const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
-const topics = Array.from(new Set(topicElements.map(el => el.getAttribute('data-topic'))));
+const topics = Array.from(new Set([
+  ...topicElements.map(el => el.getAttribute('data-topic')),
+  ...dashboardTopics
+]));
 const staticTopics = new Set(
   topicElements
     .filter(el => el.hasAttribute('data-static'))
