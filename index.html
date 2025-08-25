@@ -8,31 +8,22 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
-
-
-
-  <!-- Bootstrap Navbar for Title Bar -->
-    <nav class="bg-gray-800">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <a class="text-white font-bold" href="#">Observatory Control Panel</a>
-                <ul class="flex space-x-4">
-                    <li><a class="text-gray-300 hover:text-white" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
-                    <li><a class="text-gray-300 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
-                    <li><a class="text-gray-300 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
-                    <li><a class="text-gray-300 hover:text-white" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
-                    <li><a class="text-gray-300 hover:text-white" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
-                    <li><a class="text-gray-300 hover:text-white" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forcast</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-
-
-
-
-<div class="container mx-auto mt-5">
+  <div class="flex">
+    <aside class="w-64 bg-gray-800 text-white min-h-screen">
+      <div class="p-4 text-lg font-bold">Observatory Control Panel</div>
+      <nav class="px-2">
+        <ul class="space-y-2">
+          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
+          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
+          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
+          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
+          <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
+          <li><a class="block px-2 py-1 hover:bg-gray-700" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forcast</a></li>
+        </ul>
+      </nav>
+    </aside>
+    <main class="flex-1 p-4">
+      <div class="container mx-auto mt-5">
 
 <!-- New Rows for Additional Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -106,7 +97,10 @@
                 <div id="whiteLightsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">12V Power</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/roof/power">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/power">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>          
@@ -116,7 +110,10 @@
                 <div id="whiteLightsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     
                     <div class="card-header px-4 py-2 font-semibold border-b">White Lights</div>
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/lights/white">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/white">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -126,7 +123,10 @@
                 <div id="redLightsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Red Lights</div>
                    
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/lights/red">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/red">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -136,7 +136,10 @@
                 <div id="deskLightsCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Desk Lights</div>
                    
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/lights/desk">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/lights/desk">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -176,7 +179,10 @@
                 <div id="openRoofCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Open Roof</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/roof/open">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/open">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -186,7 +192,10 @@
                 <div id="closeRoofCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Close Roof</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/roof/close">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/roof/close">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -199,7 +208,10 @@
                 <div id="computerCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">PC</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/Scope/Computer">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Computer">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -209,7 +221,10 @@
                 <div id="focuserCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Focus</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/Scope/Focus">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Focus">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -219,7 +234,10 @@
                 <div id="dewHeaterCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Dew</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/Scope/Dew">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Dew">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                    
                 </div>
             </div>
@@ -229,7 +247,10 @@
                 <div id="scopeCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Scope</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/Scope/Scope">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Scope/Scope">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -238,7 +259,10 @@
                 <div id="patioCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Patio Sensor</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/Hue/PatioSensor">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/PatioSensor">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -247,7 +271,10 @@
                 <div id="vegCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Veg Sensor</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="Observatory/Hue/ObservatorySensor">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="Observatory/Hue/ObservatorySensor">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
             </div>
@@ -256,7 +283,10 @@
                 <div id="workshopmotionCard" class="card bg-white text-gray-800 shadow rounded mb-2">
                     <div class="card-header px-4 py-2 font-semibold border-b">Workshop Motion</div>
                     
-                        <button class="toggleButton px-2 py-1 bg-gray-500 text-white rounded" data-topic="workshop/sensors/motion">Toggle</button>
+                        <button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="workshop/sensors/motion">
+                            <span class="sr-only">Toggle</span>
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+                        </button>
                     
                 </div>
                 
@@ -266,10 +296,11 @@
 
 
 
-<div class="container mx-auto my-4">
-    <a href=http://skycam.smeird.com><img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto"></a>
-</div>
-
+  <div class="container mx-auto my-4">
+      <a href=http://skycam.smeird.com><img id="liveImage" src="https://skycam.smeird.com/indi-allsky/images/latest.jpg?cacheBuster=123456" alt="SkyCam Image" class="w-full h-auto"></a>
+  </div>
+    </main>
+  </div>
 <script>
     function refreshImage() {
         const image = document.getElementById('liveImage');
@@ -341,12 +372,13 @@
         });
     });
 
-    mqttClient.on('message', function (topic, message) {
-        const messageStr = message.toString();
-        toggleStates[topic] = messageStr; // Update the current state
-        updateCard(topic, messageStr);
-        updateValueDisplay(topic, messageStr); // New function to update text
-    });
+      mqttClient.on('message', function (topic, message) {
+          const messageStr = message.toString();
+          toggleStates[topic] = messageStr; // Update the current state
+          updateCard(topic, messageStr);
+          updateValueDisplay(topic, messageStr); // New function to update text
+          updateToggleButton(topic, messageStr);
+      });
 
     document.querySelectorAll('.toggleButton').forEach(button => {
         button.addEventListener('click', function() {
@@ -402,7 +434,7 @@
     //        valueDisplay.textContent = value;
     //    }
     //}
-    function updateValueDisplay(topic, value) {
+      function updateValueDisplay(topic, value) {
         // Check if the topic is in the nonColourChangeTopics array
         if (nonColourChangeTopics.includes(topic)) {
             const valueDisplay = document.querySelector(`[data-topic='${topic}']`);
@@ -433,7 +465,23 @@
 
             }
         }
-    } 
+    }
+
+    function updateToggleButton(topic, value) {
+        const button = document.querySelector(`.toggleButton[data-topic='${topic}']`);
+        if (button) {
+            const knob = button.querySelector('span:last-child');
+            if (value === '1') {
+                button.classList.remove('bg-gray-200');
+                button.classList.add('bg-green-500');
+                knob.classList.add('translate-x-5');
+            } else {
+                button.classList.remove('bg-green-500');
+                button.classList.add('bg-gray-200');
+                knob.classList.remove('translate-x-5');
+            }
+        }
+    }
 
 function updateCardBackground(cardBody, condition, className) {
     console.log("Updating card body background", { cardBody, condition, className });
