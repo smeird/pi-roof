@@ -4,6 +4,7 @@
 - Record any additional project decisions or conventions in this file.
 - No automated tests are configured; run `npm test` to confirm.
 - Removed obsolete `cold.html` panel.
+- Removed legacy PHP and HTML files (e.g. `script.php`, `manualjob.php`, `recipies.html`, `api.php.old`, `getvaluestatus.php.old`, `index.php.old`, `index2.php`, `base.css`).
 - Navigation links now live in a Tailwind-styled sidebar instead of a top bar.
 - Toggle controls should use Tailwind switch-style buttons with a sliding knob.
 - Main layout uses a full-height flex container with a sticky sidebar and wider grid spacing.
