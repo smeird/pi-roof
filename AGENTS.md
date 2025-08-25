@@ -11,7 +11,8 @@
 - Sensor data uses Highcharts solid gauges with Tailwind indicators; SkyCam image shares a two-column layout with the real-time graph.
 
 - Use `js/mqttClient.js` for all MQTT connections instead of direct library calls.
-
 - Highcharts solid gauges require `highcharts-more.js` and are placed inside Tailwind card wrappers.
 - Main page background uses a subtle top-to-bottom gray gradient.
 - SkyCam image and real-time graph sit in a bottom card section.
+- MQTT helper now emits `status` events (`connecting`, `connected`, `disconnected`, `reconnecting`, `error`) and uses exponential backoff reconnects up to 30s.
+
