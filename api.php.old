@@ -1,0 +1,26 @@
+<?php
+$i=$_GET["GPIOPORT"];
+$action=$_GET["ACTION"];
+
+if ($action=='OFF') {
+system ( "gpio -g mode ".$i." out" );
+system ( "gpio -g write ".$i." 1" );
+exec ( "gpio -g read $i", $vstatus );
+if ($vstatus[0]==1) {echo "OK"; } else { echo "Failed";}
+}
+
+if ($action=='ON'){
+system ( "gpio -g mode ".$i." out" );
+system ( "gpio -g write ".$i." 0" );
+exec ( "gpio -g read $i", $vstatus );
+if ($vstatus[0]==0) {echo "OK"; } else { echo "Failed";}
+
+}
+
+if ($action=='STATUS'){
+
+exec ( "gpio -g read $i", $vstatus );
+if ($vstatus[0]==0) {echo "ON"; } else { echo "OFF";}
+
+}
+?>

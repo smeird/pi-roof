@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coldframe Recipies</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+  
+    <!-- jQuery -->
+    <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+   
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+
+</head>
+<body>
+
+
+
+  <!-- Bootstrap Navbar for Title Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Coldframe Control Panel - Recipies</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://admin.smeird.com:3000/public-dashboards/fd7e1047df104407b8cd11f0876b6106?orgId=1" target="_blank">Weather</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://garden.smeird.com" target="_blank">Garden System</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://www.smeird.com" target="_blank">Public Weather</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="recipies.html" target="_blank">Recipies</a>
+                    </li>
+                  </ul>
+            </div>
+        </div>
+    </nav>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div id="updateToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">Update Status</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      <!-- Message will be set by JavaScript -->
+    </div>
+  </div>
+</div>
+
+
+<div class="container mt-4">
+    <!-- ... other content ... -->
+
+    <table id="recipesTable" class="display">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Light Duration</th>
+                <th>Temperature</th>
+                <th>Water Volume</th>
+                <th>Water Frequency</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <!-- Add more columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be populated here -->
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+$(document).ready(function() {
+    $('#recipesTable').DataTable({
+        "ajax": {
+            "url": "http://coldframe.smeird.com:1880/api/recipes", // Your Node-RED API endpoint
+            "type": "GET",
+            "dataSrc": "" // Since your data is an array at the root level
+        },
+        "columns": [
+            { "data": "Name" },
+            { "data": "LightDuration" },
+            { "data": "Temperature" },
+            { "data": "WaterVolume" },
+            { "data": "WaterFrequency" },
+            { "data": "StartDate" },
+            { "data": "EndDate" }
+            // Add more columns if needed
+        ],
+        // Additional DataTable options as needed
+    });
+});
+</script>
+
+
+
+<script>
+$('#recipesTable').on('click', 'tbody td', function() {
+    var cell = $(this);
+    var originalValue = cell.text();
+    var row = cell.closest('tr');
+    var data = $('#recipesTable').DataTable().row(row).data();
+
+    var input = $('<input type="text" value="' + originalValue + '"/>')
+        .appendTo(cell.empty())
+        .focus()
+        .select();
+
+    input.blur(function() {
+        var newValue = $(this).val();
+        cell.html(newValue);
+
+        // Get the column name (key) based on the index
+        var columnIdx = cell.index();
+        var columnName = $('#recipesTable').DataTable().settings().init().columns[columnIdx].data;
+        
+        // Update the data object
+        data[columnName] = newValue;
+
+        // Send the updated data to your server
+        updateRecipeData(data);
+    });
+});
+
+
+function updateRecipeData(updatedData) {
+    $.ajax({
+        url: 'http://coldframe.smeird.com:1880/api/updateRecipe',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(updatedData),
+        success: function(response) {
+            var toastElement = document.getElementById('updateToast');
+            var toastBody = toastElement.querySelector('.toast-body');
+            var bsToast = new bootstrap.Toast(toastElement);
+
+            if (response.success) {
+                toastBody.textContent = response.message; // Set the message in the toast
+                bsToast.show(); // Show the toast
+            } else {
+                toastBody.textContent = response.message; // Set error message
+                bsToast.show(); // Show the toast
+            }
+        },
+        error: function(xhr, status, error) {
+            // Handle error
+        }
+    });
+}
+
+
+</script>

@@ -1,0 +1,43 @@
+<?php
+$arr = array(18, 23, 24, 20, 26, 16, 14, 15);
+$t = 0;
+foreach ($arr as $id) {
+    exec("gpio -g read $id", $vstatus);
+    //echo "<pre>";
+    //print_r($vstatus);
+
+    if ($vstatus[$t] == 1) {
+        $textstatus = "Off";
+        $status = "shadow card border-light ";
+    } else {
+        $textstatus = "On";
+        $status = "shadow card bg-success text-success";
+    }
+
+    $answer[$id] = [$status, $textstatus];
+    $t++;
+}
+
+$arr0 = array(17, 21);
+$t0 = 0;
+foreach ($arr0 as $id0) {
+    exec("gpio -g read $id0", $vstatus0);
+    //echo "<pre>";
+    //print_r($vstatus);
+
+    if ($vstatus0[$t0] == 0) {
+        $textstatus0 = "Off";
+        $status0 = "shadow card bg-light";
+    } else {
+        $textstatus0 = "On";
+        $status0 = "shadow card text-grey-200 bg-success";
+    }
+
+    $answer[$id0] = [$status0, $textstatus0];
+    $t0++;
+}
+
+
+
+
+echo json_encode($answer);

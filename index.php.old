@@ -1,0 +1,950 @@
+<html lang="en">
+
+<head>
+  <title>Robotic Observatory Roof</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link rel="stylesheet" href="base.css">
+
+</head>
+<nav id=all class="navbar bg-primary navbar-expand-lg navbar-dark mb-1">
+  <a id="navname" class="navbar-brand" href="/#">
+
+    Observing Weather</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="http://ob.smeird.com">Current sky Weather <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="http://www.smeird.com">Current Weather <span class="sr-only">(current)</span></a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="index.php"><span id=connected>Not Connected</span></a>
+      </li>
+
+    </ul>
+
+  </div>
+
+</nav>
+
+<script>
+  $(document).ready(function(e) {
+    var refresher = setInterval("update_content();", 1000); // 5 seconds
+    var refresher2 = setInterval("update();", 10000); // 5 seconds
+
+  })
+</script>
+
+
+
+<div class="container-fullwidth ml-1 mr-1">
+
+  <div class="card">
+    <div class="border-light shadow card-body ">
+      <a href="https://clearoutside.com/forecast/51.81/-0.29"><img width=100% src="https://clearoutside.com/forecast_image_small/51.81/-0.29/forecast.png" /></a>
+    </div>
+  </div>
+
+
+
+  <div class="row">
+
+    <div class="col-lg-2 col-md-2  col-6  mb-1">
+      <div id=clouds_S class="card border-left-success shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=clouds&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=clouds_T class="text-xs  text-success text-uppercase mb-1 ">Cloud Temprature</div>
+                <div class="h7   text-gray-800"><span id=clouds>-</span>&degC</div>
+              </div>
+              <div class="col-auto">
+                <i id='clouds_I' class="fas  fa-1x text-gray-300 fa"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=light_S class="card border-left-success shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=light&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=light_T class="text-xs   text-uppercase mb-1 ">light level</div>
+                <div class="h7   text-gray-800"><span id=light>-</span></div>
+              </div>
+              <div class="col-auto">
+                <i id=light_I class="fas  fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+
+
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=temp_S class="card border-left-success shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=temp&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=temp_T class="text-xs  text-success text-uppercase mb-1 ">Ground Temprature</div>
+                <div class="h7   text-gray-800"><span id=temp>-</span>&degC</div>
+              </div>
+              <div class="col-auto">
+                <i id=temp_I class="fas fa-charging-station fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=intemp_S class="card border-left-success shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=intemp&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=intemp_T class="text-xs  text-success text-uppercase mb-1 ">Inside Temprature</div>
+                <div class="h7   text-gray-800"><span id=intemp>-</span>&degC</div>
+              </div>
+              <div class="col-auto">
+                <i id=intemp_I class="fas fa-charging-station fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=dark_S class="card border-left-success shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=dark&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=dark_T class="text-xs  text-success text-uppercase mb-1 ">Darness</div>
+                <div class="h7   text-gray-800"><span id=dark>-</span>Mags</div>
+              </div>
+              <div class="col-auto">
+                <i id=dark_I class="fas fa-charging-station fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=wind_S class="card border-left-success shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=wind&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=wind_T class="text-xs  text-success text-uppercase mb-1 ">Wind</div>
+                <div class="h7   text-gray-800"><span id=wind>-</span> m/s</div>
+              </div>
+              <div class="col-auto">
+                <i id=wind_I class="fas fa-charging-station fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=gust_S class="card border-left-danger shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=gust&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=gust_T class="text-xs  text-danger text-uppercase mb-1 ">Gust</div>
+                <div class="h7   text-gray-800"><span id=gust>-</span> m/s</div>
+              </div>
+              <div class="col-auto">
+                <i id=gust_I class="fas fa-bolt fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=rain_S class="card border-left-success shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=rain&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=rain_T class="text-xs  text-success text-uppercase mb-1 ">rain</div>
+                <div class="h7   text-gray-800"><span id=rain>-</span></div>
+              </div>
+              <div class="col-auto">
+                <i id=rain_I class="fas  fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=switch_S class="card border-left-primary shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=switch&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=switch_T class="text-xs  text-primary text-uppercase mb-1 ">Switch</div>
+                <div class="h7   text-gray-800"><span id=switch>-</span></div>
+              </div>
+              <div class="col-auto">
+                <i id=switch_I class="fas fa-car-battery fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=safe_S class="card  shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=safe&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=safe_T class="text-xs   text-uppercase mb-1 ">Assesment</div>
+                <div class="h7   text-gray-800"><span id=safe>-</span></div>
+              </div>
+              <div class="col-auto">
+                <i id=safe_I class="fas  fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=hum_S class="card border-left-primary shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=hum&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=hum_T class="text-xs   text-primary text-uppercase mb-1 ">Humidty</div>
+                <div class="h7    text-gray-800"><span id=hum>-</span> %</div>
+              </div>
+              <div class="col-auto">
+                <i id=hum_I class="fas  fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=dewp_S class="card border-left-primary shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=dewp&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=dewp_T class="text-xs  text-primary text-uppercase mb-1 ">Dew Point</div>
+                <div class="h7   text-gray-800"><span id=dewp>-</span> &degC</div>
+              </div>
+              <div class="col-auto">
+                <i id=dewp_I class="fas  fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=inhum_S class="card border-left-primary shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=inhum&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div id=inhum_T class="text-xs   text-primary text-uppercase mb-1 ">Inside Humidty</div>
+                <div class="h7    text-gray-800"><span id=inhum>-</span> %</div>
+              </div>
+              <div class="col-auto">
+                <i id=inhum_I class="fas  fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+
+
+
+
+    <div class="col-lg-2 col-md-2  col-6 mb-1 ">
+      <div id=cond_S class="card border-left-primary shadow ">
+        <a href=http://ob.smeird.com/newgraph.php?WHAT=safe&SCALE=day>
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="text-xs  text-primary text-uppercase mb-1 ">Conditions</div>
+                <div class="h7   text-gray-800"><span id=cond></span>.</div>
+              </div>
+              <div class="col-auto">
+                <i id=cond_I class="fas fa-cloud fa-1x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+
+  </div>
+
+
+  <div class="row">
+
+
+    <div class="col-lg-6 col-sm-6  col-6 mb-1 ">
+      <div id="OLS" class="card shadow ">
+
+        <div class="card-body ">
+          <div class="row no-gutters align-items-center">
+            <div class="col ">
+
+              Open Limit Switch<span class="float-right" id="OLST"></span></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 col-sm-6  col-6 mb-1 ">
+      <div id="CLS" class="card shadow ">
+
+        <div class="card-body ">
+          <div class="row no-gutters align-items-center">
+            <div class="col ">
+
+              Closed Limit Switch<span class="float-right" id="CLST"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="form-group">
+
+    <div class="row">
+
+
+
+
+      <div class="col-lg-12 col-md-12  mb-1 ">
+        <div id="V3" class="card bg-danger" onclick="script('abort')">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-200">
+                  <span class="float-center">Abort</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+
+      <div class="col-lg-3 col-md-3  col-6 mb-1 ">
+        <div id="V17" class="card bg-light" onclick="manualjob(17)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col">
+
+                <div class="h7 text-gray-800">
+                  12 DC On
+                  <span class=float-right id="S17" OFF</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-3  col-6 mb-1 ">
+        <div id="V18" class="card bg-light" onclick="manualjob('18')">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-800">
+                  White Lights <span class=float-right id="S18" OFF</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+      </div>
+      <div class="col-lg-4 col-md-3  col-6 mb-1 ">
+        <div id="V23" class="card bg-light" onclick="manualjob(23)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-800">
+                  Red Lights <span class=float-right id="S23" OFF</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <div class="col-lg-4 col-md-3  col-6 mb-1 ">
+        <div id="V24" class="card bg-light" onclick="manualjob(24)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-800">
+                  Desk Lights <span class=float-right id="S24" OFF</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <div class="col-lg-4 col-md-3  col-6 mb-1 ">
+        <div id="V21" class="card bg-light" onclick="manualjob(21)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="text-left h7   text-gray-800">
+                  Computer
+                  <span class=float-right id="S21" OFF</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="col-lg-4 col-md-3  col-6 mb-1 ">
+        <div id="V20" class="card bg-light" onclick="manualjob(20)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-800">
+                  12V Scope<span class=float-right id="S20" OFF</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-3  col-6 mb-1 ">
+        <div id="V26" class="card bg-light" onclick="manualjob(26)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-800">
+
+                  12V Focuser<span class=float-right id="S26" OFF</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-3  col-6 mb-1 ">
+        <div id="V16" class="card bg-light" onclick="manualjob(16)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-800">
+                  12 Dew Heater<span class=float-right id="S16" OFF</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <div class="col-lg-6 col-md-6  mb-1 ">
+        <div id="V14" class="shadow card bg-light" onclick="manualjob(14)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-800">
+                  Open Motor<span class=float-right id="S14"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-md-6  mb-1 ">
+        <div id="V15" class="shadow card bg-light" onclick="manualjob(15)">
+          <div class="card-body ">
+            <div class="row no-gutters align-items-center">
+              <div class="col ">
+                <div class="h7   text-gray-800">
+                  Close Motor <span class=float-right id="S15"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <script>
+        function manualjob(portnumber) {
+
+          $.ajax({
+            url: "manualjob.php",
+            type: 'POST',
+            data: {
+              GPIOPORT: portnumber
+            },
+            success: function(data) {
+              document.getElementById("showresults").innerHTML = portnumber + ':Switched';
+              document.getElementById("V" + portnumber).className = 'card border-warning ';
+
+            },
+          });
+        }
+      </script>
+
+
+
+      <script>
+        function update_content() {
+
+          $.getJSON('getvaluestatus.php', function(data) {
+            $.each(data, function(key, val) {
+              document.getElementById("V" + key).className = val[0];
+              document.getElementById("S" + key).innerHTML = val[1];
+            });
+          });
+        }
+      </script>
+
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card shadow ">
+          <div class="border-light card-body">
+            <?php include("realtimegraph.php"); ?>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card shadow ">
+          <div class="border-light card-body">
+            <a href="http://skycam.local">
+              <img style="width: 100%;" src=http://skycam.local/current/tmp/image.jpg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="col-md-6">
+  <div class="card shadow ">
+    <div class="border-light card-body">
+      <a href="http://skycam.local">
+    </div>
+  </div>
+</div>
+
+
+
+
+<script type="text/javascript">
+  var connected_flag = 0
+  var mqtt;
+  var reconnectTimeout = 20000;
+  var host = "mqtt.smeird.com";
+  var port = 8083;
+  var clean = 0;
+  var obj = 0.001;
+  var Diff;
+
+  // Create a Client instance
+  Client = new Paho.MQTT.Client(host, port, uuidv4());
+
+  // set callback handlers
+  Client.onConnectionLost = onConnectionLost;
+  Client.onMessageArrived = onMessageArrived;
+
+
+  // Connect the client, with a Username and Password
+  Client.connect({
+    onSuccess: onConnect,
+    useSSL: true
+  });
+
+  function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0,
+        v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+
+
+  // called when the Client connects
+  function onConnect() {
+    // Once a connection has been made, make a subscription and send a message.
+    console.log("INdex Page Data Connect");
+    Client.subscribe("Observatory/#");
+    document.getElementById("connected").innerHTML = "Live";
+  }
+
+  // called when the Client loses its connection
+  function onConnectionLost(responseObject) {
+    if (responseObject.errorCode !== 0) {
+      console.log("onConnectionLost:" + responseObject.errorMessage);
+      document.getElementById("connected").innerHTML = responseObject.errorMessage;
+    }
+  }
+
+  // called when a message arrives
+  function onMessageArrived(message) {
+    if (message !== null) {
+      console.log("onMessageArrived:" + message.payloadString + '  | ' + message.destinationName);
+
+      // document.getElementById("energy").innerHTML = message.payloadString;
+      //   document.getElementById("returned_energy").innerHTML = message.payloadString("input");
+      //  var obj = JSON.parse(message.payloadString);
+
+      if (message.destinationName == "Observatory/roof/openlimit") {
+
+        if (message.payloadString == 0) {
+          document.getElementById("OLS").classList.add('bg-success');
+          document.getElementById("OLS").classList.remove('bg-danger');
+        } else {
+          document.getElementById("OLS").classList.remove('bg-success');
+          document.getElementById("OLS").classList.add('bg-danger');
+        }
+      }
+
+      if (message.destinationName == "Observatory/roof/closelimit") {
+
+        if (message.payloadString == 0) {
+          document.getElementById("CLS").classList.add('bg-success');
+          document.getElementById("CLS").classList.remove('bg-danger');
+        } else {
+          document.getElementById("CLS").classList.remove('bg-success');
+          document.getElementById("CLS").classList.add('bg-danger');
+        }
+      }
+
+      //document.getElementById("OutTemp").innerHTML = dp(obj.outTemp_C);
+      if (message.destinationName == "Observatory/clouds") {
+        document.getElementById("clouds").innerHTML = message.payloadString;
+        if (message.payloadString < -12) {
+          document.getElementById("clouds_S").classList.add('border-left-success');
+          document.getElementById("clouds_S").classList.remove('border-left-danger');
+          document.getElementById("clouds_T").classList.add('text-success');
+          document.getElementById("clouds_T").classList.remove('text-danger');
+          document.getElementById("clouds_I").classList.add('fa-check');
+          document.getElementById("clouds_I").classList.remove('fa-times');
+          document.getElementById("cond_I").classList.add('fa-moon');
+          document.getElementById("cond").innerHTML = 'Its Clear'
+        } else {
+          document.getElementById("clouds_S").classList.remove('border-left-success');
+          document.getElementById("clouds_S").classList.add('border-left-danger');
+          document.getElementById("clouds_T").classList.remove('text-success');
+          document.getElementById("clouds_T").classList.add('text-danger');
+          document.getElementById("clouds_I").classList.remove('fa-check');
+          document.getElementById("clouds_I").classList.add('fa-times');
+          document.getElementById("cond_I").classList.add('fa-cloud');
+          document.getElementById("cond").innerHTML = 'Its Cloudy'
+        }
+      }
+
+      if (message.destinationName == "Observatory/temp") {
+        document.getElementById("temp").innerHTML = message.payloadString;
+        if (message.payloadString > -5) {
+          document.getElementById("temp_S").classList.add('border-left-success');
+          document.getElementById("temp_S").classList.remove('border-left-danger');
+          document.getElementById("temp_T").classList.add('text-success');
+          document.getElementById("temp_T").classList.remove('text-danger');
+          document.getElementById("temp_I").classList.add('fa-check');
+          document.getElementById("temp_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("temp_S").classList.remove('border-left-success');
+          document.getElementById("temp_S").classList.add('border-left-danger');
+          document.getElementById("temp_T").classList.remove('text-success');
+          document.getElementById("temp_T").classList.add('text-danger');
+          document.getElementById("temp_I").classList.remove('fa-check');
+          document.getElementById("temp_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/sensors/temperature") {
+        document.getElementById("intemp").innerHTML = message.payloadString;
+        if (message.payloadString > -5) {
+          document.getElementById("intemp_S").classList.add('border-left-success');
+          document.getElementById("intemp_S").classList.remove('border-left-danger');
+          document.getElementById("intemp_T").classList.add('text-success');
+          document.getElementById("intemp_T").classList.remove('text-danger');
+          document.getElementById("intemp_I").classList.add('fa-check');
+          document.getElementById("intemp_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("intemp_S").classList.remove('border-left-success');
+          document.getElementById("intemp_S").classList.add('border-left-danger');
+          document.getElementById("intemp_T").classList.remove('text-success');
+          document.getElementById("intemp_T").classList.add('text-danger');
+          document.getElementById("intemp_I").classList.remove('fa-check');
+          document.getElementById("intemp_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/wind") {
+        document.getElementById("wind").innerHTML = message.payloadString;
+        if (message.payloadString = -1) {
+          document.getElementById("wind_S").classList.add('border-left-success');
+          document.getElementById("wind_S").classList.remove('border-left-danger');
+          document.getElementById("wind_T").classList.add('text-success');
+          document.getElementById("wind_T").classList.remove('text-danger');
+          document.getElementById("wind_I").classList.add('fa-check');
+          document.getElementById("wind_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("wind_S").classList.remove('border-left-success');
+          document.getElementById("wind_S").classList.add('border-left-danger');
+          document.getElementById("wind_T").classList.remove('text-success');
+          document.getElementById("wind_T").classList.add('text-danger');
+          document.getElementById("wind_I").classList.remove('fa-check');
+          document.getElementById("wind_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/gust") {
+        document.getElementById("gust").innerHTML = message.payloadString;
+        if (message.payloadString = -1) {
+          document.getElementById("gust_S").classList.add('border-left-success');
+          document.getElementById("gust_S").classList.remove('border-left-danger');
+          document.getElementById("gust_T").classList.add('text-success');
+          document.getElementById("gust_T").classList.remove('text-danger');
+          document.getElementById("gust_I").classList.add('fa-check');
+          document.getElementById("gust_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("gust_S").classList.remove('border-left-success');
+          document.getElementById("gust_S").classList.add('border-left-danger');
+          document.getElementById("gust_T").classList.remove('text-success');
+          document.getElementById("gust_T").classList.add('text-danger');
+          document.getElementById("gust_I").classList.remove('fa-check');
+          document.getElementById("gust_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/sqm") {
+        document.getElementById("dark").innerHTML = message.payloadString;
+        if (message.payloadString = -1) {
+          document.getElementById("dark_S").classList.add('border-left-success');
+          document.getElementById("dark_S").classList.remove('border-left-danger');
+          document.getElementById("dark_T").classList.add('text-success');
+          document.getElementById("dark_T").classList.remove('text-danger');
+          document.getElementById("dark_I").classList.add('fa-check');
+          document.getElementById("dark_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("dark_S").classList.remove('border-left-success');
+          document.getElementById("dark_S").classList.add('border-left-danger');
+          document.getElementById("dark_T").classList.remove('text-success');
+          document.getElementById("dark_T").classList.add('text-danger');
+          document.getElementById("dark_I").classList.remove('fa-check');
+          document.getElementById("dark_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/rain") {
+        document.getElementById("rain").innerHTML = message.payloadString;
+        if (message.payloadString > 4000) {
+          document.getElementById("rain_S").classList.add('border-left-success');
+          document.getElementById("rain_S").classList.remove('border-left-danger');
+          document.getElementById("rain_T").classList.add('text-success');
+          document.getElementById("rain_T").classList.remove('text-danger');
+          document.getElementById("rain_I").classList.add('fa-check');
+          document.getElementById("rain_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("rain_S").classList.remove('border-left-success');
+          document.getElementById("rain_S").classList.add('border-left-danger');
+          document.getElementById("rain_T").classList.remove('text-success');
+          document.getElementById("rain_T").classList.add('text-danger');
+          document.getElementById("rain_I").classList.remove('fa-check');
+          document.getElementById("rain_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/light") {
+        document.getElementById("light").innerHTML = message.payloadString;
+        if (message.payloadString >= 10000) {
+          document.getElementById("light_S").classList.add('border-left-success');
+          document.getElementById("light_S").classList.remove('border-left-danger');
+          document.getElementById("light_T").classList.add('text-success');
+          document.getElementById("light_T").classList.remove('text-danger');
+          document.getElementById("light_I").classList.add('fa-check');
+          document.getElementById("light_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("light_S").classList.remove('border-left-success');
+          document.getElementById("light_S").classList.add('border-left-danger');
+          document.getElementById("light_T").classList.remove('text-success');
+          document.getElementById("light_T").classList.add('text-danger');
+          document.getElementById("light_I").classList.remove('fa-check');
+          document.getElementById("light_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/switch") {
+        document.getElementById("switch").innerHTML = message.payloadString;
+        if (message.payloadString == 1) {
+          document.getElementById("switch_S").classList.add('border-left-success');
+          document.getElementById("switch_S").classList.remove('border-left-danger');
+          document.getElementById("switch_T").classList.add('text-success');
+          document.getElementById("switch_T").classList.remove('text-danger');
+          document.getElementById("switch_I").classList.add('fa-check');
+          document.getElementById("switch_I").classList.remove('fa-lock');
+          document.getElementById("switch").innerHTML = 'unlocked Roof'
+        } else {
+          document.getElementById("switch_S").classList.remove('border-left-success');
+          document.getElementById("switch_S").classList.add('border-left-danger');
+          document.getElementById("switch_T").classList.remove('text-success');
+          document.getElementById("switch_T").classList.add('text-danger');
+          document.getElementById("switch_I").classList.remove('fa-check');
+          document.getElementById("switch_I").classList.add('fa-lock');
+          document.getElementById("switch").innerHTML = 'Roof LOCKED'
+        }
+      }
+      if (message.destinationName == "Observatory/safe") {
+        //document.getElementById("safe").innerHTML = message.payloadString;
+        if (message.payloadString == 1) {
+          document.getElementById("safe_S").classList.add('border-left-success');
+          document.getElementById("safe_S").classList.remove('border-left-danger');
+          document.getElementById("safe_T").classList.add('text-success');
+          document.getElementById("safe_T").classList.remove('text-danger');
+          document.getElementById("safe_I").classList.add('fa-check');
+          document.getElementById("safe_I").classList.remove('fa-times');
+          document.getElementById("all").classList.remove('bg-gradient-danger');
+          document.getElementById("all").classList.add('bg-gradient-success');
+          document.getElementById("safe").innerHTML = 'Good Seeing'
+        } else {
+          document.getElementById("safe_S").classList.remove('border-left-success');
+          document.getElementById("safe_S").classList.add('border-left-danger');
+          document.getElementById("safe_T").classList.remove('text-success');
+          document.getElementById("safe_T").classList.add('text-danger');
+          document.getElementById("safe_I").classList.remove('fa-check');
+          document.getElementById("safe_I").classList.add('fa-times');
+          document.getElementById("all").classList.add('bg-gradient-danger');
+          document.getElementById("all").classList.remove('bg-gradient-success');
+          document.getElementById("safe").innerHTML = 'Unsuitable'
+        }
+      }
+      if (message.destinationName == "Observatory/hum") {
+        document.getElementById("hum").innerHTML = message.payloadString;
+        if (message.payloadString < 100) {
+          document.getElementById("hum_S").classList.add('border-left-success');
+          document.getElementById("hum_S").classList.remove('border-left-danger');
+          document.getElementById("hum_T").classList.add('text-success');
+          document.getElementById("hum_T").classList.remove('text-danger');
+          document.getElementById("hum_I").classList.add('fa-check');
+          document.getElementById("hum_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("hum_S").classList.remove('border-left-success');
+          document.getElementById("hum_S").classList.add('border-left-danger');
+          document.getElementById("hum_T").classList.remove('text-success');
+          document.getElementById("hum_T").classList.add('text-danger');
+          document.getElementById("hum_I").classList.remove('fa-check');
+          document.getElementById("hum_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/sensors/humidity") {
+        document.getElementById("inhum").innerHTML = message.payloadString;
+        if (message.payloadString < 100) {
+          document.getElementById("inhum_S").classList.add('border-left-success');
+          document.getElementById("inhum_S").classList.remove('border-left-danger');
+          document.getElementById("inhum_T").classList.add('text-success');
+          document.getElementById("inhum_T").classList.remove('text-danger');
+          document.getElementById("inhum_I").classList.add('fa-check');
+          document.getElementById("inhum_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("inhum_S").classList.remove('border-left-success');
+          document.getElementById("inhum_S").classList.add('border-left-danger');
+          document.getElementById("inhum_T").classList.remove('text-success');
+          document.getElementById("inhum_T").classList.add('text-danger');
+          document.getElementById("inhum_I").classList.remove('fa-check');
+          document.getElementById("inhum_I").classList.add('fa-times');
+        }
+      }
+      if (message.destinationName == "Observatory/dewp") {
+        document.getElementById("dewp").innerHTML = message.payloadString;
+        if (message.payloadString < 100) {
+          document.getElementById("dewp_S").classList.add('border-left-success');
+          document.getElementById("dewp_S").classList.remove('border-left-danger');
+          document.getElementById("dewp_T").classList.add('text-success');
+          document.getElementById("dewp_T").classList.remove('text-danger');
+          document.getElementById("dewp_I").classList.add('fa-check');
+          document.getElementById("dewp_I").classList.remove('fa-times');
+        } else {
+          document.getElementById("dewp_S").classList.remove('border-left-success');
+          document.getElementById("dewp_S").classList.add('border-left-danger');
+          document.getElementById("dewp_T").classList.remove('text-success');
+          document.getElementById("dewp_T").classList.add('text-danger');
+          document.getElementById("dewp_I").classList.remove('fa-check');
+          document.getElementById("dewp_I").classList.add('fa-times');
+        }
+      }
+
+      //document.getElementById("energy").innerHTML = '<span>Topic: ' + message.destinationName + '  | ' + message.payloadString + '</span><br/>';
+    }
+  }
+
+  function dp(x) {
+
+    return Number.parseFloat(x).toFixed(2);
+
+  }
+</script>
+</body>
+
+</html>
