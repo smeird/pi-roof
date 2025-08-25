@@ -83,13 +83,8 @@ if (menuButton && sidebar && overlay) {
 }
 
 let brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof;
-let mqttClient;
 try {
   ({ brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof } = await loadConfig());
-  mqttClient = createClient({
-    brokerUrl: `${brokerUrl}:${port}`,
-    options: { username, password }
-  });
 } catch (err) {
   const statusEl = document.getElementById('statusText');
   if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
@@ -266,7 +261,12 @@ function addSensorCharts() {
   });
 }
 
-if (mqttClient) {
+let mqttClient;
+try {
+  mqttClient = createClient({
+    brokerUrl: `${brokerUrl}:${port}`,
+    options: { username, password }
+  });
   mqttClient.on('status', updateConnectionStatus);
   mqttClient.on('error', err => console.error('MQTT client error:', err));
 
@@ -305,6 +305,11 @@ if (mqttClient) {
       mqttClient.publish(topic, newState, { qos: 2, retain: true });
     });
   });
+} catch (err) {
+  const statusEl = document.getElementById('statusText');
+  if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
+  setToggleDisabled(true);
+  console.error('MQTT init error:', err);
 }
 
 function updateIndicatorEl(el, value) {
