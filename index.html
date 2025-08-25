@@ -26,6 +26,10 @@
 </aside>
 <main class="flex-1 p-6 space-y-8">
   <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+  <div id="connectionStatus" class="flex items-center text-sm text-gray-700">
+    <span id="statusDot" class="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
+    <span id="statusText">Connecting...</span>
+  </div>
 
   <!-- Sensor Data -->
   <section>
@@ -197,6 +201,46 @@ const topics = Object.keys(gaugeConfigs).concat([
   'Observatory/Scope/Computer','Observatory/Scope/Focus','Observatory/Scope/Dew','Observatory/Scope/Scope',
   'Observatory/Hue/PatioSensor','Observatory/Hue/ObservatorySensor','workshop/sensors/motion'
 ]);
+
+function setToggleDisabled(disabled) {
+  document.querySelectorAll('.toggleButton').forEach(button => {
+    button.disabled = disabled;
+    button.classList.toggle('opacity-50', disabled);
+    button.classList.toggle('cursor-not-allowed', disabled);
+  });
+}
+
+function updateConnectionStatus(status, info) {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  let color = 'bg-red-500';
+  let message = 'Disconnected';
+  if (status === 'connected') {
+    color = 'bg-green-500';
+    message = 'Connected';
+    setToggleDisabled(false);
+  } else if (status === 'reconnecting') {
+    color = 'bg-yellow-500';
+    message = 'Reconnecting...';
+    setToggleDisabled(true);
+  } else if (status === 'connecting') {
+    color = 'bg-yellow-500';
+    message = 'Connecting...';
+    setToggleDisabled(true);
+  } else if (status === 'error') {
+    message = 'Error';
+    if (info && info.message) message += ': ' + info.message;
+    setToggleDisabled(true);
+  } else {
+    setToggleDisabled(true);
+  }
+  if (dot) dot.className = `h-2 w-2 rounded-full mr-2 ${color}`;
+  if (text) text.textContent = message;
+}
+
+mqttClient.on('status', updateConnectionStatus);
+mqttClient.on('error', err => console.error('MQTT client error:', err));
+setToggleDisabled(true);
 
 mqttClient.on('connect', function() {
   topics.forEach(t => { mqttClient.subscribe(t); toggleStates[t] = '0'; });
