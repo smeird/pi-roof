@@ -19,4 +19,5 @@
 - MQTT topics should be derived from DOM elements with `data-topic`; flag topics without UI colour changes using `data-static`.
 - MQTT connection settings now load from a SQLite `config.db` via `js/mqttConfig.js` fetching `/get_config.php`.
 - A `settings.html` page allows editing these values and persists them through `/save_config.php`.
+- Client-side config fetches should use absolute paths (e.g. `/get_config.php`) to ensure correct resolution from nested directories.
 

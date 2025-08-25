@@ -35,7 +35,7 @@
   </div>
   <script type="module">
     async function loadSettings() {
-      const res = await fetch('./get_config.php');
+      const res = await fetch('/get_config.php');
       const cfg = await res.json();
       const map = {
         MQTT_BROKER_URL: cfg.brokerUrl,
@@ -53,7 +53,7 @@
     document.getElementById('settingsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.target).entries());
-      const res = await fetch('./save_config.php', {
+      const res = await fetch('/save_config.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
