@@ -17,16 +17,16 @@
     <ul class="space-y-2">
       <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
       <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
-      <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
-      <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
-      <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
-      <li><a class="block px-2 py-1 hover:bg-gray-700" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forecast</a></li>
-      <li><a class="block px-2 py-1 hover:bg-gray-700" href="settings.html">Settings</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forecast</a></li>
+      <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="settings.html">Settings</a></li>
     </ul>
   </nav>
   <div class="p-4 flex items-center justify-between">
     <span class="text-sm">Dark Mode</span>
-    <button id="darkModeToggle" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200">
+    <button id="darkModeToggle" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600">
       <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
     </button>
   </div>
@@ -163,14 +163,14 @@ function addRoofControls() {
   if (roof.open.path) {
     const openDiv = document.createElement('div');
     openDiv.className = 'p-4 bg-white dark:bg-gray-700 dark:text-gray-200 rounded shadow flex items-center justify-between';
-    openDiv.innerHTML = `<span>Open Roof</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="${roof.open.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
+    openDiv.innerHTML = `<span>Open Roof</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600" data-topic="${roof.open.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
     container.appendChild(openDiv);
     topics.add(roof.open.path);
   }
   if (roof.close.path) {
     const closeDiv = document.createElement('div');
     closeDiv.className = 'p-4 bg-white dark:bg-gray-700 dark:text-gray-200 rounded shadow flex items-center justify-between';
-    closeDiv.innerHTML = `<span>Close Roof</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="${roof.close.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
+    closeDiv.innerHTML = `<span>Close Roof</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600" data-topic="${roof.close.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
     container.appendChild(closeDiv);
     topics.add(roof.close.path);
   }
@@ -209,7 +209,7 @@ function addSwitchCards() {
   switches.forEach(sw => {
     const card = document.createElement('div');
     card.className = 'p-4 bg-white dark:bg-gray-700 dark:text-gray-200 rounded shadow flex items-center justify-between';
-    card.innerHTML = `<span>${sw.name}</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200" data-topic="${sw.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
+    card.innerHTML = `<span>${sw.name}</span><button class="toggleButton relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600" data-topic="${sw.path}"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button>`;
     container.appendChild(card);
     topics.add(sw.path);
   });
