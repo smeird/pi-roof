@@ -14,6 +14,7 @@
 - MQTT connection status indicator sits at the bottom of the sidebar.
 
 - Sensor data uses Highcharts solid gauges with Tailwind indicators; the SkyCam image sits in its own card.
+- Sensor values are rounded to at most one decimal place before display.
 
 - Sensors include red/green status dots driven by per-sensor thresholds configurable in settings.
 - Sensors now allow selecting if green status triggers when the value is above or below the threshold via a dropdown in settings.
