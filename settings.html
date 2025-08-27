@@ -10,18 +10,18 @@
     <div class="p-4 text-lg font-bold flex items-center"><a href="/" class="mr-2">🔭</a>Observatory Control Panel</div>
     <nav class="px-2 flex-1">
       <ul class="space-y-2">
-        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forecast</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700" href="settings.html">Settings</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forecast</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="settings.html">Settings</a></li>
       </ul>
     </nav>
     <div class="p-4 flex items-center justify-between">
       <span class="text-sm">Dark Mode</span>
-      <button id="darkModeToggle" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200">
+      <button id="darkModeToggle" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600">
         <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
       </button>
     </div>
@@ -35,19 +35,19 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium">Host</label>
-            <input name="MQTT_BROKER_URL" class="mt-1 p-2 border w-full" />
+            <input name="MQTT_BROKER_URL" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
           </div>
           <div>
             <label class="block text-sm font-medium">Port</label>
-            <input name="MQTT_PORT" type="number" class="mt-1 p-2 border w-full" />
+            <input name="MQTT_PORT" type="number" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
           </div>
           <div>
             <label class="block text-sm font-medium">Username</label>
-            <input name="MQTT_USERNAME" class="mt-1 p-2 border w-full" />
+            <input name="MQTT_USERNAME" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
           </div>
           <div>
             <label class="block text-sm font-medium">Password</label>
-            <input name="MQTT_PASSWORD" type="password" class="mt-1 p-2 border w-full" />
+            <input name="MQTT_PASSWORD" type="password" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
           </div>
         </div>
       </section>
@@ -55,19 +55,19 @@
       <section>
         <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Sensors</h2>
         <div id="sensorsList" class="space-y-2"></div>
-        <button type="button" id="addSensor" class="mt-2 bg-gray-200 px-2 py-1 rounded">Add Sensor</button>
+        <button type="button" id="addSensor" class="mt-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Add Sensor</button>
       </section>
 
       <section>
         <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Roof</h2>
         <div class="space-y-2">
           <div class="flex space-x-2">
-            <input id="roofOpenPath" class="p-2 border flex-1" placeholder="Open Path" />
-            <input id="roofOpenLimit" class="p-2 border flex-1" placeholder="Roof Open Status Topic" />
+            <input id="roofOpenPath" class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1" placeholder="Open Path" />
+            <input id="roofOpenLimit" class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1" placeholder="Roof Open Status Topic" />
           </div>
           <div class="flex space-x-2">
-            <input id="roofClosePath" class="p-2 border flex-1" placeholder="Close Path" />
-            <input id="roofCloseLimit" class="p-2 border flex-1" placeholder="Roof Closed Status Topic" />
+            <input id="roofClosePath" class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1" placeholder="Close Path" />
+            <input id="roofCloseLimit" class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1" placeholder="Roof Closed Status Topic" />
           </div>
         </div>
       </section>
@@ -75,15 +75,15 @@
       <section>
         <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Switches</h2>
         <div id="switchesList" class="space-y-2"></div>
-        <button type="button" id="addSwitch" class="mt-2 bg-gray-200 px-2 py-1 rounded">Add Switch</button>
+        <button type="button" id="addSwitch" class="mt-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Add Switch</button>
       </section>
 
       <section>
         <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Dashboard Topics (comma separated)</h2>
-        <input name="MQTT_DASHBOARD_TOPICS" class="mt-1 p-2 border w-full" />
+        <input name="MQTT_DASHBOARD_TOPICS" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
       </section>
 
-      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+      <button type="submit" class="bg-blue-500 dark:bg-blue-600 text-white px-4 py-2 rounded">Save</button>
     </form>
     <div id="status" class="mt-4 text-sm"></div>
   </div>
@@ -116,15 +116,15 @@
       const row = document.createElement('div');
       row.className = 'flex space-x-2 sensor-row';
       row.innerHTML = `
-        <input class="p-2 border flex-1 sensor-path" placeholder="Path" value="${data.path || ''}">
-        <input class="p-2 border w-24 sensor-unit" placeholder="Unit" value="${data.unit || ''}">
-        <input class="p-2 border flex-1 sensor-name" placeholder="Name" value="${data.name || ''}">
-        <input class="p-2 border w-24 sensor-green" type="number" step="any" placeholder="Green" value="${data.green || ''}">
-        <select class="p-2 border w-28 sensor-direction">
+        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 sensor-path" placeholder="Path" value="${data.path || ''}">
+        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-24 sensor-unit" placeholder="Unit" value="${data.unit || ''}">
+        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 sensor-name" placeholder="Name" value="${data.name || ''}">
+        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-24 sensor-green" type="number" step="any" placeholder="Green" value="${data.green || ''}">
+        <select class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-28 sensor-direction">
           <option value="below" ${data.greenDirection === 'above' ? '' : 'selected'}>Below</option>
           <option value="above" ${data.greenDirection === 'above' ? 'selected' : ''}>Above</option>
         </select>
-        <button type="button" class="remove bg-red-500 text-white px-2 rounded">X</button>`;
+        <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded">X</button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       sensorsList.appendChild(row);
     }
@@ -133,9 +133,9 @@
       const row = document.createElement('div');
       row.className = 'flex space-x-2 switch-row';
       row.innerHTML = `
-        <input class="p-2 border flex-1 switch-path" placeholder="Path" value="${data.path || ''}">
-        <input class="p-2 border flex-1 switch-name" placeholder="Name" value="${data.name || ''}">
-        <button type="button" class="remove bg-red-500 text-white px-2 rounded">X</button>`;
+        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 switch-path" placeholder="Path" value="${data.path || ''}">
+        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 switch-name" placeholder="Name" value="${data.name || ''}">
+        <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded">X</button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       switchesList.appendChild(row);
     }
