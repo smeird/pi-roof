@@ -153,7 +153,7 @@ function addRoofControls() {
   if (roof.open.limit) {
     const openLimitDiv = document.createElement('div');
     openLimitDiv.className = 'p-4 bg-white rounded shadow flex items-center';
-    openLimitDiv.innerHTML = `<span class="mr-2">Open Limit</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.open.limit}" data-static></span>`;
+    openLimitDiv.innerHTML = `<span class="mr-2">Roof Open</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.open.limit}" data-static></span>`;
     container.appendChild(openLimitDiv);
     indicatorEls[roof.open.limit] = openLimitDiv.querySelector('span[data-topic]');
     topics.add(roof.open.limit);
@@ -161,7 +161,7 @@ function addRoofControls() {
   if (roof.close.limit) {
     const closeLimitDiv = document.createElement('div');
     closeLimitDiv.className = 'p-4 bg-white rounded shadow flex items-center';
-    closeLimitDiv.innerHTML = `<span class="mr-2">Close Limit</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.close.limit}" data-static></span>`;
+    closeLimitDiv.innerHTML = `<span class="mr-2">Roof Closed</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.close.limit}" data-static></span>`;
     container.appendChild(closeLimitDiv);
     indicatorEls[roof.close.limit] = closeLimitDiv.querySelector('span[data-topic]');
     topics.add(roof.close.limit);
