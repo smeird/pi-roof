@@ -153,17 +153,29 @@ function addRoofControls() {
   if (roof.open.limit) {
     const openLimitDiv = document.createElement('div');
     openLimitDiv.className = 'p-4 bg-white rounded shadow flex items-center';
-    openLimitDiv.innerHTML = `<span class="mr-2">Roof Open</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.open.limit}" data-static></span>`;
+
+    openLimitDiv.innerHTML = `<span class="mr-2" data-role="label">Roof isn't open</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.open.limit}" data-static></span>`;
+
     container.appendChild(openLimitDiv);
-    indicatorEls[roof.open.limit] = openLimitDiv.querySelector('span[data-topic]');
+    indicatorEls[roof.open.limit] = {
+      indicator: openLimitDiv.querySelector('span[data-topic]'),
+      label: openLimitDiv.querySelector('span[data-role="label"]'),
+      type: 'open'
+    };
     topics.add(roof.open.limit);
   }
   if (roof.close.limit) {
     const closeLimitDiv = document.createElement('div');
     closeLimitDiv.className = 'p-4 bg-white rounded shadow flex items-center';
-    closeLimitDiv.innerHTML = `<span class="mr-2">Roof Closed</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.close.limit}" data-static></span>`;
+
+    closeLimitDiv.innerHTML = `<span class="mr-2" data-role="label">Roof isn't closed</span><span class="h-3 w-3 rounded-full bg-gray-400" data-topic="${roof.close.limit}" data-static></span>`;
+
     container.appendChild(closeLimitDiv);
-    indicatorEls[roof.close.limit] = closeLimitDiv.querySelector('span[data-topic]');
+    indicatorEls[roof.close.limit] = {
+      indicator: closeLimitDiv.querySelector('span[data-topic]'),
+      label: closeLimitDiv.querySelector('span[data-role="label"]'),
+      type: 'close'
+    };
     topics.add(roof.close.limit);
   }
 }
@@ -309,9 +321,17 @@ try {
   console.error('MQTT init error:', err);
 }
 
-function updateIndicatorEl(el, value) {
+function updateIndicatorEl(data, value) {
+  const el = data.indicator;
   el.classList.remove('bg-green-500','bg-red-500','bg-gray-400');
   el.classList.add(value === '1' ? 'bg-green-500' : 'bg-red-500');
+  if (data.label) {
+    if (data.type === 'open') {
+      data.label.textContent = value === '1' ? 'Roof is open' : "Roof isn't open";
+    } else if (data.type === 'close') {
+      data.label.textContent = value === '1' ? 'Roof is closed' : "Roof isn't closed";
+    }
+  }
 }
 
 function updateSensorIndicator(topic, value) {

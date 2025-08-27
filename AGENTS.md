@@ -17,7 +17,9 @@
 - Sensor values are rounded to at most one decimal place before display.
 
 - Sensors include red/green status dots driven by per-sensor thresholds configurable in settings.
-- Roof limit indicators are labeled "Roof Open" and "Roof Closed" for clarity.
+
+- Roof limit indicators show phrases like "Roof is open"/"Roof isn't open" and "Roof is closed"/"Roof isn't closed" based on switch state.
+
 - Sensors now allow selecting if green status triggers when the value is above or below the threshold via a dropdown in settings.
 - Graphs use a single Highcharts line chart with one series per sensor instead of individual bullet charts.
 - Line chart gives each sensor its own Y axis and uses dotted segments when values fall outside the green threshold.
