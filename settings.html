@@ -5,7 +5,7 @@
   <title>Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex">
+<body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
   <aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
     <div class="p-4 text-lg font-bold flex items-center"><a href="/" class="mr-2">🔭</a>Observatory Control Panel</div>
     <nav class="px-2 flex-1">
@@ -19,13 +19,19 @@
         <li><a class="block px-2 py-1 hover:bg-gray-700" href="settings.html">Settings</a></li>
       </ul>
     </nav>
+    <div class="p-4 flex items-center justify-between">
+      <span class="text-sm">Dark Mode</span>
+      <button id="darkModeToggle" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200">
+        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+      </button>
+    </div>
   </aside>
   <main class="flex-1 p-6">
-  <div class="bg-white p-6 rounded shadow w-full max-w-3xl mx-auto">
-    <h1 class="text-xl mb-4">Configuration</h1>
+  <div class="bg-white dark:bg-gray-700 dark:text-gray-200 p-6 rounded shadow w-full max-w-3xl mx-auto">
+    <h1 class="text-xl mb-4 text-gray-900 dark:text-gray-100">Configuration</h1>
     <form id="settingsForm" class="space-y-6">
       <section>
-        <h2 class="text-lg font-semibold mb-2">MQTT Server</h2>
+        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">MQTT Server</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium">Host</label>
@@ -47,13 +53,13 @@
       </section>
 
       <section>
-        <h2 class="text-lg font-semibold mb-2">Sensors</h2>
+        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Sensors</h2>
         <div id="sensorsList" class="space-y-2"></div>
         <button type="button" id="addSensor" class="mt-2 bg-gray-200 px-2 py-1 rounded">Add Sensor</button>
       </section>
 
       <section>
-        <h2 class="text-lg font-semibold mb-2">Roof</h2>
+        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Roof</h2>
         <div class="space-y-2">
           <div class="flex space-x-2">
             <input id="roofOpenPath" class="p-2 border flex-1" placeholder="Open Path" />
@@ -67,13 +73,13 @@
       </section>
 
       <section>
-        <h2 class="text-lg font-semibold mb-2">Switches</h2>
+        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Switches</h2>
         <div id="switchesList" class="space-y-2"></div>
         <button type="button" id="addSwitch" class="mt-2 bg-gray-200 px-2 py-1 rounded">Add Switch</button>
       </section>
 
       <section>
-        <h2 class="text-lg font-semibold mb-2">Dashboard Topics (comma separated)</h2>
+        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Dashboard Topics (comma separated)</h2>
         <input name="MQTT_DASHBOARD_TOPICS" class="mt-1 p-2 border w-full" />
       </section>
 
@@ -84,6 +90,24 @@
   </main>
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
+
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+      const isDark = localStorage.getItem('theme') === 'dark';
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        darkModeToggle.classList.remove('bg-gray-200');
+        darkModeToggle.classList.add('bg-green-500');
+        darkModeToggle.querySelector('span')?.classList.add('translate-x-5');
+      }
+      darkModeToggle.addEventListener('click', () => {
+        const enabled = document.documentElement.classList.toggle('dark');
+        darkModeToggle.classList.toggle('bg-green-500', enabled);
+        darkModeToggle.classList.toggle('bg-gray-200', !enabled);
+        darkModeToggle.querySelector('span')?.classList.toggle('translate-x-5');
+        localStorage.setItem('theme', enabled ? 'dark' : 'light');
+      });
+    }
 
     const sensorsList = document.getElementById('sensorsList');
     const switchesList = document.getElementById('switchesList');
