@@ -273,25 +273,25 @@ try {
   });
 
   mqttClient.on('message', function(topic, message) {
-    const value = message.toString();
+    const rawValue = message.toString();
+    const num = parseFloat(rawValue);
+    const rounded = !isNaN(num) ? Math.round(num * 10) / 10 : null;
+    const displayValue = rounded !== null ? rounded.toString() : rawValue;
     if (sensorValueEls[topic]) {
       const el = sensorValueEls[topic];
       const unit = el.getAttribute('data-unit');
-      el.textContent = unit ? value + ' ' + unit : value;
+      el.textContent = unit ? displayValue + ' ' + unit : displayValue;
     }
-    if (sensorIndicators[topic]) updateSensorIndicator(topic, value);
-    if (indicatorEls[topic]) updateIndicatorEl(indicatorEls[topic], value);
-    if (lineSeries[topic]) {
-      const y = parseFloat(value);
-      if (!isNaN(y)) {
-        const series = lineSeries[topic];
-        const shift = series.data.length > 50;
-        series.addPoint([Date.now(), y], true, shift);
-      }
+    if (sensorIndicators[topic]) updateSensorIndicator(topic, displayValue);
+    if (indicatorEls[topic]) updateIndicatorEl(indicatorEls[topic], rawValue);
+    if (lineSeries[topic] && rounded !== null) {
+      const series = lineSeries[topic];
+      const shift = series.data.length > 50;
+      series.addPoint([Date.now(), rounded], true, shift);
     }
     if (!staticTopics.has(topic)) {
-      toggleStates[topic] = value;
-      updateToggleButton(topic, value);
+      toggleStates[topic] = rawValue;
+      updateToggleButton(topic, rawValue);
     }
   });
 
