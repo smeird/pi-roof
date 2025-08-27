@@ -39,3 +39,5 @@
 
 - Configuration endpoints respond with JSON and proper `Content-Type` headers; client pages should surface server error messages.
 - Database migrations should verify column existence using `PRAGMA table_info` before attempting schema alterations.
+
+- Dark mode is toggled via a sidebar switch storing preference in `localStorage` and applying Tailwind `dark:` classes on the `<html>` element.
