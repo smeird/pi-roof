@@ -18,6 +18,8 @@
 
 - Sensors include red/green status dots driven by per-sensor thresholds configurable in settings.
 
+- When all sensors indicate green, the sensors card shows a green border.
+
 - Roof limit indicators show phrases like "Roof is open"/"Roof isn't open" and "Roof is closed"/"Roof isn't closed" based on switch state.
 
 - Sensors now allow selecting if green status triggers when the value is above or below the threshold via a dropdown in settings.
