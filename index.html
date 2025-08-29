@@ -46,7 +46,7 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
 
   <!-- Sensors -->
-  <section class="bg-white dark:bg-gray-700 dark:text-gray-200 rounded shadow p-6">
+  <section id="sensorCard" class="bg-white dark:bg-gray-700 dark:text-gray-200 rounded shadow p-6">
     <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Sensors</h2>
     <div id="sensorsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
   </section>
@@ -126,6 +126,7 @@ const topics = new Set(dashboardTopics);
 const toggleStates = {};
 let lineChart;
 const lineSeries = {};
+const sensorCard = document.getElementById('sensorCard');
 
 function addSensorCards() {
   const container = document.getElementById('sensorsContainer');
@@ -153,7 +154,12 @@ function addSensorCards() {
 
     container.appendChild(card);
     sensorValueEls[s.path] = valueEl;
-    sensorIndicators[s.path] = { el: indicator, green: parseFloat(s.green), direction: s.greenDirection || 'below' };
+    sensorIndicators[s.path] = {
+      el: indicator,
+      green: parseFloat(s.green),
+      direction: s.greenDirection || 'below',
+      isGreen: false
+    };
     topics.add(s.path);
   });
 }
@@ -364,12 +370,25 @@ function updateSensorIndicator(topic, value) {
   const num = parseFloat(value);
   if (!isNaN(num) && !isNaN(data.green)) {
     const isGreen = data.direction === 'above' ? num >= data.green : num <= data.green;
+    data.isGreen = isGreen;
     if (isGreen) {
       data.el.classList.remove('bg-red-500');
       data.el.classList.add('bg-green-500');
     } else {
       data.el.classList.remove('bg-green-500');
       data.el.classList.add('bg-red-500');
+    }
+  } else {
+    data.isGreen = false;
+  }
+
+  if (sensorCard) {
+    const allGreen = Object.values(sensorIndicators).length > 0 &&
+      Object.values(sensorIndicators).every(s => s.isGreen);
+    if (allGreen) {
+      sensorCard.classList.add('border-2', 'border-green-500');
+    } else {
+      sensorCard.classList.remove('border-2', 'border-green-500');
     }
   }
 }
