@@ -52,7 +52,7 @@
   </section>
 
   <!-- Roof -->
-  <section class="bg-white dark:bg-gray-700 dark:text-gray-200 rounded shadow p-6">
+  <section id="roofCard" class="bg-white dark:bg-gray-700 dark:text-gray-200 rounded shadow p-6">
     <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Roof Controls</h2>
     <div id="roofControls" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
   </section>
@@ -127,6 +127,19 @@ const toggleStates = {};
 let lineChart;
 const lineSeries = {};
 const sensorCard = document.getElementById('sensorCard');
+const roofCard = document.getElementById('roofCard');
+let roofClosed = false;
+
+function updateRoofCardBorder() {
+  if (!roofCard) return;
+  if (roofClosed) {
+    roofCard.classList.remove('border-2', 'border-red-500');
+  } else {
+    roofCard.classList.add('border-2', 'border-red-500');
+  }
+}
+
+updateRoofCardBorder();
 
 function addSensorCards() {
   const container = document.getElementById('sensorsContainer');
@@ -362,6 +375,12 @@ function updateIndicatorEl(data, value) {
       data.label.textContent = value === '1' ? 'Roof is closed' : "Roof isn't closed";
     }
   }
+  if (data.type === 'open' && value === '1') {
+    roofClosed = false;
+  } else if (data.type === 'close') {
+    roofClosed = value === '1';
+  }
+  updateRoofCardBorder();
 }
 
 function updateSensorIndicator(topic, value) {
