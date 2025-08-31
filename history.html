@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sensor History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
+  <aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
+    <div class="p-4 text-lg font-bold flex items-center"><a href="/" class="mr-2">🔭</a>Observatory Control Panel</div>
+    <nav class="px-2 flex-1">
+      <ul class="space-y-2">
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forecast</a></li>
+        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="settings.html">Settings</a></li>
+      </ul>
+    </nav>
+    <div class="p-4 flex items-center justify-between">
+      <span class="text-sm">Dark Mode</span>
+      <button id="darkModeToggle" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600">
+        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
+      </button>
+    </div>
+  </aside>
+  <main class="flex-1 p-6">
+    <div class="bg-white dark:bg-gray-700 dark:text-gray-200 p-6 rounded shadow w-full max-w-4xl mx-auto">
+      <h1 id="sensorTitle" class="text-xl mb-4 text-gray-900 dark:text-gray-100">Sensor History</h1>
+      <div class="mb-4 space-x-2">
+        <button data-range="tonight" class="range-btn bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Tonight</button>
+        <button data-range="yesterday" class="range-btn bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Yesterday</button>
+        <button data-range="week" class="range-btn bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">This Week</button>
+      </div>
+      <div id="historyChart" class="h-96"></div>
+    </div>
+  </main>
+  <script type="module">
+    import { loadConfig } from './js/mqttConfig.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const sensorPath = params.get('sensor');
+
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+      const isDark = localStorage.getItem('theme') === 'dark';
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        darkModeToggle.classList.remove('bg-gray-200');
+        darkModeToggle.classList.add('bg-green-500');
+        darkModeToggle.querySelector('span')?.classList.add('translate-x-5');
+      }
+      darkModeToggle.addEventListener('click', () => {
+        const enabled = document.documentElement.classList.toggle('dark');
+        darkModeToggle.classList.toggle('bg-green-500', enabled);
+        darkModeToggle.classList.toggle('bg-gray-200', !enabled);
+        darkModeToggle.querySelector('span')?.classList.toggle('translate-x-5');
+        localStorage.setItem('theme', enabled ? 'dark' : 'light');
+      });
+    }
+
+    async function init() {
+      const { sensors } = await loadConfig();
+      const sensor = sensors.find(s => s.path === sensorPath);
+      if (!sensor || !sensor.influxMeasurement || !sensor.influxField) {
+        document.getElementById('sensorTitle').textContent = 'No historical data';
+        return;
+      }
+      document.getElementById('sensorTitle').textContent = `${sensor.name} History`;
+
+      const ranges = {
+        tonight: { start: '-12h', window: '10m' },
+        yesterday: { start: '-24h', window: '30m' },
+        week: { start: '-7d', window: '2h' }
+      };
+
+      async function fetchData(rangeKey) {
+        const { start, window } = ranges[rangeKey];
+        const flux = `from(bucket: "Garden")\n  |> range(start: ${start})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${window}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
+        try {
+          const res = await fetch('http://localhost:8086/api/v2/query?org=primary', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/vnd.flux',
+              'Accept': 'application/csv'
+            },
+            body: flux
+          });
+          const text = await res.text();
+          const lines = text.trim().split('\n').filter(line => !line.startsWith('#'));
+          if (lines.length < 2) return;
+          const headers = lines[0].split(',');
+          const timeIdx = headers.indexOf('_time');
+          const valueIdx = headers.indexOf('_value');
+          const data = lines.slice(1).map(l => {
+            const parts = l.split(',');
+            return [new Date(parts[timeIdx]).getTime(), parseFloat(parts[valueIdx])];
+          });
+          Highcharts.chart('historyChart', {
+            title: { text: null },
+            xAxis: { type: 'datetime' },
+            series: [{ name: sensor.name, data }],
+            legend: { enabled: false }
+          });
+        } catch (err) {
+          console.error('Failed to load history', err);
+        }
+      }
+
+      document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', () => fetchData(btn.dataset.range));
+      });
+
+      fetchData('tonight');
+    }
+    init();
+  </script>
+</body>
+</html>

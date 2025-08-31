@@ -129,6 +129,8 @@
           <option value="below" ${data.greenDirection === 'above' ? '' : 'selected'}>Below</option>
           <option value="above" ${data.greenDirection === 'above' ? 'selected' : ''}>Above</option>
         </select>
+        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-32 sensor-measurement" placeholder="Measurement" value="${data.influxMeasurement || ''}">
+        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-32 sensor-field" placeholder="Field" value="${data.influxField || ''}">
         <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded">X</button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       sensorsList.appendChild(row);
@@ -179,7 +181,9 @@
           unit: r.querySelector('.sensor-unit').value,
           name: r.querySelector('.sensor-name').value,
           green: r.querySelector('.sensor-green').value,
-          greenDirection: r.querySelector('.sensor-direction').value
+          greenDirection: r.querySelector('.sensor-direction').value,
+          influxMeasurement: r.querySelector('.sensor-measurement').value,
+          influxField: r.querySelector('.sensor-field').value
         })),
         switches: Array.from(document.querySelectorAll('.switch-row')).map(r => ({
           path: r.querySelector('.switch-path').value,
