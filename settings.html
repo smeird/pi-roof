@@ -56,7 +56,7 @@
 
       <section>
         <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">InfluxDB</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
             <label class="block text-sm font-medium">Host</label>
             <input name="INFLUX_HOST" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
@@ -68,6 +68,10 @@
           <div>
             <label class="block text-sm font-medium">Bucket</label>
             <input name="INFLUX_BUCKET" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Token</label>
+            <input name="INFLUX_TOKEN" type="password" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
           </div>
         </div>
       </section>
@@ -181,6 +185,7 @@
       document.querySelector('[name="INFLUX_HOST"]').value = cfg.influxHost || '';
       document.querySelector('[name="INFLUX_ORG"]').value = cfg.influxOrg || '';
       document.querySelector('[name="INFLUX_BUCKET"]').value = cfg.influxBucket || '';
+      document.querySelector('[name="INFLUX_TOKEN"]').value = cfg.influxToken || '';
       cfg.sensors.forEach(s => createSensorRow(s));
       cfg.switches.forEach(s => createSwitchRow(s));
       document.getElementById('roofOpenPath').value = cfg.roof.open.path || '';
@@ -202,6 +207,7 @@
         INFLUX_HOST: document.querySelector('[name="INFLUX_HOST"]').value,
         INFLUX_ORG: document.querySelector('[name="INFLUX_ORG"]').value,
         INFLUX_BUCKET: document.querySelector('[name="INFLUX_BUCKET"]').value,
+        INFLUX_TOKEN: document.querySelector('[name="INFLUX_TOKEN"]').value,
         sensors: Array.from(document.querySelectorAll('.sensor-row')).map(r => ({
           path: r.querySelector('.sensor-path').value,
           unit: r.querySelector('.sensor-unit').value,

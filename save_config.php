@@ -13,7 +13,8 @@ $allowed = [
     'MQTT_SKYCAM_TOPIC',
     'INFLUX_HOST',
     'INFLUX_ORG',
-    'INFLUX_BUCKET'
+    'INFLUX_BUCKET',
+    'INFLUX_TOKEN'
 ];
 
 $input = json_decode(file_get_contents('php://input'), true);
