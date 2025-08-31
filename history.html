@@ -27,15 +27,15 @@
       </button>
     </div>
   </aside>
-  <main class="flex-1 p-6">
-    <div class="bg-white dark:bg-gray-700 dark:text-gray-200 p-6 rounded shadow w-full max-w-4xl mx-auto">
+  <main class="flex-1 p-6 h-full">
+    <div class="bg-white dark:bg-gray-700 dark:text-gray-200 p-6 rounded shadow w-full h-full flex flex-col">
       <h1 id="sensorTitle" class="text-xl mb-4 text-gray-900 dark:text-gray-100">Sensor History</h1>
       <div class="mb-4 space-x-2">
         <button data-range="tonight" class="range-btn bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Tonight</button>
         <button data-range="yesterday" class="range-btn bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Yesterday</button>
         <button data-range="week" class="range-btn bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">This Week</button>
       </div>
-      <div id="historyChart" class="h-96"></div>
+      <div id="historyChart" class="flex-1"></div>
     </div>
   </main>
   <script type="module">
