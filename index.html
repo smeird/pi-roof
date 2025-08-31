@@ -72,6 +72,12 @@
       <span>Dotted segments indicate values outside the green threshold</span>
     </div>
   </section>
+
+  <!-- SkyCam -->
+  <section id="skyCamCard" class="bg-white dark:bg-gray-700 dark:text-gray-200 rounded shadow p-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">SkyCam</h2>
+    <img id="skyCamImage" class="w-full h-auto rounded" alt="SkyCam" />
+  </section>
 </main>
 
 </div>
@@ -109,9 +115,9 @@ if (darkModeToggle) {
   });
 }
 
-let brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof;
+let brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof, skyCamTopic;
 try {
-  ({ brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof } = await loadConfig());
+  ({ brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof, skyCamTopic } = await loadConfig());
 } catch (err) {
   const statusEl = document.getElementById('statusText');
   if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
@@ -123,6 +129,15 @@ const sensorValueEls = {};
 const sensorIndicators = {};
 const indicatorEls = {};
 const topics = new Set(dashboardTopics);
+const skyCamCard = document.getElementById('skyCamCard');
+const skyCamImage = document.getElementById('skyCamImage');
+if (skyCamTopic) {
+  topics.add(skyCamTopic);
+  skyCamImage?.setAttribute('data-topic', skyCamTopic);
+  skyCamImage?.setAttribute('data-static', '');
+} else {
+  skyCamCard?.classList.add('hidden');
+}
 const toggleStates = {};
 let lineChart;
 const lineSeries = {};
@@ -328,6 +343,17 @@ try {
   });
 
   mqttClient.on('message', function(topic, message) {
+    if (skyCamTopic && topic === skyCamTopic) {
+      if (skyCamImage) {
+        const blob = new Blob([message]);
+        const url = URL.createObjectURL(blob);
+        const prev = skyCamImage.dataset.url;
+        if (prev) URL.revokeObjectURL(prev);
+        skyCamImage.src = url;
+        skyCamImage.dataset.url = url;
+      }
+      return;
+    }
     const rawValue = message.toString();
     const num = parseFloat(rawValue);
     const rounded = !isNaN(num) ? Math.round(num * 10) / 10 : null;

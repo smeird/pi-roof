@@ -79,6 +79,11 @@
       </section>
 
       <section>
+        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">SkyCam Topic</h2>
+        <input name="MQTT_SKYCAM_TOPIC" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
+      </section>
+
+      <section>
         <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Dashboard Topics (comma separated)</h2>
         <input name="MQTT_DASHBOARD_TOPICS" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
       </section>
@@ -149,6 +154,7 @@
       document.querySelector('[name="MQTT_PORT"]').value = cfg.port;
       document.querySelector('[name="MQTT_USERNAME"]').value = cfg.username;
       document.querySelector('[name="MQTT_PASSWORD"]').value = cfg.password;
+      document.querySelector('[name="MQTT_SKYCAM_TOPIC"]').value = cfg.skyCamTopic || '';
       document.querySelector('[name="MQTT_DASHBOARD_TOPICS"]').value = cfg.dashboardTopics.join(',');
       cfg.sensors.forEach(s => createSensorRow(s));
       cfg.switches.forEach(s => createSwitchRow(s));
@@ -166,6 +172,7 @@
         MQTT_PORT: document.querySelector('[name="MQTT_PORT"]').value,
         MQTT_USERNAME: document.querySelector('[name="MQTT_USERNAME"]').value,
         MQTT_PASSWORD: document.querySelector('[name="MQTT_PASSWORD"]').value,
+        MQTT_SKYCAM_TOPIC: document.querySelector('[name="MQTT_SKYCAM_TOPIC"]').value,
         MQTT_DASHBOARD_TOPICS: document.querySelector('[name="MQTT_DASHBOARD_TOPICS"]').value,
         sensors: Array.from(document.querySelectorAll('.sensor-row')).map(r => ({
           path: r.querySelector('.sensor-path').value,
