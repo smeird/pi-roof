@@ -16,6 +16,7 @@ export async function loadConfig() {
     skyCamTopic: data.skyCamTopic || '',
     influxHost: data.influxHost,
     influxOrg: data.influxOrg,
-    influxBucket: data.influxBucket
+    influxBucket: data.influxBucket,
+    influxToken: data.influxToken
   };
 }

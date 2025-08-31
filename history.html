@@ -63,7 +63,7 @@
     }
 
     async function init() {
-      const { sensors, influxHost, influxOrg, influxBucket } = await loadConfig();
+      const { sensors, influxHost, influxOrg, influxBucket, influxToken } = await loadConfig();
       const sensor = sensors.find(s => s.path === sensorPath);
       if (!sensor || !sensor.influxMeasurement || !sensor.influxField) {
         document.getElementById('sensorTitle').textContent = 'No historical data';
@@ -86,7 +86,8 @@
             method: 'POST',
             headers: {
               'Content-Type': 'application/vnd.flux',
-              'Accept': 'application/csv'
+              'Accept': 'application/csv',
+              'Authorization': `Token ${influxToken}`
             },
             body: flux
           });

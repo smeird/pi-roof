@@ -10,7 +10,8 @@ $defaults = [
     'MQTT_SKYCAM_TOPIC' => '',
     'INFLUX_HOST' => 'http://localhost:8086',
     'INFLUX_ORG' => 'primary',
-    'INFLUX_BUCKET' => 'Garden'
+    'INFLUX_BUCKET' => 'Garden',
+    'INFLUX_TOKEN' => ''
 ];
 
 $stored = getAllSettings();
@@ -32,6 +33,7 @@ echo json_encode([
     'influxHost' => $config['INFLUX_HOST'],
     'influxOrg' => $config['INFLUX_ORG'],
     'influxBucket' => $config['INFLUX_BUCKET'],
+    'influxToken' => $config['INFLUX_TOKEN'],
     'sensors' => getSensors(),
     'switches' => getSwitches(),
     'roof' => [
