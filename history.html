@@ -77,21 +77,28 @@
         week: { start: '-7d', window: '2h' }
       };
 
+      async function queryInflux(flux) {
+        const url = `${influxHost.replace(/\/$/, '')}/api/v2/query?org=${encodeURIComponent(influxOrg)}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/vnd.flux',
+            'Accept': 'application/csv',
+            'Authorization': `Token ${influxToken}`
+          },
+          body: flux
+        });
+        if (!res.ok) {
+          throw new Error(`Influx query failed: ${res.status} ${res.statusText}`);
+        }
+        return res.text();
+      }
+
       async function fetchData(rangeKey) {
         const { start, window } = ranges[rangeKey];
         const flux = `from(bucket: "${influxBucket}")\n  |> range(start: ${start})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${window}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
         try {
-          const url = `${influxHost.replace(/\/$/, '')}/api/v2/query?org=${encodeURIComponent(influxOrg)}`;
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/vnd.flux',
-              'Accept': 'application/csv',
-              'Authorization': `Token ${influxToken}`
-            },
-            body: flux
-          });
-          const text = await res.text();
+          const text = await queryInflux(flux);
           const lines = text.trim().split('\n').filter(line => !line.startsWith('#'));
           if (lines.length < 2) return;
           const headers = lines[0].split(',');
