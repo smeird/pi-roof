@@ -308,7 +308,7 @@ setToggleDisabled(true);
 
 function initLineChart() {
   const yAxis = sensors.map((s, idx) => ({
-    title: { text: s.name },
+    title: { text: s.unit ? `${s.name} (${s.unit})` : s.name },
     opposite: idx % 2 === 1
   }));
   const series = sensors.map((s, idx) => {
@@ -319,7 +319,7 @@ function initLineChart() {
         ? [{ value: green, dashStyle: 'Dot' }, {}]
         : [{ value: green }, { dashStyle: 'Dot' }];
     }
-    return { name: s.name, data: [], yAxis: idx, zones };
+    return { name: s.name, data: [], yAxis: idx, zones, tooltip: { valueSuffix: s.unit ? ` ${s.unit}` : '' } };
   });
   lineChart = Highcharts.chart('lineChart', {
     chart: { type: 'line' },
