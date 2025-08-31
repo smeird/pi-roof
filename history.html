@@ -133,7 +133,8 @@
           Highcharts.chart('historyChart', {
             title: { text: null },
             xAxis: { type: 'datetime' },
-            series: [{ name: sensor.name, data }],
+            yAxis: { title: { text: sensor.unit || null } },
+            series: [{ name: sensor.name, data, tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' } }],
             legend: { enabled: false }
           });
         } catch (err) {
