@@ -7,7 +7,10 @@ $defaults = [
     'MQTT_USERNAME' => '',
     'MQTT_PASSWORD' => '',
     'MQTT_DASHBOARD_TOPICS' => '',
-    'MQTT_SKYCAM_TOPIC' => ''
+    'MQTT_SKYCAM_TOPIC' => '',
+    'INFLUX_HOST' => 'http://localhost:8086',
+    'INFLUX_ORG' => 'primary',
+    'INFLUX_BUCKET' => 'Garden'
 ];
 
 $stored = getAllSettings();
@@ -26,6 +29,9 @@ echo json_encode([
     'password' => $config['MQTT_PASSWORD'],
     'skyCamTopic' => $config['MQTT_SKYCAM_TOPIC'],
     'dashboardTopics' => array_values(array_filter(explode(',', $config['MQTT_DASHBOARD_TOPICS']))),
+    'influxHost' => $config['INFLUX_HOST'],
+    'influxOrg' => $config['INFLUX_ORG'],
+    'influxBucket' => $config['INFLUX_BUCKET'],
     'sensors' => getSensors(),
     'switches' => getSwitches(),
     'roof' => [

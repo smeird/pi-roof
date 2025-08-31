@@ -13,6 +13,9 @@ export async function loadConfig() {
     sensors: data.sensors || [],
     switches: data.switches || [],
     roof: data.roof || { open: { path: '', limit: '' }, close: { path: '', limit: '' } },
-    skyCamTopic: data.skyCamTopic || ''
+    skyCamTopic: data.skyCamTopic || '',
+    influxHost: data.influxHost,
+    influxOrg: data.influxOrg,
+    influxBucket: data.influxBucket
   };
 }

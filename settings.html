@@ -55,6 +55,24 @@
       </section>
 
       <section>
+        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">InfluxDB</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Host</label>
+            <input name="INFLUX_HOST" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Org</label>
+            <input name="INFLUX_ORG" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Bucket</label>
+            <input name="INFLUX_BUCKET" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
+          </div>
+        </div>
+      </section>
+
+      <section>
         <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Sensors</h2>
         <div id="sensorsList" class="space-y-2"></div>
         <button type="button" id="addSensor" class="mt-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Add Sensor</button>
@@ -160,6 +178,9 @@
       document.querySelector('[name="MQTT_PASSWORD"]').value = cfg.password;
       document.querySelector('[name="MQTT_SKYCAM_TOPIC"]').value = cfg.skyCamTopic || '';
       document.querySelector('[name="MQTT_DASHBOARD_TOPICS"]').value = cfg.dashboardTopics.join(',');
+      document.querySelector('[name="INFLUX_HOST"]').value = cfg.influxHost || '';
+      document.querySelector('[name="INFLUX_ORG"]').value = cfg.influxOrg || '';
+      document.querySelector('[name="INFLUX_BUCKET"]').value = cfg.influxBucket || '';
       cfg.sensors.forEach(s => createSensorRow(s));
       cfg.switches.forEach(s => createSwitchRow(s));
       document.getElementById('roofOpenPath').value = cfg.roof.open.path || '';
@@ -178,6 +199,9 @@
         MQTT_PASSWORD: document.querySelector('[name="MQTT_PASSWORD"]').value,
         MQTT_SKYCAM_TOPIC: document.querySelector('[name="MQTT_SKYCAM_TOPIC"]').value,
         MQTT_DASHBOARD_TOPICS: document.querySelector('[name="MQTT_DASHBOARD_TOPICS"]').value,
+        INFLUX_HOST: document.querySelector('[name="INFLUX_HOST"]').value,
+        INFLUX_ORG: document.querySelector('[name="INFLUX_ORG"]').value,
+        INFLUX_BUCKET: document.querySelector('[name="INFLUX_BUCKET"]').value,
         sensors: Array.from(document.querySelectorAll('.sensor-row')).map(r => ({
           path: r.querySelector('.sensor-path').value,
           unit: r.querySelector('.sensor-unit').value,

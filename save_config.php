@@ -10,7 +10,10 @@ $allowed = [
     'MQTT_USERNAME',
     'MQTT_PASSWORD',
     'MQTT_DASHBOARD_TOPICS',
-    'MQTT_SKYCAM_TOPIC'
+    'MQTT_SKYCAM_TOPIC',
+    'INFLUX_HOST',
+    'INFLUX_ORG',
+    'INFLUX_BUCKET'
 ];
 
 $input = json_decode(file_get_contents('php://input'), true);

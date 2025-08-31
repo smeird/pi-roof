@@ -19,6 +19,7 @@
 - Sensors include red/green status dots driven by per-sensor thresholds configurable in settings.
 
 - Sensors may specify InfluxDB `influxMeasurement` and `influxField` values in settings to enable historical data charts. When present, the sensor card displays a history icon linking to `history.html`.
+- Global InfluxDB connection settings (host, organization, bucket) are editable in settings and returned via `get_config.php`.
 
 - When all sensors indicate green, the sensors card shows a green border.
 
