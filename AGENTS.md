@@ -20,6 +20,7 @@
 
 - Sensors may specify InfluxDB `influxMeasurement` and `influxField` values in settings to enable historical data charts. When present, the sensor card displays a history icon linking to `history.html`.
 - Global InfluxDB connection settings (host, organization, bucket) are editable in settings and returned via `get_config.php`.
+- InfluxDB queries must use `POST` requests to `/api/v2/query` with `Content-Type: application/vnd.flux` and `Accept: application/csv` headers.
 
 - When all sensors indicate green, the sensors card shows a green border.
 
