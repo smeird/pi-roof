@@ -12,6 +12,7 @@ export async function loadConfig() {
     dashboardTopics: data.dashboardTopics,
     sensors: data.sensors || [],
     switches: data.switches || [],
-    roof: data.roof || { open: { path: '', limit: '' }, close: { path: '', limit: '' } }
+    roof: data.roof || { open: { path: '', limit: '' }, close: { path: '', limit: '' } },
+    skyCamTopic: data.skyCamTopic || ''
   };
 }

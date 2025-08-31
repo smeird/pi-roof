@@ -9,7 +9,8 @@ $allowed = [
     'MQTT_PORT',
     'MQTT_USERNAME',
     'MQTT_PASSWORD',
-    'MQTT_DASHBOARD_TOPICS'
+    'MQTT_DASHBOARD_TOPICS',
+    'MQTT_SKYCAM_TOPIC'
 ];
 
 $input = json_decode(file_get_contents('php://input'), true);

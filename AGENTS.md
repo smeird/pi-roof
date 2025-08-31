@@ -31,6 +31,7 @@
 - Main page background uses a subtle top-to-bottom gray gradient.
 
 - SkyCam image sits in a bottom card section.
+- SkyCam image loads from an MQTT topic configured in settings (`MQTT_SKYCAM_TOPIC`).
 - MQTT helper now emits `status` events (`connecting`, `connected`, `disconnected`, `reconnecting`, `error`) and uses exponential backoff reconnects up to 30s.
 - MQTT helper now treats broker `offline` events the same as `close`, ensuring reconnection when the connection drops silently.
 - MQTT helper's `error` handler forces a client close to trigger reconnection, calling `handleDisconnect` directly if already closed.
