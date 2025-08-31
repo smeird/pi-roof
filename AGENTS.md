@@ -18,6 +18,8 @@
 
 - Sensors include red/green status dots driven by per-sensor thresholds configurable in settings.
 
+- Sensors may specify InfluxDB `influxMeasurement` and `influxField` values in settings to enable historical data charts. When present, the sensor card displays a history icon linking to `history.html`.
+
 - When all sensors indicate green, the sensors card shows a green border.
 
 - Roof limit indicators show phrases like "Roof is open"/"Roof isn't open" and "Roof is closed"/"Roof isn't closed" based on switch state.

@@ -170,6 +170,16 @@ function addSensorCards() {
     const nameSpan = document.createElement('span');
     nameSpan.textContent = s.name;
     left.appendChild(nameSpan);
+    if (s.influxMeasurement && s.influxField) {
+      const icon = document.createElement('span');
+      icon.textContent = '\ud83d\udcc8';
+      icon.className = 'ml-2';
+      left.appendChild(icon);
+      card.classList.add('cursor-pointer');
+      card.addEventListener('click', () => {
+        window.location.href = `history.html?sensor=${encodeURIComponent(s.path)}`;
+      });
+    }
     card.appendChild(left);
 
     const valueEl = document.createElement('span');
