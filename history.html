@@ -63,7 +63,7 @@
     }
 
     async function init() {
-      const { sensors } = await loadConfig();
+      const { sensors, influxHost, influxOrg, influxBucket } = await loadConfig();
       const sensor = sensors.find(s => s.path === sensorPath);
       if (!sensor || !sensor.influxMeasurement || !sensor.influxField) {
         document.getElementById('sensorTitle').textContent = 'No historical data';
@@ -79,9 +79,10 @@
 
       async function fetchData(rangeKey) {
         const { start, window } = ranges[rangeKey];
-        const flux = `from(bucket: "Garden")\n  |> range(start: ${start})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${window}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
+        const flux = `from(bucket: "${influxBucket}")\n  |> range(start: ${start})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${window}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
         try {
-          const res = await fetch('http://localhost:8086/api/v2/query?org=primary', {
+          const url = `${influxHost.replace(/\/$/, '')}/api/v2/query?org=${encodeURIComponent(influxOrg)}`;
+          const res = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/vnd.flux',
