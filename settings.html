@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <title>Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
   <aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
-    <div class="p-4 text-lg font-bold flex items-center"><a href="/" class="mr-2">🔭</a>Observatory Control Panel</div>
+    <div class="p-4 text-lg font-bold flex items-center"><a href="/" class="mr-2"><i class="fa-solid fa-binoculars"></i></a>Observatory Control Panel</div>
     <nav class="px-2 flex-1">
       <ul class="space-y-2">
         <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
@@ -155,7 +156,7 @@
         </select>
         <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-32 sensor-measurement" placeholder="Measurement" value="${data.influxMeasurement || ''}">
         <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-32 sensor-field" placeholder="Field" value="${data.influxField || ''}">
-        <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded">X</button>`;
+        <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded"><i class="fa-solid fa-xmark"></i></button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       sensorsList.appendChild(row);
     }
@@ -166,7 +167,7 @@
       row.innerHTML = `
         <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 switch-path" placeholder="Path" value="${data.path || ''}">
         <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 switch-name" placeholder="Name" value="${data.name || ''}">
-        <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded">X</button>`;
+        <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded"><i class="fa-solid fa-xmark"></i></button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       switchesList.appendChild(row);
     }
