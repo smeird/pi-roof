@@ -8,6 +8,7 @@
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="js/mqttClient.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/themes/adaptive.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 md:flex dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
 <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden md:hidden"></div>
@@ -89,6 +90,34 @@ const menuButton = document.getElementById('menuButton');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
 const darkModeToggle = document.getElementById('darkModeToggle');
+
+function applyChartTheme(isDark) {
+  Highcharts.setOptions({
+    chart: {
+      backgroundColor: 'transparent',
+      style: { color: isDark ? '#f3f4f6' : '#1f2937' }
+    },
+    title: { style: { color: isDark ? '#f3f4f6' : '#1f2937' } },
+    xAxis: {
+      labels: { style: { color: isDark ? '#f3f4f6' : '#1f2937' } },
+      gridLineColor: isDark ? '#374151' : '#e5e7eb',
+      lineColor: isDark ? '#374151' : '#e5e7eb',
+      tickColor: isDark ? '#374151' : '#e5e7eb'
+    },
+    yAxis: {
+      labels: { style: { color: isDark ? '#f3f4f6' : '#1f2937' } },
+      title: { style: { color: isDark ? '#f3f4f6' : '#1f2937' } },
+      gridLineColor: isDark ? '#374151' : '#e5e7eb',
+      lineColor: isDark ? '#374151' : '#e5e7eb',
+      tickColor: isDark ? '#374151' : '#e5e7eb'
+    },
+    legend: { itemStyle: { color: isDark ? '#f3f4f6' : '#1f2937' } },
+    tooltip: {
+      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+      style: { color: isDark ? '#f3f4f6' : '#1f2937' }
+    }
+  });
+}
 if (menuButton && sidebar && overlay) {
   const toggleSidebar = () => {
     sidebar.classList.toggle('-translate-x-full');
@@ -99,20 +128,30 @@ if (menuButton && sidebar && overlay) {
 }
 
 if (darkModeToggle) {
-  const isDark = localStorage.getItem('theme') === 'dark';
+  const storedTheme = localStorage.getItem('theme');
+  const hour = new Date().getHours();
+  const isDark = storedTheme ? storedTheme === 'dark' : (hour >= 18 || hour < 6);
   if (isDark) {
     document.documentElement.classList.add('dark');
     darkModeToggle.classList.remove('bg-gray-200');
     darkModeToggle.classList.add('bg-green-500');
     darkModeToggle.querySelector('span')?.classList.add('translate-x-5');
   }
+  applyChartTheme(isDark);
   darkModeToggle.addEventListener('click', () => {
     const enabled = document.documentElement.classList.toggle('dark');
     darkModeToggle.classList.toggle('bg-green-500', enabled);
     darkModeToggle.classList.toggle('bg-gray-200', !enabled);
     darkModeToggle.querySelector('span')?.classList.toggle('translate-x-5');
     localStorage.setItem('theme', enabled ? 'dark' : 'light');
+    applyChartTheme(enabled);
+    if (lineChart) {
+      lineChart.destroy();
+      initLineChart();
+    }
   });
+} else {
+  applyChartTheme(false);
 }
 
 let brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof, skyCamTopic;
