@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Observatory Control Panel</title>
+<title>Observatory</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
@@ -13,7 +13,21 @@
 <body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 md:flex dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
 <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden md:hidden"></div>
 <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-900 text-white transform -translate-x-full md:translate-x-0 md:relative md:flex-shrink-0 flex flex-col transition-transform duration-200 z-40">
-  <div class="p-4 text-lg font-bold flex items-center"><a href="/" class="mr-2"><i class="fa-solid fa-binoculars"></i></a>Observatory Control Panel</div>
+  <div class="p-4 text-lg font-bold flex items-center"><a href="/" class="mr-2"><i class="fa-solid fa-binoculars"></i></a>Observatory</div>
+  <div class="px-4 pb-4 space-y-4">
+    <div id="connectionStatus" class="text-sm flex items-center text-gray-300 dark:text-gray-400">
+      <span id="statusDot" class="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
+      <span id="statusText">Connecting...</span>
+    </div>
+    <div class="flex items-center justify-between">
+      <label for="themeSelect" class="text-sm">Theme</label>
+      <select id="themeSelect" class="bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded p-1">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="system">System</option>
+      </select>
+    </div>
+  </div>
   <nav class="px-2 flex-1">
     <ul class="space-y-2">
       <li><a class="block px-2 py-1 hover:bg-gray-700" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
@@ -25,22 +39,10 @@
       <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="settings.html">Settings</a></li>
     </ul>
   </nav>
-  <div class="p-4 flex items-center justify-between">
-    <label for="themeSelect" class="text-sm">Theme</label>
-    <select id="themeSelect" class="bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded p-1">
-      <option value="light">Light</option>
-      <option value="dark">Dark</option>
-      <option value="system">System</option>
-    </select>
-  </div>
-  <div id="connectionStatus" class="p-4 text-sm flex items-center text-gray-300 dark:text-gray-400">
-    <span id="statusDot" class="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
-    <span id="statusText">Connecting...</span>
-  </div>
 </aside>
 <div class="flex flex-col min-h-screen flex-1">
   <header class="md:hidden bg-gray-900 text-white p-4 flex items-center justify-between">
-    <div class="text-lg font-bold flex items-center"><a href="/" class="mr-2"><i class="fa-solid fa-binoculars"></i></a>Observatory Control Panel</div>
+    <div class="text-lg font-bold flex items-center"><a href="/" class="mr-2"><i class="fa-solid fa-binoculars"></i></a>Observatory</div>
     <button id="menuButton" class="focus:outline-none">
       <i class="fa-solid fa-bars text-xl"></i>
     </button>
