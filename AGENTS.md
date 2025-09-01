@@ -2,6 +2,7 @@
 
 - Tailwind CSS (via CDN) is used for styling across the site. Prefer Tailwind utility classes and avoid other CSS frameworks.
 - Record any additional project decisions or conventions in this file.
+- Font Awesome (via CDN) is used for interface icons across the site.
 - No automated tests are configured; run `npm test` to confirm.
 - Removed obsolete `cold.html` panel.
 - Removed legacy PHP and HTML files (e.g. `script.php`, `manualjob.php`, `recipies.html`, `api.php.old`, `getvaluestatus.php.old`, `index.php.old`, `index2.php`, `base.css`).
