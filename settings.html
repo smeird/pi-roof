@@ -21,10 +21,12 @@
       </ul>
     </nav>
     <div class="p-4 flex items-center justify-between">
-      <span class="text-sm">Dark Mode</span>
-      <button id="darkModeToggle" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600">
-        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span>
-      </button>
+      <label for="themeSelect" class="text-sm">Theme</label>
+      <select id="themeSelect" class="bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded p-1">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="system">System</option>
+      </select>
     </div>
   </aside>
   <main class="flex-1 p-6">
@@ -121,21 +123,29 @@
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
 
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    if (darkModeToggle) {
-      const isDark = localStorage.getItem('theme') === 'dark';
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-        darkModeToggle.classList.remove('bg-gray-200');
-        darkModeToggle.classList.add('bg-green-500');
-        darkModeToggle.querySelector('span')?.classList.add('translate-x-5');
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+      const storedTheme = localStorage.getItem('theme') || 'system';
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function setTheme(theme) {
+        const isDark = theme === 'dark' || (theme === 'system' && mediaQuery.matches);
+        document.documentElement.classList.toggle('dark', isDark);
       }
-      darkModeToggle.addEventListener('click', () => {
-        const enabled = document.documentElement.classList.toggle('dark');
-        darkModeToggle.classList.toggle('bg-green-500', enabled);
-        darkModeToggle.classList.toggle('bg-gray-200', !enabled);
-        darkModeToggle.querySelector('span')?.classList.toggle('translate-x-5');
-        localStorage.setItem('theme', enabled ? 'dark' : 'light');
+
+      themeSelect.value = storedTheme;
+      setTheme(storedTheme);
+
+      themeSelect.addEventListener('change', e => {
+        const value = e.target.value;
+        localStorage.setItem('theme', value);
+        setTheme(value);
+      });
+
+      mediaQuery.addEventListener('change', () => {
+        if (localStorage.getItem('theme') === 'system') {
+          setTheme('system');
+        }
       });
     }
 
