@@ -2,128 +2,223 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          },
+          colors: {
+            aurora: {
+              200: '#c4d9ff',
+              300: '#92b4ff',
+              400: '#5b8fff',
+              500: '#2d72ff'
+            }
+          }
+        }
+      }
+    };
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
-  <aside class="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col min-h-screen sticky top-0">
-    <div class="p-4 text-lg font-bold flex items-center"><a href="/" class="mr-2"><i class="fa-solid fa-binoculars"></i></a>Observatory</div>
-    <div class="px-4 pb-4">
-      <div class="flex items-center justify-between">
-        <label for="themeSelect" class="text-sm">Theme</label>
-        <select id="themeSelect" class="bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded p-1">
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="system">System</option>
-        </select>
-      </div>
-    </div>
-    <nav class="px-2 flex-1">
-      <ul class="space-y-2">
-        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://10.0.179.242" target="_blank">AAGSolo</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser" target="_blank">Obs Graphs</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank">Weather</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://ob.smeird.com" target="_blank">Public obs</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="http://www.smeird.com" target="_blank">Public Weather</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank">Night Forecast</a></li>
-        <li><a class="block px-2 py-1 hover:bg-gray-700 dark:hover:bg-gray-600" href="settings.html">Settings</a></li>
-      </ul>
-    </nav>
-  </aside>
-  <main class="flex-1 p-6">
-
-    <div class="bg-white dark:bg-gray-700 dark:text-gray-200 p-6 rounded shadow w-full">
-
-    <h1 class="text-xl mb-4 text-gray-900 dark:text-gray-100">Configuration</h1>
-    <form id="settingsForm" class="space-y-6">
-      <section>
-        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">MQTT Server</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium">Host</label>
-            <input name="MQTT_BROKER_URL" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Port</label>
-            <input name="MQTT_PORT" type="number" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Username</label>
-            <input name="MQTT_USERNAME" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Password</label>
-            <input name="MQTT_PASSWORD" type="password" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">InfluxDB</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-sm font-medium">Host</label>
-            <input name="INFLUX_HOST" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Org</label>
-            <input name="INFLUX_ORG" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Bucket</label>
-            <input name="INFLUX_BUCKET" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Token</label>
-            <input name="INFLUX_TOKEN" type="password" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Sensors</h2>
-        <div id="sensorsList" class="space-y-2"></div>
-        <button type="button" id="addSensor" class="mt-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Add Sensor</button>
-      </section>
-
-      <section>
-        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Roof</h2>
-        <div class="space-y-2">
-          <div class="flex space-x-2">
-            <input id="roofOpenPath" class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1" placeholder="Open Path" />
-            <input id="roofOpenLimit" class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1" placeholder="Roof Open Status Topic" />
-          </div>
-          <div class="flex space-x-2">
-            <input id="roofClosePath" class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1" placeholder="Close Path" />
-            <input id="roofCloseLimit" class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1" placeholder="Roof Closed Status Topic" />
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Switches</h2>
-        <div id="switchesList" class="space-y-2"></div>
-        <button type="button" id="addSwitch" class="mt-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-2 py-1 rounded">Add Switch</button>
-      </section>
-
-      <section>
-        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">SkyCam Topic</h2>
-        <input name="MQTT_SKYCAM_TOPIC" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-      </section>
-
-      <section>
-        <h2 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Dashboard Topics (comma separated)</h2>
-        <input name="MQTT_DASHBOARD_TOPICS" class="mt-1 p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-full" />
-      </section>
-
-      <button type="submit" class="bg-blue-500 dark:bg-blue-600 text-white px-4 py-2 rounded">Save</button>
-    </form>
-    <div id="status" class="mt-4 text-sm"></div>
+<body class="min-h-screen font-sans antialiased text-slate-900 dark:text-slate-100">
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"></div>
+    <div class="absolute left-1/2 top-[-10%] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-aurora-300/40 blur-3xl dark:bg-aurora-500/30"></div>
+    <div class="absolute bottom-[-25%] right-[-10%] h-[480px] w-[480px] rounded-full bg-aurora-200/40 blur-3xl dark:bg-aurora-400/20"></div>
+    <div class="absolute left-[-15%] top-1/3 h-72 w-72 rounded-full bg-white/40 blur-3xl dark:bg-white/5"></div>
   </div>
-  </main>
+  <div id="overlay" class="fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-sm hidden md:hidden"></div>
+  <div class="relative z-10 min-h-screen md:flex">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full transform flex-col border-r border-white/10 bg-slate-900/80 px-6 pb-6 pt-8 text-slate-100 backdrop-blur-lg transition-transform duration-300 md:relative md:translate-x-0 md:flex-shrink-0 md:border-r md:border-slate-200/20">
+      <div class="mb-8 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 text-lg font-semibold tracking-tight">
+          <span class="grid h-10 w-10 place-items-center rounded-2xl bg-white/10 text-aurora-200 shadow ring-1 ring-white/20"><i class="fa-solid fa-binoculars"></i></span>
+          <span class="leading-tight">Observatory</span>
+        </a>
+        <button id="closeSidebar" class="md:hidden text-slate-300 transition hover:text-white" aria-label="Close menu">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-6 overflow-y-auto">
+        <div class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-inner backdrop-blur">
+          <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-200/80">
+            <span>Theme</span>
+            <i class="fa-solid fa-circle-half-stroke text-aurora-200"></i>
+          </div>
+          <select id="themeSelect" class="mt-3 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm font-medium text-slate-100 shadow-sm outline-none transition focus:border-aurora-400 focus:ring-2 focus:ring-aurora-300/40">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="system">System</option>
+          </select>
+        </div>
+        <nav class="space-y-2 text-sm font-medium">
+          <p class="px-3 text-xs uppercase tracking-[0.3em] text-slate-200/60">Quick Links</p>
+          <ul class="space-y-2">
+            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://10.0.179.242" target="_blank"><i class="fa-solid fa-mountain-sun text-aurora-200"></i><span>AAGSolo</span></a></li>
+            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&amp;from=now-24h&amp;to=now&amp;timezone=browser" target="_blank"><i class="fa-solid fa-chart-line text-aurora-200"></i><span>Obs Graphs</span></a></li>
+            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank"><i class="fa-solid fa-cloud-sun text-aurora-200"></i><span>Weather</span></a></li>
+            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://ob.smeird.com" target="_blank"><i class="fa-solid fa-earth-europe text-aurora-200"></i><span>Public obs</span></a></li>
+            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://www.smeird.com" target="_blank"><i class="fa-solid fa-droplet text-aurora-200"></i><span>Public Weather</span></a></li>
+            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank"><i class="fa-solid fa-moon-stars text-aurora-200"></i><span>Night Forecast</span></a></li>
+            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="settings.html"><i class="fa-solid fa-sliders text-aurora-200"></i><span>Settings</span></a></li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+    <div class="flex min-h-screen flex-1 flex-col">
+      <header class="flex items-center justify-between gap-4 bg-white/80 px-6 py-4 shadow-sm backdrop-blur dark:bg-slate-900/70 md:hidden">
+        <div class="flex items-center gap-3 text-base font-semibold text-slate-700 dark:text-slate-100">
+          <span class="grid h-9 w-9 place-items-center rounded-2xl bg-aurora-400/20 text-aurora-500 dark:bg-aurora-500/20"><i class="fa-solid fa-binoculars"></i></span>
+          Observatory
+        </div>
+        <button id="menuButton" class="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-100" aria-label="Open menu">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+      </header>
+      <main class="flex-1 px-4 py-10 sm:px-8">
+        <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
+          <div class="flex flex-col gap-3">
+            <p class="text-sm uppercase tracking-[0.35em] text-slate-500/70 dark:text-slate-300/60">Configuration</p>
+            <h1 class="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white"><span class="bg-gradient-to-r from-aurora-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">Settings</span></h1>
+            <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-300/80">Update MQTT, InfluxDB, and dashboard behaviour with streamlined controls. Changes take effect immediately after saving.</p>
+          </div>
+          <div class="rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
+            <form id="settingsForm" class="space-y-10">
+              <section class="space-y-4">
+                <div class="flex flex-col gap-1">
+                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">MQTT Server</h2>
+                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Provide connection details for the observatory broker.</p>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Host</label>
+                    <input name="MQTT_BROKER_URL" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Port</label>
+                    <input name="MQTT_PORT" type="number" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Username</label>
+                    <input name="MQTT_USERNAME" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Password</label>
+                    <input name="MQTT_PASSWORD" type="password" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                  </div>
+                </div>
+              </section>
+
+              <section class="space-y-4">
+                <div class="flex flex-col gap-1">
+                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">InfluxDB</h2>
+                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Configure historical storage and query access.</p>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Host</label>
+                    <input name="INFLUX_HOST" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Org</label>
+                    <input name="INFLUX_ORG" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Bucket</label>
+                    <input name="INFLUX_BUCKET" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Token</label>
+                    <input name="INFLUX_TOKEN" type="password" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                  </div>
+                </div>
+              </section>
+
+              <section class="space-y-4">
+                <div class="flex flex-col gap-1">
+                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Sensors</h2>
+                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Define sensor names, MQTT topics, thresholds, and history metadata.</p>
+                </div>
+                <div id="sensorsList" class="space-y-3"></div>
+                <button type="button" id="addSensor" class="inline-flex items-center gap-2 rounded-xl border border-aurora-300/50 bg-aurora-300/20 px-4 py-2 text-sm font-semibold text-aurora-600 transition hover:-translate-y-0.5 hover:bg-aurora-300/30 dark:border-aurora-500/40 dark:bg-aurora-500/10 dark:text-aurora-200"> <i class="fa-solid fa-plus"></i> Add Sensor</button>
+              </section>
+
+              <section class="space-y-4">
+                <div class="flex flex-col gap-1">
+                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Roof</h2>
+                  <p class="text-sm text-slate-600 dark:text-slate-300/80">MQTT topics for motor control and position feedback.</p>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <input id="roofOpenPath" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" placeholder="Open Path" />
+                  <input id="roofOpenLimit" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" placeholder="Roof Open Status Topic" />
+                  <input id="roofClosePath" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" placeholder="Close Path" />
+                  <input id="roofCloseLimit" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" placeholder="Roof Closed Status Topic" />
+                </div>
+              </section>
+
+              <section class="space-y-4">
+                <div class="flex flex-col gap-1">
+                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Switches</h2>
+                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Create quick toggles for auxiliary equipment.</p>
+                </div>
+                <div id="switchesList" class="space-y-3"></div>
+                <button type="button" id="addSwitch" class="inline-flex items-center gap-2 rounded-xl border border-aurora-300/50 bg-aurora-300/20 px-4 py-2 text-sm font-semibold text-aurora-600 transition hover:-translate-y-0.5 hover:bg-aurora-300/30 dark:border-aurora-500/40 dark:bg-aurora-500/10 dark:text-aurora-200"><i class="fa-solid fa-plus"></i> Add Switch</button>
+              </section>
+
+              <section class="grid gap-4 sm:grid-cols-2">
+                <div class="flex flex-col gap-2">
+                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">SkyCam Topic</h2>
+                  <input name="MQTT_SKYCAM_TOPIC" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                </div>
+                <div class="flex flex-col gap-2">
+                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Dashboard Topics (comma separated)</h2>
+                  <input name="MQTT_DASHBOARD_TOPICS" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
+                </div>
+              </section>
+
+              <div class="flex flex-col gap-3">
+                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-aurora-400 via-blue-500 to-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-aurora-300/30 transition hover:shadow-xl hover:shadow-aurora-300/40">
+                  <i class="fa-solid fa-floppy-disk"></i> Save Configuration
+                </button>
+                <div id="status" class="text-sm text-rose-500"></div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
+
+    const menuButton = document.getElementById('menuButton');
+    const closeSidebar = document.getElementById('closeSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+
+    function toggleSidebar() {
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+
+    if (menuButton && sidebar && overlay) {
+      menuButton.addEventListener('click', toggleSidebar);
+      overlay.addEventListener('click', toggleSidebar);
+    }
+
+    if (closeSidebar) {
+      closeSidebar.addEventListener('click', toggleSidebar);
+    }
 
     const themeSelect = document.getElementById('themeSelect');
     if (themeSelect) {
@@ -154,32 +249,36 @@
     const sensorsList = document.getElementById('sensorsList');
     const switchesList = document.getElementById('switchesList');
 
+    const inputBase = 'rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
+    const selectBase = 'rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
+    const rowBase = 'flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/70 bg-white/70 px-3 py-3 shadow-sm dark:border-white/10 dark:bg-slate-900/60';
+
     function createSensorRow(data = {}) {
       const row = document.createElement('div');
-      row.className = 'flex space-x-2 sensor-row';
+      row.className = `${rowBase} sensor-row`;
       row.innerHTML = `
-        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 sensor-path" placeholder="Path" value="${data.path || ''}">
-        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-24 sensor-unit" placeholder="Unit" value="${data.unit || ''}">
-        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 sensor-name" placeholder="Name" value="${data.name || ''}">
-        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-24 sensor-green" type="number" step="any" placeholder="Green" value="${data.green || ''}">
-        <select class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-28 sensor-direction">
+        <input class="${inputBase} flex-1 min-w-[10rem] sensor-path" placeholder="Path" value="${data.path || ''}">
+        <input class="${inputBase} w-28 sensor-unit" placeholder="Unit" value="${data.unit || ''}">
+        <input class="${inputBase} flex-1 min-w-[10rem] sensor-name" placeholder="Name" value="${data.name || ''}">
+        <input class="${inputBase} w-28 sensor-green" type="number" step="any" placeholder="Green" value="${data.green || ''}">
+        <select class="${selectBase} w-32 sensor-direction">
           <option value="below" ${data.greenDirection === 'above' ? '' : 'selected'}>Below</option>
           <option value="above" ${data.greenDirection === 'above' ? 'selected' : ''}>Above</option>
         </select>
-        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-32 sensor-measurement" placeholder="Measurement" value="${data.influxMeasurement || ''}">
-        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 w-32 sensor-field" placeholder="Field" value="${data.influxField || ''}">
-        <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded"><i class="fa-solid fa-xmark"></i></button>`;
+        <input class="${inputBase} w-40 sensor-measurement" placeholder="Measurement" value="${data.influxMeasurement || ''}">
+        <input class="${inputBase} w-40 sensor-field" placeholder="Field" value="${data.influxField || ''}">
+        <button type="button" class="remove inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/80 text-white shadow transition hover:bg-rose-500"><i class="fa-solid fa-xmark"></i></button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       sensorsList.appendChild(row);
     }
 
     function createSwitchRow(data = {}) {
       const row = document.createElement('div');
-      row.className = 'flex space-x-2 switch-row';
+      row.className = `${rowBase} switch-row`;
       row.innerHTML = `
-        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 switch-path" placeholder="Path" value="${data.path || ''}">
-        <input class="p-2 border border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 flex-1 switch-name" placeholder="Name" value="${data.name || ''}">
-        <button type="button" class="remove bg-red-500 dark:bg-red-600 text-white px-2 rounded"><i class="fa-solid fa-xmark"></i></button>`;
+        <input class="${inputBase} flex-1 min-w-[10rem] switch-path" placeholder="Path" value="${data.path || ''}">
+        <input class="${inputBase} flex-1 min-w-[8rem] switch-name" placeholder="Name" value="${data.name || ''}">
+        <button type="button" class="remove inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/80 text-white shadow transition hover:bg-rose-500"><i class="fa-solid fa-xmark"></i></button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       switchesList.appendChild(row);
     }
