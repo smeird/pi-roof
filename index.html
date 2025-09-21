@@ -275,6 +275,29 @@ const sensorCard = document.getElementById('sensorCard');
 const roofCard = document.getElementById('roofCard');
 let roofClosed = false;
 
+const sensorCardBaseBorderClasses = ['border-slate-200/60', 'dark:border-white/10'];
+const sensorCardBaseBackgroundClasses = ['bg-white/80', 'dark:bg-slate-900/60'];
+const sensorCardSafeBorderClasses = ['border-emerald-400/70', 'dark:border-emerald-400/50'];
+const sensorCardSafeBackgroundClasses = [
+  'bg-gradient-to-br',
+  'from-emerald-200/80',
+  'via-emerald-300/60',
+  'to-emerald-400/80',
+  'dark:from-emerald-600/40',
+  'dark:via-emerald-500/30',
+  'dark:to-emerald-400/30'
+];
+
+function setSensorCardState(isSafe) {
+  if (!sensorCard) return;
+  sensorCardSafeBorderClasses.forEach(cls => sensorCard.classList.toggle(cls, isSafe));
+  sensorCardSafeBackgroundClasses.forEach(cls => sensorCard.classList.toggle(cls, isSafe));
+  sensorCardBaseBorderClasses.forEach(cls => sensorCard.classList.toggle(cls, !isSafe));
+  sensorCardBaseBackgroundClasses.forEach(cls => sensorCard.classList.toggle(cls, !isSafe));
+}
+
+setSensorCardState(false);
+
 function updateRoofCardBorder() {
   if (!roofCard) return;
   if (roofClosed) {
@@ -569,11 +592,7 @@ function updateSensorIndicator(topic, value) {
   if (sensorCard) {
     const allGreen = Object.values(sensorIndicators).length > 0 &&
       Object.values(sensorIndicators).every(s => s.isGreen);
-    if (allGreen) {
-      sensorCard.classList.add('border-emerald-400/70');
-    } else {
-      sensorCard.classList.remove('border-emerald-400/70');
-    }
+    setSensorCardState(allGreen);
   }
 }
 
