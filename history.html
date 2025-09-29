@@ -169,6 +169,8 @@
       Highcharts.setOptions({
         chart: {
           backgroundColor: 'transparent',
+          plotBackgroundColor: 'transparent',
+          plotBorderWidth: 0,
           style: { color: isDark ? '#f3f4f6' : '#0f172a' }
         },
         title: { style: { color: isDark ? '#f3f4f6' : '#0f172a' } },
@@ -280,6 +282,11 @@
             return [new Date(parts[timeIdx]).getTime(), parseFloat(parts[valueIdx])];
           });
           historyChart = Highcharts.chart('historyChart', {
+            chart: {
+              backgroundColor: 'transparent',
+              plotBackgroundColor: 'transparent',
+              plotBorderWidth: 0
+            },
             title: { text: null },
             xAxis: { type: 'datetime' },
             yAxis: { title: { text: sensor.unit || null } },
