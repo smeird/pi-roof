@@ -125,15 +125,35 @@
     const closeSidebar = document.getElementById('closeSidebar');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');
+
+    function openMenu() {
+      if (!sidebar || !overlay) return;
+      sidebar.classList.remove('-translate-x-full');
+      overlay.classList.remove('hidden');
+      overlay.style.left = `${sidebar.offsetWidth}px`;
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeMenu() {
+      if (!sidebar || !overlay) return;
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+      overlay.style.left = '';
+      document.body.classList.remove('overflow-hidden');
+    }
+
     if (menuButton && sidebar && overlay) {
       const toggleSidebar = () => {
-        sidebar.classList.toggle('-translate-x-full');
-        overlay.classList.toggle('hidden');
+        if (sidebar.classList.contains('-translate-x-full')) {
+          openMenu();
+        } else {
+          closeMenu();
+        }
       };
       menuButton.addEventListener('click', toggleSidebar);
       overlay.addEventListener('click', toggleSidebar);
       if (closeSidebar) {
-        closeSidebar.addEventListener('click', toggleSidebar);
+        closeSidebar.addEventListener('click', closeMenu);
       }
     }
 
