@@ -166,6 +166,8 @@ function applyChartTheme(isDark) {
   Highcharts.setOptions({
     chart: {
       backgroundColor: 'transparent',
+      plotBackgroundColor: 'transparent',
+      plotBorderWidth: 0,
       style: { color: isDark ? '#f3f4f6' : '#0f172a' }
     },
     title: { style: { color: isDark ? '#f3f4f6' : '#0f172a' } },
@@ -488,7 +490,12 @@ function initLineChart() {
     return { name: s.name, data: [], yAxis: idx, zones, tooltip: { valueSuffix: s.unit ? ` ${s.unit}` : '' } };
   });
   lineChart = Highcharts.chart('lineChart', {
-    chart: { type: 'line' },
+    chart: {
+      type: 'line',
+      backgroundColor: 'transparent',
+      plotBackgroundColor: 'transparent',
+      plotBorderWidth: 0
+    },
     title: { text: null },
     xAxis: { type: 'datetime' },
     yAxis,
