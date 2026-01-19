@@ -123,7 +123,14 @@
             <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Roof Controls</h2>
             <p class="text-sm text-slate-600 dark:text-slate-300/80">Command roof motors and check limit sensors.</p>
           </div>
-          <div id="roofControls" class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
+          <div id="roofBanner" class="mt-6 hidden items-center gap-3 rounded-2xl border border-rose-500/50 bg-rose-500/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-rose-600 shadow-sm dark:border-rose-400/60 dark:bg-rose-500/20 dark:text-rose-200">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Roof Moving</span>
+          </div>
+          <div class="mt-6 grid gap-4 xl:grid-cols-3">
+            <div id="roofControls" class="grid gap-4 sm:grid-cols-2 xl:col-span-2"></div>
+            <div id="roofStatus" class="rounded-2xl border border-slate-200/60 bg-white/70 p-4 text-sm text-slate-700 shadow-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200"></div>
+          </div>
         </section>
         <section class="rounded-3xl border border-slate-200/60 bg-white/80 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
           <div class="flex flex-wrap items-center justify-between gap-4">
@@ -261,20 +268,62 @@ if (themeSelect) {
   applyChartTheme(false);
 }
 
-let brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof, skyCamTopic;
+let brokerUrl, port, username, password, dashboardTopics, sensors, skyCamTopic;
 try {
-  ({ brokerUrl, port, username, password, dashboardTopics, sensors, switches, roof, skyCamTopic } = await loadConfig());
+  ({ brokerUrl, port, username, password, dashboardTopics, sensors, skyCamTopic } = await loadConfig());
 } catch (err) {
   const statusEl = document.getElementById('statusText');
   if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
-  setToggleDisabled(true);
+  setControlsDisabled(true);
   console.error('MQTT init error:', err);
 }
 
+const roofEspBase = 'Observatory/roof-esp';
+const roofEsp = {
+  state: {
+    openLimit: `${roofEspBase}/open_limit`,
+    closeLimit: `${roofEspBase}/close_limit`,
+    moving: `${roofEspBase}/moving`,
+    enabled: `${roofEspBase}/enabled`,
+    fault: `${roofEspBase}/fault`,
+    faultCode: `${roofEspBase}/fault_code`,
+    openMotor: `${roofEspBase}/state/open_motor`,
+    closeMotor: `${roofEspBase}/state/close_motor`,
+    relay3: `${roofEspBase}/state/relay3`,
+    relay4: `${roofEspBase}/state/relay4`,
+    relay5: `${roofEspBase}/state/relay5`,
+    relay6: `${roofEspBase}/state/relay6`,
+    relay7: `${roofEspBase}/state/relay7`,
+    relay8: `${roofEspBase}/state/relay8`,
+    heartbeat: `${roofEspBase}/heartbeat`
+  },
+  command: {
+    open: `${roofEspBase}/command/open`,
+    close: `${roofEspBase}/command/close`,
+    stop: `${roofEspBase}/command/stop`,
+    enabled: `${roofEspBase}/command/enabled`,
+    faultClear: `${roofEspBase}/command/fault_clear`,
+    beep: `${roofEspBase}/command/beep`,
+    relay3: `${roofEspBase}/command/relay3`,
+    relay4: `${roofEspBase}/command/relay4`,
+    relay5: `${roofEspBase}/command/relay5`,
+    relay6: `${roofEspBase}/command/relay6`,
+    relay7: `${roofEspBase}/command/relay7`,
+    relay8: `${roofEspBase}/command/relay8`
+  },
+  relayLabels: {
+    relay3: '12V Power Supply (CH3)',
+    relay4: 'White LED (CH4)',
+    relay5: 'Red LED (CH5)',
+    relay6: 'PC Power (CH6)',
+    relay7: 'Dew Heater 12V Power (CH7)',
+    relay8: 'Mount/Focus 12V Power (CH8)'
+  }
+};
+
 const sensorValueEls = {};
 const sensorIndicators = {};
-const indicatorEls = {};
-const topics = new Set(dashboardTopics);
+const topics = new Set(dashboardTopics || []);
 const skyCamCard = document.getElementById('skyCamCard');
 const skyCamImage = document.getElementById('skyCamImage');
 if (skyCamTopic) {
@@ -284,7 +333,14 @@ if (skyCamTopic) {
 } else {
   skyCamCard?.classList.add('hidden');
 }
-const toggleStates = {};
+const stateValues = {};
+const commandStatusEls = {};
+const stateStatusEls = {};
+const statusValueEls = {};
+const relayToggleButtons = [];
+let lastHeartbeatAt = null;
+const roofMotionButtons = {};
+let mqttConnected = false;
 let lineChart;
 const lineSeries = {};
 const sensorCard = document.getElementById('sensorCard');
@@ -370,75 +426,203 @@ function addSensorCards() {
   });
 }
 
+function createCommandStatusRow(commandTopic, stateTopic) {
+  const statusRow = document.createElement('div');
+  statusRow.className = 'mt-2 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400';
+  const commandStatus = document.createElement('span');
+  commandStatus.textContent = 'Command: --';
+  commandStatus.dataset.commandStatus = commandTopic;
+  commandStatusEls[commandTopic] = commandStatus;
+  statusRow.appendChild(commandStatus);
+  if (stateTopic) {
+    const stateStatus = document.createElement('span');
+    stateStatus.textContent = 'State: waiting';
+    stateStatus.dataset.stateStatus = stateTopic;
+    stateStatus.dataset.topic = stateTopic;
+    stateStatusEls[stateTopic] = stateStatus;
+    statusRow.appendChild(stateStatus);
+  }
+  return statusRow;
+}
+
+function createActionCard({ label, description, commandTopic, stateTopic, icon }) {
+  const card = document.createElement('div');
+  card.className = 'rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm transition dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
+  const header = document.createElement('div');
+  header.className = 'flex items-center justify-between gap-4';
+  const textWrap = document.createElement('div');
+  textWrap.innerHTML = `<p class="text-sm font-medium">${label}</p>${description ? `<p class="text-xs text-slate-500 dark:text-slate-400">${description}</p>` : ''}`;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-aurora-400/60 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:text-white';
+  button.dataset.commandTopic = commandTopic;
+  button.innerHTML = `${icon ? `<i class="fa-solid ${icon}"></i>` : ''}<span>Send</span>`;
+  header.appendChild(textWrap);
+  header.appendChild(button);
+  card.appendChild(header);
+  card.appendChild(createCommandStatusRow(commandTopic, stateTopic));
+  return { card, button };
+}
+
+function createToggleCard({ label, description, stateTopic, commandTopic }) {
+  const card = document.createElement('div');
+  card.className = 'rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm transition dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
+  const header = document.createElement('div');
+  header.className = 'flex items-center justify-between gap-4';
+  const textWrap = document.createElement('div');
+  textWrap.innerHTML = `<p class="text-sm font-medium">${label}</p>${description ? `<p class="text-xs text-slate-500 dark:text-slate-400">${description}</p>` : ''}`;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'toggleButton relative inline-flex h-7 w-12 items-center rounded-full bg-slate-300 transition-colors duration-300 ease-out dark:bg-slate-700';
+  button.dataset.topic = stateTopic;
+  button.dataset.commandTopic = commandTopic;
+  button.innerHTML = '<span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition"></span>';
+  header.appendChild(textWrap);
+  header.appendChild(button);
+  card.appendChild(header);
+  card.appendChild(createCommandStatusRow(commandTopic, stateTopic));
+  return { card, button };
+}
+
 function addRoofControls() {
   const container = document.getElementById('roofControls');
-  if (roof.open.path) {
-    const openDiv = document.createElement('div');
-    openDiv.className = 'flex items-center justify-between gap-4 rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
-    openDiv.innerHTML = `<span class="text-sm font-medium">Open Roof</span><button class="toggleButton relative inline-flex h-7 w-12 items-center rounded-full bg-slate-300 transition-colors duration-300 ease-out dark:bg-slate-700" data-topic="${roof.open.path}"><span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition"></span></button>`;
-    container.appendChild(openDiv);
-    topics.add(roof.open.path);
-  }
-  if (roof.close.path) {
-    const closeDiv = document.createElement('div');
-    closeDiv.className = 'flex items-center justify-between gap-4 rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
-    closeDiv.innerHTML = `<span class="text-sm font-medium">Close Roof</span><button class="toggleButton relative inline-flex h-7 w-12 items-center rounded-full bg-slate-300 transition-colors duration-300 ease-out dark:bg-slate-700" data-topic="${roof.close.path}"><span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition"></span></button>`;
-    container.appendChild(closeDiv);
-    topics.add(roof.close.path);
-  }
-  if (roof.open.limit) {
-    const openLimitDiv = document.createElement('div');
-    openLimitDiv.className = 'flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-sm text-slate-800 shadow-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
+  if (!container) return;
+  const openAction = createActionCard({
+    label: 'Open Roof',
+    description: 'Start opening the roof.',
+    commandTopic: roofEsp.command.open,
+    stateTopic: roofEsp.state.openMotor,
+    icon: 'fa-arrow-up'
+  });
+  openAction.button.dataset.action = 'open';
+  const closeAction = createActionCard({
+    label: 'Close Roof',
+    description: 'Start closing the roof.',
+    commandTopic: roofEsp.command.close,
+    stateTopic: roofEsp.state.closeMotor,
+    icon: 'fa-arrow-down'
+  });
+  closeAction.button.dataset.action = 'close';
+  const stopAction = createActionCard({
+    label: 'Stop Motion',
+    description: 'Halt roof movement.',
+    commandTopic: roofEsp.command.stop,
+    stateTopic: roofEsp.state.moving,
+    icon: 'fa-ban'
+  });
+  stopAction.button.dataset.action = 'stop';
+  const enabledToggle = createToggleCard({
+    label: 'Motion Enabled',
+    description: 'Master enable for roof movement.',
+    stateTopic: roofEsp.state.enabled,
+    commandTopic: roofEsp.command.enabled
+  });
+  const faultClearAction = createActionCard({
+    label: 'Clear Fault',
+    description: 'Reset latched faults.',
+    commandTopic: roofEsp.command.faultClear,
+    stateTopic: roofEsp.state.fault,
+    icon: 'fa-triangle-exclamation'
+  });
+  const beepAction = createActionCard({
+    label: 'Buzzer',
+    description: 'Trigger the buzzer.',
+    commandTopic: roofEsp.command.beep,
+    stateTopic: roofEsp.state.heartbeat,
+    icon: 'fa-bell'
+  });
 
-    openLimitDiv.innerHTML = `<span class="font-medium" data-role="label">Roof isn't open</span><span class="h-3 w-3 rounded-full bg-slate-400" data-topic="${roof.open.limit}" data-static></span>`;
+  [openAction, closeAction, stopAction, enabledToggle, faultClearAction, beepAction].forEach(item => {
+    container.appendChild(item.card);
+  });
 
-    container.appendChild(openLimitDiv);
-    indicatorEls[roof.open.limit] = {
-      indicator: openLimitDiv.querySelector('span[data-topic]'),
-      label: openLimitDiv.querySelector('span[data-role="label"]'),
-      type: 'open'
-    };
-    topics.add(roof.open.limit);
-  }
-  if (roof.close.limit) {
-    const closeLimitDiv = document.createElement('div');
-    closeLimitDiv.className = 'flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-sm text-slate-800 shadow-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
+  topics.add(roofEsp.state.openMotor);
+  topics.add(roofEsp.state.closeMotor);
+  topics.add(roofEsp.state.moving);
+  topics.add(roofEsp.state.enabled);
+  topics.add(roofEsp.state.fault);
+  topics.add(roofEsp.state.heartbeat);
 
-    closeLimitDiv.innerHTML = `<span class="font-medium" data-role="label">Roof isn't closed</span><span class="h-3 w-3 rounded-full bg-slate-400" data-topic="${roof.close.limit}" data-static></span>`;
-
-    container.appendChild(closeLimitDiv);
-    indicatorEls[roof.close.limit] = {
-      indicator: closeLimitDiv.querySelector('span[data-topic]'),
-      label: closeLimitDiv.querySelector('span[data-role="label"]'),
-      type: 'close'
-    };
-    topics.add(roof.close.limit);
-  }
+  roofMotionButtons.open = openAction.button;
+  roofMotionButtons.close = closeAction.button;
+  roofMotionButtons.stop = stopAction.button;
 }
 
 function addSwitchCards() {
   const container = document.getElementById('switchesContainer');
-  switches.forEach(sw => {
-    const card = document.createElement('div');
-    card.className = 'flex items-center justify-between gap-4 rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
-    card.innerHTML = `<span class="text-sm font-medium">${sw.name}</span><button class="toggleButton relative inline-flex h-7 w-12 items-center rounded-full bg-slate-300 transition-colors duration-300 ease-out dark:bg-slate-700" data-topic="${sw.path}"><span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition"></span></button>`;
+  if (!container) return;
+  Object.entries(roofEsp.relayLabels).forEach(([relayKey, label]) => {
+    const stateTopic = roofEsp.state[relayKey];
+    const commandTopic = roofEsp.command[relayKey];
+    const { card, button } = createToggleCard({
+      label,
+      description: 'Auxiliary relay output.',
+      stateTopic,
+      commandTopic
+    });
+    relayToggleButtons.push(button);
     container.appendChild(card);
-    topics.add(sw.path);
+    topics.add(stateTopic);
   });
+}
+
+function addRoofStatus() {
+  const container = document.getElementById('roofStatus');
+  if (!container) return;
+  container.innerHTML = '';
+  const items = [
+    { label: 'Moving', topic: roofEsp.state.moving },
+    { label: 'Open limit', topic: roofEsp.state.openLimit },
+    { label: 'Close limit', topic: roofEsp.state.closeLimit },
+    { label: 'Open motor', topic: roofEsp.state.openMotor },
+    { label: 'Close motor', topic: roofEsp.state.closeMotor },
+    { label: 'Fault', topic: roofEsp.state.fault },
+    { label: 'Fault code', topic: roofEsp.state.faultCode },
+    { label: 'Enabled', topic: roofEsp.state.enabled },
+    { label: 'Heartbeat', topic: roofEsp.state.heartbeat }
+  ];
+
+  const list = document.createElement('div');
+  list.className = 'space-y-2';
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between gap-3 rounded-xl border border-slate-200/60 bg-white/70 px-3 py-2 text-xs dark:border-white/10 dark:bg-slate-900/70';
+    const label = document.createElement('span');
+    label.className = 'font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400';
+    label.textContent = item.label;
+    const value = document.createElement('span');
+    value.className = 'font-medium text-slate-700 dark:text-slate-100';
+    value.textContent = 'Waiting...';
+    value.dataset.topic = item.topic;
+    statusValueEls[item.topic] = value;
+    row.appendChild(label);
+    row.appendChild(value);
+    list.appendChild(row);
+    topics.add(item.topic);
+  });
+  container.appendChild(list);
 }
 
 addSensorCards();
 addRoofControls();
 addSwitchCards();
+addRoofStatus();
 initLineChart();
+setInterval(updateHeartbeatDisplay, 5000);
 
 const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
 const staticTopics = new Set(
   topicElements.filter(el => el.hasAttribute('data-static')).map(el => el.getAttribute('data-topic'))
 );
 
-function setToggleDisabled(disabled) {
+function setControlsDisabled(disabled) {
   document.querySelectorAll('.toggleButton').forEach(button => {
+    button.disabled = disabled;
+    button.classList.toggle('opacity-50', disabled);
+    button.classList.toggle('cursor-not-allowed', disabled);
+  });
+  document.querySelectorAll('[data-command-topic]').forEach(button => {
+    if (button.classList.contains('toggleButton')) return;
     button.disabled = disabled;
     button.classList.toggle('opacity-50', disabled);
     button.classList.toggle('cursor-not-allowed', disabled);
@@ -453,26 +637,33 @@ function updateConnectionStatus(status, info) {
   if (status === 'connected') {
     color = 'bg-emerald-400';
     message = 'Connected';
-    setToggleDisabled(false);
+    setControlsDisabled(false);
+    mqttConnected = true;
   } else if (status === 'reconnecting') {
     color = 'bg-amber-400';
     message = 'Reconnecting...';
-    setToggleDisabled(true);
+    setControlsDisabled(true);
+    mqttConnected = false;
   } else if (status === 'connecting') {
     color = 'bg-amber-400';
     message = 'Connecting...';
-    setToggleDisabled(true);
+    setControlsDisabled(true);
+    mqttConnected = false;
   } else if (status === 'error') {
     message = 'Error';
     if (info && info.message) message += ': ' + info.message;
-    setToggleDisabled(true);
+    setControlsDisabled(true);
+    mqttConnected = false;
   } else {
-    setToggleDisabled(true);
+    setControlsDisabled(true);
+    mqttConnected = false;
   }
   if (dot) dot.className = `mr-3 h-2.5 w-2.5 rounded-full shadow-[0_0_0_4px_rgba(255,255,255,0.12)] ${color}`;
   if (text) text.textContent = message;
+  updateMotionButtons();
+  updateRelayLockout();
 }
-setToggleDisabled(true);
+setControlsDisabled(true);
 
 function initLineChart() {
   const yAxis = sensors.map((s, idx) => ({
@@ -521,7 +712,7 @@ try {
   mqttClient.on('connect', function() {
     topics.forEach(t => {
       mqttClient.subscribe(t);
-      if (!staticTopics.has(t)) toggleStates[t] = '0';
+      if (!staticTopics.has(t)) stateValues[t] = null;
     });
   });
 
@@ -538,6 +729,10 @@ try {
       return;
     }
     const rawValue = message.toString();
+    if (topic === roofEsp.state.heartbeat) {
+      lastHeartbeatAt = new Date();
+    }
+
     const num = parseFloat(rawValue);
     const rounded = !isNaN(num) ? Math.round(num * 10) / 10 : null;
     const displayValue = rounded !== null ? rounded.toString() : rawValue;
@@ -547,49 +742,187 @@ try {
       el.textContent = unit ? displayValue + ' ' + unit : displayValue;
     }
     if (sensorIndicators[topic]) updateSensorIndicator(topic, displayValue);
-    if (indicatorEls[topic]) updateIndicatorEl(indicatorEls[topic], rawValue);
     if (lineSeries[topic] && rounded !== null) {
       const series = lineSeries[topic];
       const shift = series.data.length > 50;
       series.addPoint([Date.now(), rounded], true, shift);
     }
+
+    if (statusValueEls[topic]) updateStatusValue(topic, rawValue);
+    if (stateStatusEls[topic]) updateStateStatus(topic, rawValue);
+
     if (!staticTopics.has(topic)) {
-      toggleStates[topic] = rawValue;
+      stateValues[topic] = rawValue;
       updateToggleButton(topic, rawValue);
     }
+
+    updateMotionButtons();
+    updateRelayLockout();
+    updateRoofBanner();
   });
+
+  const sendCommand = (commandTopic, payload) => {
+    if (!commandTopic) return;
+    mqttClient.publish(commandTopic, payload, { qos: 1 });
+    updateCommandStatus(commandTopic, payload);
+  };
 
   document.querySelectorAll('.toggleButton').forEach(button => {
     button.addEventListener('click', function() {
-      const topic = this.getAttribute('data-topic');
-      const newState = toggleStates[topic] === '1' ? '0' : '1';
-      mqttClient.publish(topic, newState, { qos: 2, retain: true });
+      const stateTopic = this.getAttribute('data-topic');
+      const commandTopic = this.getAttribute('data-command-topic');
+      const currentState = stateValues[stateTopic];
+      if (currentState !== '0' && currentState !== '1') return;
+      const newState = currentState === '1' ? '0' : '1';
+      sendCommand(commandTopic, newState);
+    });
+  });
+
+  document.querySelectorAll('[data-command-topic]').forEach(button => {
+    if (button.classList.contains('toggleButton')) return;
+    button.addEventListener('click', function() {
+      const commandTopic = this.getAttribute('data-command-topic');
+      sendCommand(commandTopic, '1');
     });
   });
 } catch (err) {
   const statusEl = document.getElementById('statusText');
   if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
-  setToggleDisabled(true);
+  setControlsDisabled(true);
   console.error('MQTT init error:', err);
 }
 
-function updateIndicatorEl(data, value) {
-  const el = data.indicator;
-  el.classList.remove('bg-emerald-400','bg-rose-500','bg-slate-400');
-  el.classList.add(value === '1' ? 'bg-emerald-400' : 'bg-rose-500');
-  if (data.label) {
-    if (data.type === 'open') {
-      data.label.textContent = value === '1' ? 'Roof is open' : "Roof isn't open";
-    } else if (data.type === 'close') {
-      data.label.textContent = value === '1' ? 'Roof is closed' : "Roof isn't closed";
-    }
+function formatTimestamp(date) {
+  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function updateCommandStatus(commandTopic, payload) {
+  const el = commandStatusEls[commandTopic];
+  if (!el) return;
+  el.textContent = `Command: ${payload} at ${formatTimestamp(new Date())}`;
+}
+
+function updateStateStatus(topic, value) {
+  const el = stateStatusEls[topic];
+  if (!el) return;
+  el.textContent = `State: ${value} at ${formatTimestamp(new Date())}`;
+}
+
+function setStatusTone(el, tone) {
+  const tones = [
+    'text-emerald-600',
+    'dark:text-emerald-200',
+    'text-rose-600',
+    'dark:text-rose-200',
+    'text-amber-600',
+    'dark:text-amber-200',
+    'text-slate-700',
+    'dark:text-slate-100'
+  ];
+  el.classList.remove(...tones);
+  if (tone === 'good') {
+    el.classList.add('text-emerald-600', 'dark:text-emerald-200');
+  } else if (tone === 'bad') {
+    el.classList.add('text-rose-600', 'dark:text-rose-200');
+  } else if (tone === 'warn') {
+    el.classList.add('text-amber-600', 'dark:text-amber-200');
+  } else {
+    el.classList.add('text-slate-700', 'dark:text-slate-100');
   }
-  if (data.type === 'open' && value === '1') {
-    roofClosed = false;
-  } else if (data.type === 'close') {
+}
+
+function updateHeartbeatDisplay() {
+  const el = statusValueEls[roofEsp.state.heartbeat];
+  if (!el) return;
+  if (!lastHeartbeatAt) {
+    el.textContent = 'Waiting...';
+    setStatusTone(el, 'warn');
+    return;
+  }
+  const now = new Date();
+  const diffMs = now - lastHeartbeatAt;
+  if (diffMs > 90000) {
+    el.textContent = 'Device offline';
+    setStatusTone(el, 'bad');
+  } else {
+    el.textContent = `Last seen ${formatTimestamp(lastHeartbeatAt)}`;
+    setStatusTone(el, 'good');
+  }
+}
+
+function updateStatusValue(topic, value) {
+  const el = statusValueEls[topic];
+  if (!el) return;
+  let text = value;
+  let tone = 'neutral';
+  if (topic === roofEsp.state.moving) {
+    text = value === '1' ? 'Moving' : 'Stopped';
+    tone = value === '1' ? 'warn' : 'good';
+  } else if (topic === roofEsp.state.openLimit) {
+    text = value === '1' ? 'Roof is open' : "Roof isn't open";
+    tone = value === '1' ? 'good' : 'neutral';
+    if (value === '1') roofClosed = false;
+  } else if (topic === roofEsp.state.closeLimit) {
+    text = value === '1' ? 'Roof is closed' : "Roof isn't closed";
+    tone = value === '1' ? 'good' : 'neutral';
     roofClosed = value === '1';
+  } else if (topic === roofEsp.state.openMotor) {
+    text = value === '1' ? 'Open motor active' : 'Open motor idle';
+    tone = value === '1' ? 'warn' : 'neutral';
+  } else if (topic === roofEsp.state.closeMotor) {
+    text = value === '1' ? 'Close motor active' : 'Close motor idle';
+    tone = value === '1' ? 'warn' : 'neutral';
+  } else if (topic === roofEsp.state.enabled) {
+    text = value === '1' ? 'Enabled' : 'Disabled';
+    tone = value === '1' ? 'good' : 'bad';
+  } else if (topic === roofEsp.state.fault) {
+    text = value === '1' ? 'Fault' : 'OK';
+    tone = value === '1' ? 'bad' : 'good';
+  } else if (topic === roofEsp.state.faultCode) {
+    text = value;
+  } else if (topic === roofEsp.state.heartbeat) {
+    updateHeartbeatDisplay();
+    updateRoofCardBorder();
+    return;
   }
+  el.textContent = text;
+  setStatusTone(el, tone);
   updateRoofCardBorder();
+}
+
+function updateMotionButtons() {
+  const enabled = stateValues[roofEsp.state.enabled];
+  const fault = stateValues[roofEsp.state.fault];
+  const openLimit = stateValues[roofEsp.state.openLimit];
+  const closeLimit = stateValues[roofEsp.state.closeLimit];
+  const baseAllowed = enabled === '1' && fault === '0';
+
+  if (roofMotionButtons.open) {
+    roofMotionButtons.open.disabled = !baseAllowed || openLimit !== '0';
+  }
+  if (roofMotionButtons.close) {
+    roofMotionButtons.close.disabled = !baseAllowed || closeLimit !== '0';
+  }
+}
+
+function updateRelayLockout() {
+  if (!mqttConnected) return;
+  const moving = stateValues[roofEsp.state.moving];
+  relayToggleButtons.forEach(button => {
+    if (!button) return;
+    const shouldDisable = moving === '1';
+    button.disabled = shouldDisable;
+    button.classList.toggle('opacity-50', shouldDisable);
+    button.classList.toggle('cursor-not-allowed', shouldDisable);
+  });
+}
+
+function updateRoofBanner() {
+  const banner = document.getElementById('roofBanner');
+  if (!banner) return;
+  const moving = stateValues[roofEsp.state.moving];
+  banner.classList.toggle('hidden', moving !== '1');
+  banner.classList.toggle('flex', moving === '1');
 }
 
 function updateSensorIndicator(topic, value) {
