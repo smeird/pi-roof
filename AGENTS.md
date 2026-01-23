@@ -51,3 +51,4 @@
 
 - Sidebar includes a theme selector (Light/Dark/System) storing preference in `localStorage`. The `dark` class on `<html>` follows the selected theme, with `System` using `prefers-color-scheme`.
 - Interactive elements like buttons and form inputs should provide matching `dark:` variants for colors and borders.
+- Auxiliary switches on the dashboard are driven by the settings `switches` list and render in their own section below the primary roof relay switches.
