@@ -584,15 +584,19 @@ function addAuxSwitchCards() {
     return;
   }
   switches.forEach(sw => {
-    if (!sw.path) return;
+    const commandTopic = sw.commandPath || sw.path || sw.statusPath;
+    const stateTopic = sw.statusPath || sw.path || sw.commandPath;
+    if (!commandTopic && !stateTopic) return;
     const { card } = createToggleCard({
-      label: sw.name || sw.path,
+      label: sw.name || stateTopic || commandTopic,
       description: 'Auxiliary MQTT integration.',
-      stateTopic: sw.path,
-      commandTopic: sw.path
+      stateTopic,
+      commandTopic
     });
     container.appendChild(card);
-    topics.add(sw.path);
+    if (stateTopic) {
+      topics.add(stateTopic);
+    }
   });
 }
 

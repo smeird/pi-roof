@@ -178,7 +178,7 @@
               <section class="space-y-4">
                 <div class="flex flex-col gap-1">
                   <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Switches</h2>
-                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Create quick toggles for auxiliary equipment.</p>
+                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Create quick toggles for auxiliary equipment, with separate command and status topics.</p>
                 </div>
                 <div id="switchesList" class="space-y-3"></div>
                 <button type="button" id="addSwitch" class="inline-flex items-center gap-2 rounded-xl border border-aurora-300/50 bg-aurora-300/20 px-4 py-2 text-sm font-semibold text-aurora-600 transition hover:-translate-y-0.5 hover:bg-aurora-300/30 dark:border-aurora-500/40 dark:bg-aurora-500/10 dark:text-aurora-200"><i class="fa-solid fa-plus"></i> Add Switch</button>
@@ -304,8 +304,9 @@
       const row = document.createElement('div');
       row.className = `${rowBase} switch-row`;
       row.innerHTML = `
-        <input class="${inputBase} flex-1 min-w-[10rem] switch-path" placeholder="Path" value="${data.path || ''}">
-        <input class="${inputBase} flex-1 min-w-[8rem] switch-name" placeholder="Name" value="${data.name || ''}">
+        <input class="${inputBase} flex-1 min-w-[10rem] switch-name" placeholder="Name" value="${data.name || ''}">
+        <input class="${inputBase} flex-1 min-w-[12rem] switch-command" placeholder="Command Topic" value="${data.commandPath || data.path || ''}">
+        <input class="${inputBase} flex-1 min-w-[12rem] switch-status" placeholder="Status Topic" value="${data.statusPath || data.path || ''}">
         <button type="button" class="remove inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/80 text-white shadow transition hover:bg-rose-500"><i class="fa-solid fa-xmark"></i></button>`;
       row.querySelector('.remove').addEventListener('click', () => row.remove());
       switchesList.appendChild(row);
@@ -358,8 +359,9 @@
           influxField: r.querySelector('.sensor-field').value
         })),
         switches: Array.from(document.querySelectorAll('.switch-row')).map(r => ({
-          path: r.querySelector('.switch-path').value,
-          name: r.querySelector('.switch-name').value
+          name: r.querySelector('.switch-name').value,
+          commandPath: r.querySelector('.switch-command').value,
+          statusPath: r.querySelector('.switch-status').value
         })),
         roof: {
           open: {
