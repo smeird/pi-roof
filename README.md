@@ -26,3 +26,37 @@ sudo chmod 664 /var/www/data/config.db
 ```
 
 After that, open `settings.html` or load `/get_config.php` once to initialize the schema.
+
+## RoRo roof controller (INDI Dome Scripting Gateway)
+
+This repository now includes a roll-off roof controller that follows the INDI Dome Scripting Gateway pattern. Shell scripts in `scripts/roof/` call a Node-RED HTTP endpoint, which translates requests into MQTT commands and waits for state changes.
+
+### Quick start
+
+1. Import the Node-RED flow from `nodered/flows/roof-api.json` and point the MQTT broker config node at your existing broker. See `docs/nodered-deploy.md` for details.
+2. Ensure the scripts are executable:
+   ```bash
+   chmod +x scripts/roof/*.sh
+   ```
+3. Point INDI Dome Scripting Gateway at the scripts in `scripts/roof/` (see `docs/indi-dome-scripting-gateway.md`).
+
+### Environment variables
+
+Shell scripts:
+- `ROOF_BASE_URL` (default: `http://data.smeird.com:1880`)
+- `ROOF_HTTP_PATH` (default: `/api/roof`)
+- `CURL_TIMEOUT_SECS` (per-script default: status/connect/disconnect 20s, abort 90s, open/close/park/unpark 900s)
+
+Node-RED flow:
+- `OPEN_TIMEOUT_SECS=900`
+- `CLOSE_TIMEOUT_SECS=900`
+- `ABORT_TIMEOUT_SECS=90`
+- `CONNECT_TIMEOUT_SECS=5`
+
+### Curl examples
+
+```bash
+curl -fsS -H "Content-Type: application/json" -d '{"action":"status"}' http://data.smeird.com:1880/api/roof
+curl -fsS -H "Content-Type: application/json" -d '{"action":"open"}' http://data.smeird.com:1880/api/roof
+curl -fsS -H "Content-Type: application/json" -d '{"action":"close"}' http://data.smeird.com:1880/api/roof
+```
