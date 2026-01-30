@@ -5,21 +5,27 @@ ROOF_BASE_URL="${ROOF_BASE_URL:-http://data.smeird.com:1880}"
 ROOF_HTTP_PATH="${ROOF_HTTP_PATH:-/api/roof}"
 CURL_TIMEOUT_SECS="${CURL_TIMEOUT_SECS:-20}"
 
-response="$(curl -fsS --max-time "${CURL_TIMEOUT_SECS}" -H "Content-Type: application/json" -d '{"action":"status"}' "${ROOF_BASE_URL}${ROOF_HTTP_PATH}")"
+# Fetch status JSON
+response="$(
+  curl -fsS --max-time "${CURL_TIMEOUT_SECS}" \
+    -H "Content-Type: application/json" \
+    -d '{"action":"status"}' \
+    "${ROOF_BASE_URL}${ROOF_HTTP_PATH}"
+)"
 
+# Parse JSON safely without stdin conflicts
+python3 -c '
+import json, sys
 
-python3 - <<<"$response" <<'PY'
-import json
-import sys
-
+s = sys.argv[1]
 try:
-    data = json.load(sys.stdin)
+    data = json.loads(s)
 except Exception:
     print("ERROR")
     sys.exit(1)
 
 ok = bool(data.get("ok"))
-state = data.get("state", "UNKNOWN")
+state = (data.get("state") or "UNKNOWN").upper()
 
 mapping = {
     "OPEN": "OPEN",
@@ -32,7 +38,5 @@ mapping = {
 }
 
 print(mapping.get(state, "ERROR"))
-
-if not ok:
-    sys.exit(1)
-PY
+sys.exit(0 if ok else 1)
+' "$response"
