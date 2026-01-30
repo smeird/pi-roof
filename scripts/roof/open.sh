@@ -9,19 +9,13 @@ CURL_TIMEOUT_SECS="${CURL_TIMEOUT_SECS:-20}"
 
 response="$(curl -fsS --max-time "${CURL_TIMEOUT_SECS}" -H "Content-Type: application/json" -d '{"action":"open"}' "${ROOF_BASE_URL}${ROOF_HTTP_PATH}")"
 
-ok="$(printf '%s' "${response}" | python3 - <<'PY'
-import json
-import sys
-
+ok="$(python3 -c 'import json, sys
 try:
-    data = json.load(sys.stdin)
+    data = json.loads(sys.argv[1])
 except Exception:
-    print("false")
-    sys.exit(0)
-
+    sys.exit(1)
 print("true" if data.get("ok") is True else "false")
-PY
-)"
+' "${response}")"
 
 if [[ "${ok}" != "true" ]]; then
   exit 1
