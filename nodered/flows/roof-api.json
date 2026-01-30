@@ -1,630 +1,621 @@
 [
-  {
-    "id": "a2b3c4d5e6f7a8b9",
-    "type": "tab",
-    "label": "Roof API",
-    "disabled": false,
-    "info": ""
-  },
-  {
-    "id": "init-config",
-    "type": "inject",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Init config",
-    "props": [],
-    "repeat": "",
-    "crontab": "",
-    "once": true,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 160,
-    "y": 80,
-    "wires": [
-      [
-        "load-config"
-      ]
-    ]
-  },
-  {
-    "id": "load-config",
-    "type": "function",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Load timeout config",
-    "func": "const openTimeout = Number(env.get(\"OPEN_TIMEOUT_SECS\") || 900);\nconst closeTimeout = Number(env.get(\"CLOSE_TIMEOUT_SECS\") || 900);\nconst abortTimeout = Number(env.get(\"ABORT_TIMEOUT_SECS\") || 90);\nconst connectTimeout = Number(env.get(\"CONNECT_TIMEOUT_SECS\") || 5);\n\nflow.set(\"timeout_config\", {\n    open: openTimeout,\n    close: closeTimeout,\n    abort: abortTimeout,\n    connect: connectTimeout\n});\n\nreturn null;",
-    "outputs": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 390,
-    "y": 80,
-    "wires": []
-  },
-  {
-    "id": "http-in",
-    "type": "http in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "POST /api/roof",
-    "url": "/api/roof",
-    "method": "post",
-    "upload": false,
-    "swaggerDoc": "",
-    "x": 140,
-    "y": 160,
-    "wires": [
-      [
-        "json-parse"
-      ]
-    ]
-  },
-  {
-    "id": "json-parse",
-    "type": "json",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Parse JSON",
-    "property": "payload",
-    "action": "",
-    "pretty": false,
-    "x": 320,
-    "y": 160,
-    "wires": [
-      [
-        "dispatch-action"
-      ]
-    ]
-  },
-  {
-    "id": "dispatch-action",
-    "type": "function",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Dispatch action",
-    "func": "const payload = msg.payload || {};\nconst action = payload.action;\nconst timestamp = new Date().toISOString();\nconst telemetry = flow.get(\"telemetry\") || {};\nconst derived = flow.get(\"derived_state\") || \"UNKNOWN\";\nconst lastCommand = flow.get(\"last_command\") || null;\nconst inflight = flow.get(\"inflight\");\nconst timeouts = flow.get(\"timeout_config\") || { open: 900, close: 900, abort: 90, connect: 5 };\n\nfunction response(ok, state, message) {\n    msg.payload = {\n        ok,\n        state,\n        message,\n        timestamp\n    };\n    return msg;\n}\n\nif (!action) {\n    return [response(false, derived, \"Missing action\"), null];\n}\n\nconst normalized = String(action).toLowerCase();\nconst allowed = [\"open\", \"close\", \"abort\", \"status\", \"connect\", \"disconnect\", \"park\", \"unpark\"];\nif (!allowed.includes(normalized)) {\n    return [response(false, derived, \"Unsupported action\"), null];\n}\n\nif (inflight) {\n    return [response(false, derived, \"Busy: operation in progress\"), null];\n}\n\nif (normalized === \"status\") {\n    return [response(true, derived, \"Status\"), null];\n}\n\nif (normalized === \"disconnect\") {\n    return [response(true, derived, \"Disconnect acknowledged\"), null];\n}\n\nif (normalized === \"connect\") {\n    flow.set(\"inflight\", {\n        action: \"connect\",\n        deadline: Date.now() + (timeouts.connect * 1000),\n        res: msg.res\n    });\n    const snapshotMsg = { command: \"snapshot\" };\n    const faultClearMsg = { command: \"fault_clear\" };\n    return [null, [snapshotMsg, faultClearMsg]];\n}\n\nconst openLimit = telemetry.open_limit;\nconst closeLimit = telemetry.close_limit;\nconst moving = telemetry.moving === \"1\";\n\nconst targetAction = (normalized === \"park\") ? \"close\" : (normalized === \"unpark\" ? \"open\" : normalized);\nconst targetState = targetAction === \"open\" ? \"OPEN\" : targetAction === \"close\" ? \"CLOSED\" : null;\n\nif (targetState === \"OPEN\" && derived === \"OPEN\") {\n    return [response(true, derived, \"Already open\"), null];\n}\n\nif (targetState === \"CLOSED\" && derived === \"CLOSED\") {\n    return [response(true, derived, \"Already closed\"), null];\n}\n\nif (moving) {\n    if (lastCommand === targetAction) {\n        return [response(true, derived, \"Already in progress\"), null];\n    }\n    if (lastCommand && lastCommand !== targetAction) {\n        return [response(false, derived, \"Busy: abort first\"), null];\n    }\n    return [response(false, derived, \"Busy: abort first\"), null];\n}\n\nif (normalized === \"abort\") {\n    flow.set(\"last_command\", \"abort\");\n    flow.set(\"inflight\", {\n        action: \"abort\",\n        deadline: Date.now() + (timeouts.abort * 1000),\n        res: msg.res\n    });\n    return [null, { command: \"abort\" }];\n}\n\nif (!targetState) {\n    return [response(false, derived, \"Invalid target state\"), null];\n}\n\nflow.set(\"last_command\", targetAction);\nflow.set(\"inflight\", {\n    action: targetAction,\n    targetState,\n    deadline: Date.now() + ((targetAction === \"open\" ? timeouts.open : timeouts.close) * 1000),\n    res: msg.res\n});\n\nreturn [null, { command: targetAction }];",
-    "outputs": 2,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 520,
-    "y": 160,
-    "wires": [
-      [
-        "http-response"
-      ],
-      [
-        "command-router"
-      ]
-    ]
-  },
-  {
-    "id": "command-router",
-    "type": "switch",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Command router",
-    "property": "command",
-    "propertyType": "msg",
-    "rules": [
-      {
-        "t": "eq",
-        "v": "open",
-        "vt": "str"
-      },
-      {
-        "t": "eq",
-        "v": "close",
-        "vt": "str"
-      },
-      {
-        "t": "eq",
-        "v": "abort",
-        "vt": "str"
-      },
-      {
-        "t": "eq",
-        "v": "snapshot",
-        "vt": "str"
-      },
-      {
-        "t": "eq",
-        "v": "fault_clear",
-        "vt": "str"
-      }
-    ],
-    "checkall": "true",
-    "repair": false,
-    "outputs": 5,
-    "x": 740,
-    "y": 160,
-    "wires": [
-      [
-        "set-open"
-      ],
-      [
-        "set-close"
-      ],
-      [
-        "set-abort"
-      ],
-      [
-        "set-snapshot"
-      ],
-      [
-        "set-fault-clear"
-      ]
-    ]
-  },
-  {
-    "id": "set-open",
-    "type": "change",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Set open",
-    "rules": [
-      {
-        "t": "set",
-        "p": "topic",
-        "pt": "msg",
-        "to": "Observatory/roof-esp/command/open",
-        "tot": "str"
-      },
-      {
-        "t": "set",
-        "p": "payload",
-        "pt": "msg",
-        "to": "1",
-        "tot": "str"
-      }
-    ],
-    "action": "",
-    "property": "",
-    "from": "",
-    "to": "",
-    "reg": false,
-    "x": 940,
-    "y": 120,
-    "wires": [
-      [
-        "mqtt-out"
-      ]
-    ]
-  },
-  {
-    "id": "set-close",
-    "type": "change",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Set close",
-    "rules": [
-      {
-        "t": "set",
-        "p": "topic",
-        "pt": "msg",
-        "to": "Observatory/roof-esp/command/close",
-        "tot": "str"
-      },
-      {
-        "t": "set",
-        "p": "payload",
-        "pt": "msg",
-        "to": "1",
-        "tot": "str"
-      }
-    ],
-    "action": "",
-    "property": "",
-    "from": "",
-    "to": "",
-    "reg": false,
-    "x": 940,
-    "y": 160,
-    "wires": [
-      [
-        "mqtt-out"
-      ]
-    ]
-  },
-  {
-    "id": "set-abort",
-    "type": "change",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Set abort",
-    "rules": [
-      {
-        "t": "set",
-        "p": "topic",
-        "pt": "msg",
-        "to": "Observatory/roof-esp/command/stop",
-        "tot": "str"
-      },
-      {
-        "t": "set",
-        "p": "payload",
-        "pt": "msg",
-        "to": "1",
-        "tot": "str"
-      }
-    ],
-    "action": "",
-    "property": "",
-    "from": "",
-    "to": "",
-    "reg": false,
-    "x": 940,
-    "y": 200,
-    "wires": [
-      [
-        "mqtt-out"
-      ]
-    ]
-  },
-  {
-    "id": "set-snapshot",
-    "type": "change",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Set snapshot",
-    "rules": [
-      {
-        "t": "set",
-        "p": "topic",
-        "pt": "msg",
-        "to": "Observatory/roof-esp/command/snapshot",
-        "tot": "str"
-      },
-      {
-        "t": "set",
-        "p": "payload",
-        "pt": "msg",
-        "to": "1",
-        "tot": "str"
-      }
-    ],
-    "action": "",
-    "property": "",
-    "from": "",
-    "to": "",
-    "reg": false,
-    "x": 960,
-    "y": 240,
-    "wires": [
-      [
-        "mqtt-out"
-      ]
-    ]
-  },
-  {
-    "id": "set-fault-clear",
-    "type": "change",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Set fault clear",
-    "rules": [
-      {
-        "t": "set",
-        "p": "topic",
-        "pt": "msg",
-        "to": "Observatory/roof-esp/command/fault_clear",
-        "tot": "str"
-      },
-      {
-        "t": "set",
-        "p": "payload",
-        "pt": "msg",
-        "to": "1",
-        "tot": "str"
-      }
-    ],
-    "action": "",
-    "property": "",
-    "from": "",
-    "to": "",
-    "reg": false,
-    "x": 970,
-    "y": 280,
-    "wires": [
-      [
-        "mqtt-out"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-out",
-    "type": "mqtt out",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "MQTT command out",
-    "topic": "",
-    "qos": "0",
-    "retain": "false",
-    "respTopic": "",
-    "contentType": "",
-    "userProps": "",
-    "correl": "",
-    "expiry": "",
-    "broker": "mqtt-broker",
-    "x": 1160,
-    "y": 200,
-    "wires": []
-  },
-  {
-    "id": "mqtt-online",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "online",
-    "topic": "Observatory/roof-esp/online",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 140,
-    "y": 360,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-open-limit",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "open_limit",
-    "topic": "Observatory/roof-esp/open_limit",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 150,
-    "y": 400,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-close-limit",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "close_limit",
-    "topic": "Observatory/roof-esp/close_limit",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 150,
-    "y": 440,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-moving",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "moving",
-    "topic": "Observatory/roof-esp/moving",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 140,
-    "y": 480,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-enabled",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "enabled",
-    "topic": "Observatory/roof-esp/enabled",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 140,
-    "y": 520,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-fault",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "fault",
-    "topic": "Observatory/roof-esp/fault",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 130,
-    "y": 560,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-fault-code",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "fault_code",
-    "topic": "Observatory/roof-esp/fault_code",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 150,
-    "y": 600,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-open-motor",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "open_motor",
-    "topic": "Observatory/roof-esp/state/open_motor",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 170,
-    "y": 640,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "mqtt-close-motor",
-    "type": "mqtt in",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "close_motor",
-    "topic": "Observatory/roof-esp/state/close_motor",
-    "qos": "0",
-    "datatype": "utf8",
-    "broker": "mqtt-broker",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 170,
-    "y": 680,
-    "wires": [
-      [
-        "telemetry-update"
-      ]
-    ]
-  },
-  {
-    "id": "telemetry-update",
-    "type": "function",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Update telemetry",
-    "func": "const topicMap = {\n    \"Observatory/roof-esp/online\": \"online\",\n    \"Observatory/roof-esp/open_limit\": \"open_limit\",\n    \"Observatory/roof-esp/close_limit\": \"close_limit\",\n    \"Observatory/roof-esp/moving\": \"moving\",\n    \"Observatory/roof-esp/enabled\": \"enabled\",\n    \"Observatory/roof-esp/fault\": \"fault\",\n    \"Observatory/roof-esp/fault_code\": \"fault_code\",\n    \"Observatory/roof-esp/state/open_motor\": \"open_motor\",\n    \"Observatory/roof-esp/state/close_motor\": \"close_motor\"\n};\n\nconst key = topicMap[msg.topic];\nif (!key) {\n    return null;\n}\n\nconst telemetry = flow.get(\"telemetry\") || {};\ntelemetry[key] = String(msg.payload);\nflow.set(\"telemetry\", telemetry);\nflow.set(\"last_telemetry\", { ...telemetry });\n\nconst lastCommand = flow.get(\"last_command\") || null;\nconst derived = deriveState(telemetry, lastCommand);\nflow.set(\"derived_state\", derived);\n\nconst inflight = flow.get(\"inflight\");\nif (!inflight || !inflight.res) {\n    return null;\n}\n\nconst nowIso = new Date().toISOString();\n\nfunction respond(ok, message) {\n    flow.set(\"inflight\", null);\n    return {\n        res: inflight.res,\n        payload: {\n            ok,\n            state: derived,\n            message,\n            timestamp: nowIso\n        }\n    };\n}\n\nif (inflight.action === \"connect\") {\n    const online = telemetry.online === \"1\";\n    const limitKnown = telemetry.open_limit !== undefined || telemetry.close_limit !== undefined;\n    if (online && limitKnown) {\n        return respond(true, \"Connected\");\n    }\n    return null;\n}\n\nif (inflight.action === \"abort\") {\n    if (telemetry.moving === \"0\" && (derived === \"ABORTED\" || derived === \"UNKNOWN\")) {\n        return respond(true, \"Abort complete\");\n    }\n    return null;\n}\n\nif (inflight.targetState && derived === inflight.targetState) {\n    const message = inflight.targetState === \"OPEN\" ? \"Open complete\" : \"Close complete\";\n    return respond(true, message);\n}\n\nreturn null;\n\nfunction deriveState(telemetry, lastCommand) {\n    const online = telemetry.online;\n    const openLimit = telemetry.open_limit;\n    const closeLimit = telemetry.close_limit;\n    const moving = telemetry.moving;\n    const fault = telemetry.fault;\n    const faultCode = telemetry.fault_code;\n\n    if (online === \"0\") {\n        return \"UNKNOWN\";\n    }\n\n    if (fault === \"1\" || (faultCode && faultCode !== \"0\") || (openLimit === \"1\" && closeLimit === \"1\")) {\n        return \"FAULT\";\n    }\n\n    if (moving === \"1\") {\n        if (lastCommand === \"open\") {\n            return \"OPENING\";\n        }\n        if (lastCommand === \"close\") {\n            return \"CLOSING\";\n        }\n        return \"UNKNOWN\";\n    }\n\n    if (openLimit === \"1\" && closeLimit === \"0\") {\n        return \"OPEN\";\n    }\n\n    if (closeLimit === \"1\" && openLimit === \"0\") {\n        return \"CLOSED\";\n    }\n\n    if (lastCommand === \"abort\" && moving === \"0\" && openLimit === \"0\" && closeLimit === \"0\") {\n        return \"ABORTED\";\n    }\n\n    return \"UNKNOWN\";\n}\n",
-    "outputs": 1,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 430,
-    "y": 520,
-    "wires": [
-      [
-        "http-response"
-      ]
-    ]
-  },
-  {
-    "id": "timeout-tick",
-    "type": "inject",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Inflight timeout tick",
-    "props": [],
-    "repeat": "1",
-    "crontab": "",
-    "once": true,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 180,
-    "y": 740,
-    "wires": [
-      [
-        "check-timeout"
-      ]
-    ]
-  },
-  {
-    "id": "check-timeout",
-    "type": "function",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "Check inflight timeout",
-    "func": "const inflight = flow.get(\"inflight\");\nif (!inflight || !inflight.res || !inflight.deadline) {\n    return null;\n}\n\nif (Date.now() <= inflight.deadline) {\n    return null;\n}\n\nconst derived = flow.get(\"derived_state\") || \"UNKNOWN\";\nflow.set(\"inflight\", null);\n\nreturn {\n    res: inflight.res,\n    payload: {\n        ok: false,\n        state: derived,\n        message: \"Timeout waiting for operation\",\n        timestamp: new Date().toISOString()\n    }\n};",
-    "outputs": 1,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 420,
-    "y": 740,
-    "wires": [
-      [
-        "http-response"
-      ]
-    ]
-  },
-  {
-    "id": "http-response",
-    "type": "http response",
-    "z": "a2b3c4d5e6f7a8b9",
-    "name": "HTTP response",
-    "statusCode": "",
-    "headers": {
-      "content-type": "application/json"
+    {
+        "id": "init-config",
+        "type": "inject",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Init config",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 490,
+        "y": 100,
+        "wires": [
+            [
+                "load-config"
+            ]
+        ]
     },
-    "x": 930,
-    "y": 520,
-    "wires": []
-  },
-  {
-    "id": "mqtt-broker",
-    "type": "mqtt-broker",
-    "name": "Existing MQTT Broker",
-    "broker": "",
-    "port": "1883",
-    "clientid": "",
-    "autoConnect": true,
-    "usetls": false,
-    "protocolVersion": "4",
-    "keepalive": "60",
-    "cleansession": true,
-    "autoUnsubscribe": true,
-    "birthTopic": "",
-    "birthQos": "0",
-    "birthPayload": "",
-    "birthMsg": {},
-    "closeTopic": "",
-    "closeQos": "0",
-    "closePayload": "",
-    "closeMsg": {},
-    "willTopic": "",
-    "willQos": "0",
-    "willPayload": "",
-    "willMsg": {},
-    "userProps": "",
-    "sessionExpiry": ""
-  }
+    {
+        "id": "load-config",
+        "type": "function",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Load timeout config",
+        "func": "const openTimeout = Number(env.get(\"OPEN_TIMEOUT_SECS\") || 900);\nconst closeTimeout = Number(env.get(\"CLOSE_TIMEOUT_SECS\") || 900);\nconst abortTimeout = Number(env.get(\"ABORT_TIMEOUT_SECS\") || 90);\nconst connectTimeout = Number(env.get(\"CONNECT_TIMEOUT_SECS\") || 5);\n\nflow.set(\"timeout_config\", {\n    open: openTimeout,\n    close: closeTimeout,\n    abort: abortTimeout,\n    connect: connectTimeout\n});\n\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "http-in",
+        "type": "http in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "POST /api/roof",
+        "url": "/api/roof",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 160,
+        "y": 540,
+        "wires": [
+            [
+                "dispatch-action"
+            ]
+        ]
+    },
+    {
+        "id": "dispatch-action",
+        "type": "function",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Dispatch action",
+        "func": "const payload = msg.payload || {};\nconst action = payload.action;\nconst timestamp = new Date().toISOString();\nconst telemetry = flow.get(\"telemetry\") || {};\nconst derived = flow.get(\"derived_state\") || \"UNKNOWN\";\nconst lastCommand = flow.get(\"last_command\") || null;\nconst inflight = flow.get(\"inflight\");\nconst timeouts = flow.get(\"timeout_config\") || { open: 900, close: 900, abort: 90, connect: 5 };\n\nfunction response(ok, state, message) {\n    msg.payload = { ok, state, message, timestamp };\n    return msg;\n}\n\nif (!action) {\n    return [response(false, derived, \"Missing action\"), null];\n}\n\nconst normalized = String(action).toLowerCase();\nconst allowed = [\"open\", \"close\", \"abort\", \"status\", \"connect\", \"disconnect\", \"park\", \"unpark\"];\nif (!allowed.includes(normalized)) {\n    return [response(false, derived, \"Unsupported action\"), null];\n}\n\n/**\n * STATUS and DISCONNECT are always immediate\n */\nif (normalized === \"status\") {\n    return [response(true, derived, \"Status\"), null];\n}\n\nif (normalized === \"disconnect\") {\n    return [response(true, derived, \"Disconnect acknowledged\"), null];\n}\n\n/**\n * ABORT must always be allowed, even if another operation is inflight.\n * It pre-empts any inflight operation.\n */\nif (normalized === \"abort\") {\n    // Clear any existing inflight operation (pre-empt)\n    flow.set(\"inflight\", {\n        action: \"abort\",\n        deadline: Date.now() + (timeouts.abort * 1000),\n        res: msg.res\n    });\n    flow.set(\"last_command\", \"abort\");\n    return [null, { command: \"abort\" }];\n}\n\n/**\n * For all other actions, respect inflight lockout\n */\nif (inflight) {\n    return [response(false, derived, \"Busy: operation in progress\"), null];\n}\n\n/**\n * CONNECT: create inflight then publish snapshot and fault_clear\n */\nif (normalized === \"connect\") {\n    // Immediate success for INDI connect semantics.\n    // Do NOT wait for MQTT telemetry here.\n    const snapshotMsg = { command: \"snapshot\" };\n    const faultClearMsg = { command: \"fault_clear\" };\n\n    // Output 1: HTTP response now\n    // Output 2: MQTT commands best effort\n    return [response(true, derived, \"Connected\"), [snapshotMsg, faultClearMsg]];\n}\n\n\n\nconst moving = telemetry.moving === \"1\";\n\nconst targetAction = (normalized === \"park\") ? \"close\" : (normalized === \"unpark\" ? \"open\" : normalized);\nconst targetState = targetAction === \"open\" ? \"OPEN\" : targetAction === \"close\" ? \"CLOSED\" : null;\n\nif (targetState === \"OPEN\" && derived === \"OPEN\") {\n    return [response(true, derived, \"Already open\"), null];\n}\n\nif (targetState === \"CLOSED\" && derived === \"CLOSED\") {\n    return [response(true, derived, \"Already closed\"), null];\n}\n\nif (moving) {\n    if (lastCommand === targetAction) {\n        return [response(true, derived, \"Already in progress\"), null];\n    }\n    if (lastCommand && lastCommand !== targetAction) {\n        return [response(false, derived, \"Busy: abort first\"), null];\n    }\n    return [response(false, derived, \"Busy: abort first\"), null];\n}\n\nif (!targetState) {\n    return [response(false, derived, \"Invalid target state\"), null];\n}\n\nflow.set(\"last_command\", targetAction);\nflow.set(\"inflight\", {\n    action: targetAction,\n    targetState,\n    deadline: Date.now() + ((targetAction === \"open\" ? timeouts.open : timeouts.close) * 1000),\n    res: msg.res\n});\n\nreturn [null, { command: targetAction }];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 540,
+        "wires": [
+            [
+                "http-response"
+            ],
+            [
+                "command-router"
+            ]
+        ]
+    },
+    {
+        "id": "command-router",
+        "type": "switch",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Command router",
+        "property": "command",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "open",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "close",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "abort",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "snapshot",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "fault_clear",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 5,
+        "x": 750,
+        "y": 620,
+        "wires": [
+            [
+                "set-open"
+            ],
+            [
+                "set-close"
+            ],
+            [
+                "set-abort"
+            ],
+            [
+                "set-snapshot"
+            ],
+            [
+                "set-fault-clear"
+            ]
+        ]
+    },
+    {
+        "id": "set-open",
+        "type": "change",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Set open",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/roof-esp/command/open",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1020,
+        "y": 540,
+        "wires": [
+            [
+                "mqtt-out"
+            ]
+        ]
+    },
+    {
+        "id": "set-close",
+        "type": "change",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Set close",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/roof-esp/command/close",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1020,
+        "y": 580,
+        "wires": [
+            [
+                "mqtt-out"
+            ]
+        ]
+    },
+    {
+        "id": "set-abort",
+        "type": "change",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Set abort",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/roof-esp/command/stop",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1020,
+        "y": 620,
+        "wires": [
+            [
+                "mqtt-out"
+            ]
+        ]
+    },
+    {
+        "id": "set-snapshot",
+        "type": "change",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Set snapshot",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/roof-esp/command/snapshot",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 660,
+        "wires": [
+            [
+                "mqtt-out"
+            ]
+        ]
+    },
+    {
+        "id": "set-fault-clear",
+        "type": "change",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Set fault clear",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/roof-esp/command/fault_clear",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1040,
+        "y": 700,
+        "wires": [
+            [
+                "mqtt-out"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-out",
+        "type": "mqtt out",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "MQTT command out",
+        "topic": "",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "794f28c59fcb0eca",
+        "x": 1340,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "mqtt-online",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "online",
+        "topic": "Observatory/roof-esp/online",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 60,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-open-limit",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "open_limit",
+        "topic": "Observatory/roof-esp/open_limit",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 120,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-close-limit",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "close_limit",
+        "topic": "Observatory/roof-esp/close_limit",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 160,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-moving",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "moving",
+        "topic": "Observatory/roof-esp/moving",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 220,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-enabled",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "enabled",
+        "topic": "Observatory/roof-esp/enabled",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 100,
+        "y": 260,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-fault",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "fault",
+        "topic": "Observatory/roof-esp/fault",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 100,
+        "y": 300,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-fault-code",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "fault_code",
+        "topic": "Observatory/roof-esp/fault_code",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 340,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-open-motor",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "open_motor",
+        "topic": "Observatory/roof-esp/state/open_motor",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 380,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt-close-motor",
+        "type": "mqtt in",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "close_motor",
+        "topic": "Observatory/roof-esp/state/close_motor",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 420,
+        "wires": [
+            [
+                "8f3912a9734042b3"
+            ]
+        ]
+    },
+    {
+        "id": "telemetry-update",
+        "type": "function",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Update telemetry",
+        "func": "const topicMap = {\n    \"Observatory/roof-esp/online\": \"online\",\n    \"Observatory/roof-esp/open_limit\": \"open_limit\",\n    \"Observatory/roof-esp/close_limit\": \"close_limit\",\n    \"Observatory/roof-esp/moving\": \"moving\",\n    \"Observatory/roof-esp/enabled\": \"enabled\",\n    \"Observatory/roof-esp/fault\": \"fault\",\n    \"Observatory/roof-esp/fault_code\": \"fault_code\",\n    \"Observatory/roof-esp/state/open_motor\": \"open_motor\",\n    \"Observatory/roof-esp/state/close_motor\": \"close_motor\"\n};\n\nconst key = topicMap[msg.topic];\nif (!key) {\n    return null;\n}\n\nconst telemetry = flow.get(\"telemetry\") || {};\ntelemetry[key] = String(msg.payload);\nflow.set(\"telemetry\", telemetry);\nflow.set(\"last_telemetry\", { ...telemetry });\n\nconst lastCommand = flow.get(\"last_command\") || null;\nconst derived = deriveState(telemetry, lastCommand);\nflow.set(\"derived_state\", derived);\n\nconst inflight = flow.get(\"inflight\");\nif (!inflight || !inflight.res) {\n    return null;\n}\n\nconst nowIso = new Date().toISOString();\n\nfunction respond(ok, message) {\n    flow.set(\"inflight\", null);\n    return {\n        res: inflight.res,\n        payload: {\n            ok,\n            state: derived,\n            message,\n            timestamp: nowIso\n        }\n    };\n}\n\nif (inflight.action === \"connect\") {\n    const online = telemetry.online === \"1\";\n    const limitKnown = telemetry.open_limit !== undefined || telemetry.close_limit !== undefined;\n    if (online && limitKnown) {\n        return respond(true, \"Connected\");\n    }\n    return null;\n}\n\nif (inflight.action === \"abort\") {\n    if (telemetry.moving === \"0\" && (derived === \"ABORTED\" || derived === \"UNKNOWN\")) {\n        return respond(true, \"Abort complete\");\n    }\n    return null;\n}\n\nif (inflight.targetState && derived === inflight.targetState) {\n    const message = inflight.targetState === \"OPEN\" ? \"Open complete\" : \"Close complete\";\n    return respond(true, message);\n}\n\nreturn null;\n\nfunction deriveState(telemetry, lastCommand) {\n    const online = telemetry.online;\n    const openLimit = telemetry.open_limit;\n    const closeLimit = telemetry.close_limit;\n    const moving = telemetry.moving;\n    const fault = telemetry.fault;\n    const faultCode = telemetry.fault_code;\n\n    if (online === \"0\") {\n        return \"UNKNOWN\";\n    }\n\n    if (fault === \"1\" || (faultCode && faultCode !== \"0\") || (openLimit === \"1\" && closeLimit === \"1\")) {\n        return \"FAULT\";\n    }\n\n    if (moving === \"1\") {\n        if (lastCommand === \"open\") {\n            return \"OPENING\";\n        }\n        if (lastCommand === \"close\") {\n            return \"CLOSING\";\n        }\n        return \"UNKNOWN\";\n    }\n\n    if (openLimit === \"1\" && closeLimit === \"0\") {\n        return \"OPEN\";\n    }\n\n    if (closeLimit === \"1\" && openLimit === \"0\") {\n        return \"CLOSED\";\n    }\n\n    if (lastCommand === \"abort\" && moving === \"0\" && openLimit === \"0\" && closeLimit === \"0\") {\n        return \"ABORTED\";\n    }\n\n    return \"UNKNOWN\";\n}\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 240,
+        "wires": [
+            [
+                "http-response"
+            ]
+        ]
+    },
+    {
+        "id": "timeout-tick",
+        "type": "inject",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Inflight timeout tick",
+        "props": [],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 500,
+        "y": 180,
+        "wires": [
+            [
+                "check-timeout"
+            ]
+        ]
+    },
+    {
+        "id": "check-timeout",
+        "type": "function",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "Check inflight timeout",
+        "func": "const inflight = flow.get(\"inflight\");\nif (!inflight || !inflight.res || !inflight.deadline) {\n    return null;\n}\n\nif (Date.now() <= inflight.deadline) {\n    return null;\n}\n\nconst derived = flow.get(\"derived_state\") || \"UNKNOWN\";\nflow.set(\"inflight\", null);\n\nreturn {\n    res: inflight.res,\n    payload: {\n        ok: false,\n        state: derived,\n        message: \"Timeout waiting for operation\",\n        timestamp: new Date().toISOString()\n    }\n};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 180,
+        "wires": [
+            [
+                "http-response"
+            ]
+        ]
+    },
+    {
+        "id": "http-response",
+        "type": "http response",
+        "z": "a2b3c4d5e6f7a8b9",
+        "name": "HTTP response",
+        "statusCode": "",
+        "headers": {
+            "content-type": "application/json"
+        },
+        "x": 1040,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "8f3912a9734042b3",
+        "type": "junction",
+        "z": "a2b3c4d5e6f7a8b9",
+        "x": 360,
+        "y": 240,
+        "wires": [
+            [
+                "telemetry-update"
+            ]
+        ]
+    },
+    {
+        "id": "794f28c59fcb0eca",
+        "type": "mqtt-broker",
+        "name": "homeassistant.smeird.com",
+        "broker": "homeassistant.smeird.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
 ]
