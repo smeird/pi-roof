@@ -7,15 +7,12 @@ CURL_TIMEOUT_SECS="${CURL_TIMEOUT_SECS:-90}"
 
 response="$(curl -fsS --max-time "${CURL_TIMEOUT_SECS}" -H "Content-Type: application/json" -d '{"action":"abort"}' "${ROOF_BASE_URL}${ROOF_HTTP_PATH}")"
 
-ok="$(printf '%s' "$response" | python3 - <<'PY'
-import json
-import sys
+ok="$(printf '%s' "$response" | python3 -c 'import json,sys
 try:
     data = json.load(sys.stdin)
     print(str(bool(data.get("ok"))).lower())
 except Exception:
-    print("false")
-PY
+    print("false")'
 )"
 
 if [[ "$ok" != "true" ]]; then
