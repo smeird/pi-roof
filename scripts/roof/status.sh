@@ -11,38 +11,22 @@ status_file="${1:?Missing status file path}"
 
 response="$(curl -fsS --max-time "${CURL_TIMEOUT_SECS}" -H "Content-Type: application/json" -d '{"action":"status"}' "${ROOF_BASE_URL}${ROOF_HTTP_PATH}")"
 
-parsed="$(printf '%s' "${response}" | python3 - <<'PY'
-import json
-import sys
-
+status_line="$(python3 -c 'import json, sys
 try:
-    data = json.load(sys.stdin)
+    data = json.loads(sys.argv[1])
 except Exception:
-    print("false\tUNKNOWN")
-    sys.exit(0)
-
-ok = data.get("ok") is True
+    sys.exit(1)
+if data.get("ok") is not True:
+    sys.exit(1)
 state = data.get("state") or "UNKNOWN"
-print("true" if ok else "false", state, sep="\t")
-PY
-)"
+parked = 1 if state == "CLOSED" else 0
+shutter = 1 if state == "OPEN" else 0
+az_value = data.get("az")
+try:
+    az = float(az_value)
+except Exception:
+    az = 0.0
+print(f"{parked} {shutter} {az}")
+' "${response}")"
 
-ok="${parsed%%$'\t'*}"
-state="${parsed#*$'\t'}"
-
-if [[ "${ok}" != "true" ]]; then
-  exit 1
-fi
-
-parked=0
-shutter=0
-case "${state}" in
-  CLOSED)
-    parked=1
-    ;;
-  OPEN)
-    shutter=1
-    ;;
-esac
-
-printf '%d %d 0.0\n' "${parked}" "${shutter}" > "${status_file}"
+printf '%s\n' "${status_line}" > "${status_file}"
