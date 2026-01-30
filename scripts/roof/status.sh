@@ -7,7 +7,8 @@ CURL_TIMEOUT_SECS="${CURL_TIMEOUT_SECS:-20}"
 
 response="$(curl -fsS --max-time "${CURL_TIMEOUT_SECS}" -H "Content-Type: application/json" -d '{"action":"status"}' "${ROOF_BASE_URL}${ROOF_HTTP_PATH}")"
 
-python3 - <<'PY' <<<"$response"
+
+python3 - <<<"$response" <<'PY'
 import json
 import sys
 
