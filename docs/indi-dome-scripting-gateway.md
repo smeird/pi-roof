@@ -1,6 +1,6 @@
 # INDI Dome Scripting Gateway (RoRo roof)
 
-This project implements the INDI Dome Scripting Gateway pattern for a roll-off roof. Point the INDI driver at the scripts in `scripts/roof/` and the driver will call shell scripts with **no arguments**.
+This project implements the INDI Dome Scripting Gateway pattern for a roll-off roof. Point the INDI driver at the scripts in `scripts/roof/` and the driver will call the shell scripts with **no arguments** (except for `status.sh`, which receives a temporary status file path as its first argument).
 
 ## INDI setup
 
@@ -21,13 +21,17 @@ This project implements the INDI Dome Scripting Gateway pattern for a roll-off r
 
 ## Status contract
 
-`status.sh` **prints exactly one token to stdout**:
+The INDI driver expects the status script to **write a single line to the status file path passed as argument 1**. The format is:
 
 ```
-OPEN | CLOSED | OPENING | CLOSING | ERROR
+<parked> <shutter> <az>
 ```
 
-No other stdout output is produced. Any JSON response from the API that does not set `ok=true` maps to `ERROR`.
+- `parked`: `1` when the roof is parked/closed, otherwise `0`.
+- `shutter`: `1` when the roof is open, otherwise `0`.
+- `az`: a floating-point azimuth value (use `0` for roll-off roofs).
+
+The script should exit non-zero if it cannot produce a valid line.
 
 ## Environment variables
 
