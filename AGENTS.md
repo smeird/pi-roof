@@ -55,3 +55,4 @@
 - Switch settings now include separate `commandPath` and `statusPath` topics to support multi-topic MQTT control.
 - RoRo roof controller scripts live in `scripts/roof/`, and the Node-RED flow export is stored at `nodered/flows/roof-api.json`.
 - The roof API accepts a `fault_clear` action; the disconnect script triggers it after disconnect.
+- Hue devices in Node-RED publish to MQTT status topics under `Observatory/hue/<device>/status` and accept commands at `Observatory/hue/<device>/command`.
