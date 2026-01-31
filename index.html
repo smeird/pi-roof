@@ -286,6 +286,11 @@ try {
 }
 
 const roofEspBase = 'Observatory/roof-esp';
+const faultCodeLabels = {
+  BOTH_LIMITS: 'Fault: Both limit switches active',
+  TIMEOUT_OPEN: 'Fault: Open timeout exceeded',
+  TIMEOUT_CLOSE: 'Fault: Close timeout exceeded'
+};
 const roofEsp = {
   state: {
     online: `${roofEspBase}/online`,
@@ -927,7 +932,13 @@ function updateStatusValue(topic, value) {
     text = value === '1' ? 'Fault' : 'OK';
     tone = value === '1' ? 'bad' : 'good';
   } else if (topic === roofEsp.state.faultCode) {
-    text = value;
+    if (!value || value === '0') {
+      text = 'No fault';
+      tone = 'good';
+    } else {
+      text = faultCodeLabels[value] || `Fault: ${value}`;
+      tone = 'bad';
+    }
   } else if (topic === roofEsp.state.heartbeat) {
     updateHeartbeatDisplay();
     updateRoofCardBorder();
