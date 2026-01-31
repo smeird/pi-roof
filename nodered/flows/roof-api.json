@@ -617,5 +617,250 @@
         "willMsg": {},
         "userProps": "",
         "sessionExpiry": ""
+    },
+    {
+        "id": "3fa71478fa45bc6c",
+        "type": "tab",
+        "label": "Hue MQTT",
+        "disabled": false,
+        "info": "Hue devices bridged to MQTT with command/status topics."
+    },
+    {
+        "id": "d3bfd55ffa75b7a9",
+        "type": "hue-motion",
+        "z": "3fa71478fa45bc6c",
+        "name": "Patio Sensor",
+        "bridge": "bdad3840753f2856",
+        "sensorid": "10",
+        "x": 360,
+        "y": 140,
+        "wires": [
+            [
+                "6c8f45f1f83a0df1"
+            ]
+        ]
+    },
+    {
+        "id": "0231ea569f2e33b3",
+        "type": "hue-motion",
+        "z": "3fa71478fa45bc6c",
+        "name": "Observatory Sensor",
+        "bridge": "bdad3840753f2856",
+        "sensorid": "15",
+        "x": 380,
+        "y": 200,
+        "wires": [
+            [
+                "d3194f02ed09d6be"
+            ]
+        ]
+    },
+    {
+        "id": "a77be0dfd05084cd",
+        "type": "hue-light",
+        "z": "3fa71478fa45bc6c",
+        "name": "veg flood",
+        "bridge": "bdad3840753f2856",
+        "lightid": "15",
+        "colornamer": true,
+        "x": 350,
+        "y": 360,
+        "wires": [
+            [
+                "1b78430d4bcb0a73"
+            ]
+        ]
+    },
+    {
+        "id": "8232f0dd95a1709e",
+        "type": "hue-group",
+        "z": "3fa71478fa45bc6c",
+        "name": "Patio",
+        "bridge": "bdad3840753f2856",
+        "groupid": "2",
+        "colornamer": true,
+        "x": 330,
+        "y": 520,
+        "wires": [
+            [
+                "2d3d7b50ef52fd2e"
+            ]
+        ]
+    },
+    {
+        "id": "bdad3840753f2856",
+        "type": "hue-bridge",
+        "name": "Lights 2",
+        "bridge": "10.0.179.139",
+        "key": "ZS2Jgf0BRo2d-sGJ3T1y7lcKhugPCN0782jj9JYv",
+        "interval": "3000"
+    },
+    {
+        "id": "ddc9615ba5b6b4cd",
+        "type": "mqtt in",
+        "z": "3fa71478fa45bc6c",
+        "name": "Veg flood command",
+        "topic": "Observatory/hue/veg_flood/command",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 360,
+        "wires": [
+            [
+                "a77be0dfd05084cd"
+            ]
+        ]
+    },
+    {
+        "id": "3b38977ad4d0dbb0",
+        "type": "mqtt in",
+        "z": "3fa71478fa45bc6c",
+        "name": "Patio command",
+        "topic": "Observatory/hue/patio/command",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "794f28c59fcb0eca",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 520,
+        "wires": [
+            [
+                "8232f0dd95a1709e"
+            ]
+        ]
+    },
+    {
+        "id": "6c8f45f1f83a0df1",
+        "type": "change",
+        "z": "3fa71478fa45bc6c",
+        "name": "Patio sensor status topic",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/hue/patio_sensor/status",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 640,
+        "y": 140,
+        "wires": [
+            [
+                "7a72e2288b54cc0f"
+            ]
+        ]
+    },
+    {
+        "id": "d3194f02ed09d6be",
+        "type": "change",
+        "z": "3fa71478fa45bc6c",
+        "name": "Observatory sensor status topic",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/hue/observatory_sensor/status",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 680,
+        "y": 200,
+        "wires": [
+            [
+                "7a72e2288b54cc0f"
+            ]
+        ]
+    },
+    {
+        "id": "1b78430d4bcb0a73",
+        "type": "change",
+        "z": "3fa71478fa45bc6c",
+        "name": "Veg flood status topic",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/hue/veg_flood/status",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 620,
+        "y": 360,
+        "wires": [
+            [
+                "7a72e2288b54cc0f"
+            ]
+        ]
+    },
+    {
+        "id": "2d3d7b50ef52fd2e",
+        "type": "change",
+        "z": "3fa71478fa45bc6c",
+        "name": "Patio status topic",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "Observatory/hue/patio/status",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 610,
+        "y": 520,
+        "wires": [
+            [
+                "7a72e2288b54cc0f"
+            ]
+        ]
+    },
+    {
+        "id": "7a72e2288b54cc0f",
+        "type": "mqtt out",
+        "z": "3fa71478fa45bc6c",
+        "name": "MQTT status out",
+        "topic": "",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "794f28c59fcb0eca",
+        "x": 890,
+        "y": 320,
+        "wires": []
     }
 ]
