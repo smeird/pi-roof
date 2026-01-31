@@ -35,10 +35,12 @@ function getDb() {
     if (!$hasField) {
         $db->exec('ALTER TABLE sensors ADD COLUMN influx_field TEXT');
     }
-    $db->exec('CREATE TABLE IF NOT EXISTS switches (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, name TEXT, command_path TEXT, status_path TEXT)');
+    $db->exec('CREATE TABLE IF NOT EXISTS switches (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, name TEXT, command_path TEXT, status_path TEXT, command_on_path TEXT, command_off_path TEXT)');
     $switchCols = $db->query('PRAGMA table_info(switches)');
     $hasCommandPath = false;
     $hasStatusPath = false;
+    $hasCommandOnPath = false;
+    $hasCommandOffPath = false;
     while ($col = $switchCols->fetchArray(SQLITE3_ASSOC)) {
         if ($col['name'] === 'command_path') {
             $hasCommandPath = true;
@@ -46,12 +48,24 @@ function getDb() {
         if ($col['name'] === 'status_path') {
             $hasStatusPath = true;
         }
+        if ($col['name'] === 'command_on_path') {
+            $hasCommandOnPath = true;
+        }
+        if ($col['name'] === 'command_off_path') {
+            $hasCommandOffPath = true;
+        }
     }
     if (!$hasCommandPath) {
         $db->exec('ALTER TABLE switches ADD COLUMN command_path TEXT');
     }
     if (!$hasStatusPath) {
         $db->exec('ALTER TABLE switches ADD COLUMN status_path TEXT');
+    }
+    if (!$hasCommandOnPath) {
+        $db->exec('ALTER TABLE switches ADD COLUMN command_on_path TEXT');
+    }
+    if (!$hasCommandOffPath) {
+        $db->exec('ALTER TABLE switches ADD COLUMN command_off_path TEXT');
     }
     $db->exec('CREATE TABLE IF NOT EXISTS roof (id INTEGER PRIMARY KEY CHECK (id = 1), open_path TEXT, open_limit TEXT, close_path TEXT, close_limit TEXT)');
     return $db;
@@ -120,15 +134,19 @@ function replaceSensors($sensors) {
 
 function getSwitches() {
     $db = getDb();
-    $res = $db->query('SELECT path, name, command_path, status_path FROM switches ORDER BY id');
+    $res = $db->query('SELECT path, name, command_path, status_path, command_on_path, command_off_path FROM switches ORDER BY id');
     $switches = [];
     while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
         $commandPath = $row['command_path'] ?? '';
         $statusPath = $row['status_path'] ?? '';
+        $commandOnPath = $row['command_on_path'] ?? '';
+        $commandOffPath = $row['command_off_path'] ?? '';
         $fallback = $row['path'] ?? '';
         $row['commandPath'] = $commandPath !== '' ? $commandPath : $fallback;
+        $row['commandOnPath'] = $commandOnPath !== '' ? $commandOnPath : ($commandPath !== '' ? $commandPath : $fallback);
+        $row['commandOffPath'] = $commandOffPath !== '' ? $commandOffPath : ($commandPath !== '' ? $commandPath : $fallback);
         $row['statusPath'] = $statusPath !== '' ? $statusPath : $fallback;
-        unset($row['command_path'], $row['status_path']);
+        unset($row['command_path'], $row['status_path'], $row['command_on_path'], $row['command_off_path']);
         $switches[] = $row;
     }
     return $switches;
@@ -137,16 +155,20 @@ function getSwitches() {
 function replaceSwitches($switches) {
     $db = getDb();
     $db->exec('DELETE FROM switches');
-    $stmt = $db->prepare('INSERT INTO switches (path, name, command_path, status_path) VALUES (:path, :name, :command_path, :status_path)');
+    $stmt = $db->prepare('INSERT INTO switches (path, name, command_path, status_path, command_on_path, command_off_path) VALUES (:path, :name, :command_path, :status_path, :command_on_path, :command_off_path)');
     foreach ($switches as $sw) {
-        $path = $sw['path'] ?? $sw['commandPath'] ?? $sw['statusPath'] ?? '';
+        $path = $sw['path'] ?? $sw['commandOnPath'] ?? $sw['commandOffPath'] ?? $sw['commandPath'] ?? $sw['statusPath'] ?? '';
         if ($path === '') continue;
         $commandPath = $sw['commandPath'] ?? $path;
+        $commandOnPath = $sw['commandOnPath'] ?? $commandPath ?? $path;
+        $commandOffPath = $sw['commandOffPath'] ?? $commandPath ?? $path;
         $statusPath = $sw['statusPath'] ?? $path;
         $stmt->bindValue(':path', $path, SQLITE3_TEXT);
         $stmt->bindValue(':name', $sw['name'] ?? '', SQLITE3_TEXT);
         $stmt->bindValue(':command_path', $commandPath, SQLITE3_TEXT);
         $stmt->bindValue(':status_path', $statusPath, SQLITE3_TEXT);
+        $stmt->bindValue(':command_on_path', $commandOnPath, SQLITE3_TEXT);
+        $stmt->bindValue(':command_off_path', $commandOffPath, SQLITE3_TEXT);
         $stmt->execute();
     }
 }

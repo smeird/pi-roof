@@ -439,14 +439,21 @@ function addSensorCards() {
   });
 }
 
-function createCommandStatusRow(commandTopic, stateTopic) {
+function createCommandStatusRow(commandTopics, stateTopic) {
   const statusRow = document.createElement('div');
   statusRow.className = 'mt-2 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400';
-  const commandStatus = document.createElement('span');
-  commandStatus.textContent = 'Command: --';
-  commandStatus.dataset.commandStatus = commandTopic;
-  commandStatusEls[commandTopic] = commandStatus;
-  statusRow.appendChild(commandStatus);
+  if (commandTopics && commandTopics.length > 0) {
+    commandTopics.forEach(({ topic, label }) => {
+      if (!topic) return;
+      const commandStatus = document.createElement('span');
+      const commandLabel = label || 'Command';
+      commandStatus.textContent = `${commandLabel}: --`;
+      commandStatus.dataset.commandStatus = topic;
+      commandStatus.dataset.commandLabel = commandLabel;
+      commandStatusEls[topic] = commandStatus;
+      statusRow.appendChild(commandStatus);
+    });
+  }
   if (stateTopic) {
     const stateStatus = document.createElement('span');
     stateStatus.textContent = 'State: waiting';
@@ -473,11 +480,11 @@ function createActionCard({ label, description, commandTopic, stateTopic, icon }
   header.appendChild(textWrap);
   header.appendChild(button);
   card.appendChild(header);
-  card.appendChild(createCommandStatusRow(commandTopic, stateTopic));
+  card.appendChild(createCommandStatusRow([{ topic: commandTopic }], stateTopic));
   return { card, button };
 }
 
-function createToggleCard({ label, description, stateTopic, commandTopic }) {
+function createToggleCard({ label, description, stateTopic, commandTopic, commandOnTopic, commandOffTopic }) {
   const card = document.createElement('div');
   card.className = 'rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm transition dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
   const header = document.createElement('div');
@@ -488,12 +495,27 @@ function createToggleCard({ label, description, stateTopic, commandTopic }) {
   button.type = 'button';
   button.className = 'toggleButton relative inline-flex h-7 w-12 items-center rounded-full bg-slate-300 transition-colors duration-300 ease-out dark:bg-slate-700';
   button.dataset.topic = stateTopic;
-  button.dataset.commandTopic = commandTopic;
+  if (commandTopic) {
+    button.dataset.commandTopic = commandTopic;
+  }
+  if (commandOnTopic) {
+    button.dataset.commandTopicOn = commandOnTopic;
+  }
+  if (commandOffTopic) {
+    button.dataset.commandTopicOff = commandOffTopic;
+  }
   button.innerHTML = '<span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition"></span>';
   header.appendChild(textWrap);
   header.appendChild(button);
   card.appendChild(header);
-  card.appendChild(createCommandStatusRow(commandTopic, stateTopic));
+  const commandTopics = [];
+  if (commandOnTopic || commandOffTopic) {
+    commandTopics.push({ topic: commandOnTopic, label: 'Command on' });
+    commandTopics.push({ topic: commandOffTopic, label: 'Command off' });
+  } else if (commandTopic) {
+    commandTopics.push({ topic: commandTopic });
+  }
+  card.appendChild(createCommandStatusRow(commandTopics, stateTopic));
   return { card, button };
 }
 
@@ -589,18 +611,28 @@ function addAuxSwitchCards() {
     return;
   }
   switches.forEach(sw => {
-    const commandTopic = sw.commandPath || sw.path || sw.statusPath;
-    const stateTopic = sw.statusPath || sw.path || sw.commandPath;
-    if (!commandTopic && !stateTopic) return;
+    const commandOnTopic = sw.commandOnPath || sw.commandPath || sw.path || '';
+    const commandOffTopic = sw.commandOffPath || sw.commandPath || sw.path || '';
+    const stateTopic = sw.statusPath || sw.path || '';
+    const hasCommand = commandOnTopic || commandOffTopic;
+    if (!hasCommand && !stateTopic) return;
     const { card } = createToggleCard({
-      label: sw.name || stateTopic || commandTopic,
+      label: sw.name || stateTopic || commandOnTopic || commandOffTopic,
       description: 'Auxiliary MQTT integration.',
       stateTopic,
-      commandTopic
+      commandOnTopic,
+      commandOffTopic,
+      commandTopic: !sw.commandOnPath && !sw.commandOffPath ? sw.commandPath || sw.path || '' : ''
     });
     container.appendChild(card);
     if (stateTopic) {
       topics.add(stateTopic);
+    }
+    if (commandOnTopic) {
+      topics.add(commandOnTopic);
+    }
+    if (commandOffTopic) {
+      topics.add(commandOffTopic);
     }
   });
 }
@@ -812,9 +844,16 @@ try {
     button.addEventListener('click', function() {
       const stateTopic = this.getAttribute('data-topic');
       const commandTopic = this.getAttribute('data-command-topic');
+      const commandTopicOn = this.getAttribute('data-command-topic-on');
+      const commandTopicOff = this.getAttribute('data-command-topic-off');
       const currentState = stateValues[stateTopic] === '1' ? '1' : '0';
       const newState = currentState === '1' ? '0' : '1';
-      sendCommand(commandTopic, newState);
+      if (commandTopicOn || commandTopicOff) {
+        const targetTopic = newState === '1' ? commandTopicOn : commandTopicOff;
+        sendCommand(targetTopic, newState);
+      } else {
+        sendCommand(commandTopic, newState);
+      }
     });
   });
 
@@ -839,7 +878,8 @@ function formatTimestamp(date) {
 function updateCommandStatus(commandTopic, payload) {
   const el = commandStatusEls[commandTopic];
   if (!el) return;
-  el.textContent = `Command: ${payload} at ${formatTimestamp(new Date())}`;
+  const label = el.dataset.commandLabel || 'Command';
+  el.textContent = `${label}: ${payload} at ${formatTimestamp(new Date())}`;
 }
 
 function updateStateStatus(topic, value) {
