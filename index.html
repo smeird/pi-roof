@@ -442,11 +442,13 @@ function addSensorCards() {
 function createCommandStatusRow(commandTopic, stateTopic) {
   const statusRow = document.createElement('div');
   statusRow.className = 'mt-2 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400';
-  const commandStatus = document.createElement('span');
-  commandStatus.textContent = 'Command: --';
-  commandStatus.dataset.commandStatus = commandTopic;
-  commandStatusEls[commandTopic] = commandStatus;
-  statusRow.appendChild(commandStatus);
+  if (commandTopic) {
+    const commandStatus = document.createElement('span');
+    commandStatus.textContent = 'Command: --';
+    commandStatus.dataset.commandStatus = commandTopic;
+    commandStatusEls[commandTopic] = commandStatus;
+    statusRow.appendChild(commandStatus);
+  }
   if (stateTopic) {
     const stateStatus = document.createElement('span');
     stateStatus.textContent = 'State: waiting';
@@ -590,7 +592,7 @@ function addAuxSwitchCards() {
   }
   switches.forEach(sw => {
     const commandTopic = sw.commandPath || sw.path || sw.statusPath;
-    const stateTopic = sw.statusPath || sw.path || sw.commandPath;
+    const stateTopic = sw.statusPath || sw.path || '';
     if (!commandTopic && !stateTopic) return;
     const { card } = createToggleCard({
       label: sw.name || stateTopic || commandTopic,
