@@ -2,6 +2,39 @@
 
 Web interface for monitoring and controlling a small observatory and related hardware.
 
+## System overview
+
+```mermaid
+flowchart TD
+    subgraph WebUI[Web UI]
+        UI[index.html / settings.html]
+        MQTTClient[js/mqttClient.js]
+    end
+    subgraph Backend[Backend Services]
+        PHP[/get_config.php & /save_config.php/]
+        DB[(SQLite config.db)]
+    end
+    subgraph Control[Control Layer]
+        NR[Node-RED flows]
+        Scripts[scripts/roof/*.sh]
+        INDI[INDI Dome Scripting Gateway]
+    end
+    subgraph Infra[Infrastructure]
+        MQTT[(MQTT Broker)]
+        Roof[Roof controller]
+        Sensors[Observatory sensors]
+    end
+
+    UI -->|HTTP config| PHP
+    PHP --> DB
+    UI -->|MQTT subscribe/publish| MQTT
+    Sensors -->|telemetry| MQTT
+    Roof <-->|status/commands| MQTT
+    Scripts -->|HTTP JSON| NR
+    INDI --> Scripts
+    NR -->|MQTT commands| MQTT
+```
+
 ## Features
 
 - **Observatory control panel** (`index.html`): displays sensor values such as clouds, rain, light, dew point, SQM and star count via MQTT and provides toggle buttons for devices.
