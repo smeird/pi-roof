@@ -90,7 +90,7 @@ logger:
 
 api:
   encryption:
-    key: "8WPW/8pr5WVwvLsKPIZYK9bAcKVsHin00MyAeg5RN9g="
+    key: "REPLACE_WITH_API_ENCRYPTION_KEY"
   actions:
     - action: rtttl_play
       variables:
@@ -101,7 +101,7 @@ api:
 
 ota:
   - platform: esphome
-    password: "cf91d1a10f5c133be3fe4934072d283d"
+    password: "REPLACE_WITH_OTA_PASSWORD"
 
 #wifi:
 #  ssid: !secret wifi_ssid
@@ -184,7 +184,7 @@ time:
 mqtt:
   broker: homeassistant.smeird.com
   username: smeird
-  password: 92987974
+  password: "REPLACE_WITH_MQTT_PASSWORD"
   discovery: false
 
   birth_message:
