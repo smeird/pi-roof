@@ -491,6 +491,7 @@ function createToggleCard({ label, description, stateTopic, commandTopic }) {
   button.className = 'toggleButton relative inline-flex h-7 w-12 items-center rounded-full bg-slate-300 transition-colors duration-300 ease-out dark:bg-slate-700';
   button.dataset.topic = stateTopic;
   button.dataset.commandTopic = commandTopic;
+  button.dataset.localState = '0';
   button.innerHTML = '<span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition"></span>';
   header.appendChild(textWrap);
   header.appendChild(button);
@@ -814,8 +815,15 @@ try {
     button.addEventListener('click', function() {
       const stateTopic = this.getAttribute('data-topic');
       const commandTopic = this.getAttribute('data-command-topic');
-      const currentState = stateValues[stateTopic] === '1' ? '1' : '0';
+      const hasStateValue = stateTopic && Object.prototype.hasOwnProperty.call(stateValues, stateTopic);
+      const currentState = hasStateValue
+        ? (stateValues[stateTopic] === '1' ? '1' : '0')
+        : (this.dataset.localState === '1' ? '1' : '0');
       const newState = currentState === '1' ? '0' : '1';
+      this.dataset.localState = newState;
+      if (!hasStateValue) {
+        setToggleVisual(this, newState);
+      }
       sendCommand(commandTopic, newState);
     });
   });
@@ -1023,16 +1031,21 @@ function updateSensorIndicator(topic, value) {
 function updateToggleButton(topic, value) {
   const button = document.querySelector(`.toggleButton[data-topic='${topic}']`);
   if (button) {
-    const knob = button.querySelector('span');
-    if (value === '1') {
-      button.classList.remove('bg-slate-300', 'dark:bg-slate-700');
-      button.classList.add('bg-emerald-500');
-      knob.classList.add('translate-x-5');
-    } else {
-      button.classList.remove('bg-emerald-500');
-      button.classList.add('bg-slate-300', 'dark:bg-slate-700');
-      knob.classList.remove('translate-x-5');
-    }
+    button.dataset.localState = value === '1' ? '1' : '0';
+    setToggleVisual(button, value);
+  }
+}
+
+function setToggleVisual(button, value) {
+  const knob = button.querySelector('span');
+  if (value === '1') {
+    button.classList.remove('bg-slate-300', 'dark:bg-slate-700');
+    button.classList.add('bg-emerald-500');
+    knob.classList.add('translate-x-5');
+  } else {
+    button.classList.remove('bg-emerald-500');
+    button.classList.add('bg-slate-300', 'dark:bg-slate-700');
+    knob.classList.remove('translate-x-5');
   }
 }
 </script>
