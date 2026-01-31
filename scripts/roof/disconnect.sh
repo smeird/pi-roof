@@ -16,3 +16,13 @@ sys.exit(0 if data.get("ok") is True else 1)
 '; then
   exit 1
 fi
+
+if ! curl -fsS --max-time "${CURL_TIMEOUT_SECS}" -H "Content-Type: application/json" -d '{"action":"fault_clear"}' "${ROOF_BASE_URL}${ROOF_HTTP_PATH}" | python3 -c 'import json, sys
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    sys.exit(1)
+sys.exit(0 if data.get("ok") is True else 1)
+'; then
+  exit 1
+fi

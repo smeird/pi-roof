@@ -54,3 +54,4 @@
 - Auxiliary switches on the dashboard are driven by the settings `switches` list and render in their own section below the primary roof relay switches.
 - Switch settings now include separate `commandPath` and `statusPath` topics to support multi-topic MQTT control.
 - RoRo roof controller scripts live in `scripts/roof/`, and the Node-RED flow export is stored at `nodered/flows/roof-api.json`.
+- The roof API accepts a `fault_clear` action; the disconnect script triggers it after disconnect.

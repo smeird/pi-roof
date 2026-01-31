@@ -14,7 +14,7 @@ This project provides a single HTTP endpoint (`POST /api/roof`) that translates 
 POST /api/roof
 Content-Type: application/json
 
-{ "action": "open|close|abort|status|connect|disconnect|park|unpark" }
+{ "action": "open|close|abort|status|connect|disconnect|fault_clear|park|unpark" }
 ```
 
 Responses are always JSON:
