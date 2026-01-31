@@ -1,0 +1,1082 @@
+# -----------------------------------------------------------------------------
+# Roof Observatory Controller (roof-esp) - ESPHome + MQTT
+#
+# Fixes applied (material changes vs your current YAML)
+# 1) Removed "initialise retained motor/relay state to 0" at boot.
+#    That behaviour can overwrite the broker retained truth and confuse the UI.
+#    Instead, we publish a real snapshot derived from actual GPIO/relay states.
+#
+# 2) Added a deterministic snapshot request topic:
+#    - command/snapshot (payload "1") triggers publish_snapshot.
+#    This allows your web UI (or Node-RED) to rehydrate state after broker
+#    retained topics have been cleared, without needing the ESP to reboot.
+#
+# 3) Added a retained state publish when local DI toggles a relay (DI3..DI7),
+#    so physical presses always update MQTT state topics immediately.
+#
+# 4) Added motion interlock enforcement on manual DI6/DI7:
+#    the relay on_turn_on already blocks unsafe motion, but DI6/DI7 toggles
+#    were previously able to attempt start even if disabled/faulted/at limit.
+#    Now we route manual actions via scripts that respect the same rules.
+#
+# 5) Made fault_code persist the last specific code (retained) rather than
+#    publishing a generic "FAULT". Uses a global last_fault_code.
+#
+# 6) Ensured stop_all cancels watchdog scripts to avoid latent fault triggers.
+#
+# Notes
+# - This keeps your topic structure exactly as per your UI:
+#   online, open_limit, close_limit, moving, enabled, fault, fault_code,
+#   state/open_motor, state/close_motor, state/relay3..8, heartbeat
+# -----------------------------------------------------------------------------
+
+substitutions:
+  device_name: "roof-esp"
+  device_comment: "WaveShare ESP32-S3-POE-ETH-8DI-8RO device"
+  device_friendly: "roof-esp"
+
+  base_topic: "Observatory/roof-esp"
+  max_run_open: 90s
+  max_run_close: 90s
+  reversal_deadtime: 300ms
+  led_brightness: "60%"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${device_friendly}
+  min_version: 2025.5.0
+  comment: ${device_comment}
+  name_add_mac_suffix: false
+  on_boot:
+    priority: 600
+    then:
+      # Hard safety defaults
+      - switch.turn_off: relay1
+      - switch.turn_off: relay2
+
+      # Optional: if you want aux relays to default off on boot, do it here
+      # - switch.turn_off: relay3
+      # - switch.turn_off: relay4
+      # - switch.turn_off: relay5
+      # - switch.turn_off: relay6
+      # - switch.turn_off: relay7
+      # - switch.turn_off: relay8
+
+      - light.turn_on:
+          id: rgb_led
+          brightness: ${led_brightness}
+          red: 0%
+          green: 0%
+          blue: 0%
+
+      # Wait for MQTT, then publish authoritative retained state
+      - wait_until:
+          condition:
+            mqtt.connected:
+      - delay: 300ms
+      - script.execute: publish_snapshot
+
+esp32:
+  board: esp32s3box
+  flash_size: 16MB
+  framework:
+    type: arduino
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+
+api:
+  encryption:
+    key: "8WPW/8pr5WVwvLsKPIZYK9bAcKVsHin00MyAeg5RN9g="
+  actions:
+    - action: rtttl_play
+      variables:
+        song_str: string
+      then:
+        - rtttl.play:
+            rtttl: !lambda 'return song_str;'
+
+ota:
+  - platform: esphome
+    password: "cf91d1a10f5c133be3fe4934072d283d"
+
+#wifi:
+#  ssid: !secret wifi_ssid
+#  password: !secret wifi_password
+#  ap:
+#    ssid: "Roof-Esp Fallback Hotspot"
+#    password: "4vfBjbaFURK2"
+#
+#captive_portal:
+# ADD THIS INSTEAD (Ethernet)
+ethernet:
+  type: W5500
+  clk_pin: GPIO15
+  mosi_pin: GPIO13
+  miso_pin: GPIO14
+  cs_pin: GPIO16
+  interrupt_pin: GPIO12
+
+# REPLACE wifi_info WITH ethernet_info
+text_sensor:
+  - platform: ethernet_info
+    ip_address:
+      name: "${device_name} - IP Address"
+    dns_address:
+      name: "${device_name} - DNS Address"
+    mac_address:
+      name: "${device_name} - MAC Address"
+
+  - platform: version
+    name: "${device_name} - ESPHome Version"
+    hide_timestamp: true
+
+
+
+#text_sensor:
+#  - platform: wifi_info
+#    ip_address:
+#      name: "${device_name} - IP Address"
+#    ssid:
+#      name: "${device_name} - Wi-Fi SSID"
+#      name: "${device_name} - Wi-Fi BSSID"
+#    bssid:
+#  - platform: version
+#    name: "${device_name} - ESPHome Version"
+#    hide_timestamp: true
+
+web_server:
+  version: 3
+  port: 80
+
+i2c:
+  sda: GPIO42
+  scl: GPIO41
+  scan: false
+  frequency: 100kHz
+  id: i2cbus
+
+pca9554:
+  - id: 'TCA9554_hub'
+    address: 0x20
+
+uart:
+  - id: modbus_uart
+    tx_pin: GPIO17
+    rx_pin: GPIO18
+    baud_rate: 38400
+    stop_bits: 1
+    data_bits: 8
+    parity: EVEN
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time_sync:
+      then:
+        pcf85063.write_time:
+  - platform: pcf85063
+    id: pcf85063_time
+
+mqtt:
+  broker: homeassistant.smeird.com
+  username: smeird
+  password: 92987974
+  discovery: false
+
+  birth_message:
+    topic: "${base_topic}/online"
+    payload: "1"
+    qos: 1
+    retain: true
+  will_message:
+    topic: "${base_topic}/online"
+    payload: "0"
+    qos: 1
+    retain: true
+
+  on_connect:
+    then:
+      - delay: 300ms
+      - script.execute: publish_snapshot
+
+  on_message:
+    # Snapshot request (from web UI / Node-RED)
+    - topic: "${base_topic}/command/snapshot"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - script.execute: publish_snapshot
+
+    # Roof motion commands (1 start, 0 stop)
+    - topic: "${base_topic}/command/open"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - script.execute: start_open
+            else:
+              - script.execute: stop_all
+
+    - topic: "${base_topic}/command/close"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - script.execute: start_close
+            else:
+              - script.execute: stop_all
+
+    - topic: "${base_topic}/command/stop"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - script.execute: stop_all
+
+    # Optional direct motor command topics
+    - topic: "${base_topic}/command/open_motor"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - script.execute: start_open
+            else:
+              - switch.turn_off: relay1
+
+    - topic: "${base_topic}/command/close_motor"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - script.execute: start_close
+            else:
+              - switch.turn_off: relay2
+
+    - topic: "${base_topic}/command/enabled"
+      qos: 1
+      then:
+        - lambda: |-
+            if (x == "1") id(motion_enabled) = true;
+            else if (x == "0") id(motion_enabled) = false;
+        - script.execute: publish_enabled
+
+        # If enabled, ensure 12V supply is on
+        - if:
+            condition:
+              lambda: 'return id(motion_enabled);'
+            then:
+              - switch.turn_on: relay3
+            else:
+              - script.execute: stop_all
+              - switch.turn_off: relay3
+
+        # Publish relay3 state change due to enable/disable logic
+        - script.execute: publish_relay3
+
+    - topic: "${base_topic}/command/fault_clear"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - script.execute: clear_fault
+
+    # Relay commands
+    - topic: "${base_topic}/command/relay3"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - switch.turn_on: relay3
+            else:
+              - switch.turn_off: relay3
+        - script.execute: publish_relay3
+
+    - topic: "${base_topic}/command/relay4"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - switch.turn_on: relay4
+            else:
+              - switch.turn_off: relay4
+        - script.execute: publish_relay4
+
+    - topic: "${base_topic}/command/relay5"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - switch.turn_on: relay5
+            else:
+              - switch.turn_off: relay5
+        - script.execute: publish_relay5
+
+    - topic: "${base_topic}/command/relay6"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - switch.turn_on: relay6
+            else:
+              - switch.turn_off: relay6
+        - script.execute: publish_relay6
+
+    - topic: "${base_topic}/command/relay7"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - switch.turn_on: relay7
+            else:
+              - switch.turn_off: relay7
+        - script.execute: publish_relay7
+
+    - topic: "${base_topic}/command/relay8"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - switch.turn_on: relay8
+            else:
+              - switch.turn_off: relay8
+        - script.execute: publish_relay8
+
+    # Buzzer command (1 beep)
+    - topic: "${base_topic}/command/beep"
+      qos: 1
+      then:
+        - if:
+            condition:
+              lambda: 'return x == "1";'
+            then:
+              - button.press: buzzer_beep
+
+globals:
+  - id: motion_enabled
+    type: bool
+    restore_value: true
+    initial_value: "true"
+
+  - id: fault_latched
+    type: bool
+    restore_value: true
+    initial_value: "false"
+
+  - id: hb_counter
+    type: uint32_t
+    restore_value: false
+    initial_value: "0"
+
+  - id: last_fault_code
+    type: std::string
+    restore_value: true
+    initial_value: '"0"'
+
+script:
+  - id: publish_snapshot
+    mode: queued
+    then:
+      # Online (retained)
+      - mqtt.publish:
+          topic: "${base_topic}/online"
+          payload: "1"
+          qos: 1
+          retain: true
+
+      # Limits (retained)
+      - mqtt.publish:
+          topic: "${base_topic}/open_limit"
+          payload: !lambda 'return id(di1).state ? "1" : "0";'
+          qos: 1
+          retain: true
+      - mqtt.publish:
+          topic: "${base_topic}/close_limit"
+          payload: !lambda 'return id(di2).state ? "1" : "0";'
+          qos: 1
+          retain: true
+
+      # Motors (retained)
+      - mqtt.publish:
+          topic: "${base_topic}/state/open_motor"
+          payload: !lambda 'return id(relay1).state ? "1" : "0";'
+          qos: 1
+          retain: true
+      - mqtt.publish:
+          topic: "${base_topic}/state/close_motor"
+          payload: !lambda 'return id(relay2).state ? "1" : "0";'
+          qos: 1
+          retain: true
+
+      # Aux relays (retained)
+      - script.execute: publish_relay3
+      - script.execute: publish_relay4
+      - script.execute: publish_relay5
+      - script.execute: publish_relay6
+      - script.execute: publish_relay7
+      - script.execute: publish_relay8
+
+      # Derived states (retained)
+      - script.execute: publish_enabled
+      - script.execute: publish_fault
+      - script.execute: publish_moving
+
+      # Fault code (retained)
+      - mqtt.publish:
+          topic: "${base_topic}/fault_code"
+          payload: !lambda 'return id(last_fault_code);'
+          qos: 1
+          retain: true
+
+  - id: publish_enabled
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/enabled"
+          payload: !lambda 'return id(motion_enabled) ? "1" : "0";'
+          qos: 1
+          retain: true
+
+  - id: publish_fault
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/fault"
+          payload: !lambda 'return id(fault_latched) ? "1" : "0";'
+          qos: 1
+          retain: true
+
+  - id: publish_moving
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/moving"
+          payload: !lambda 'return (id(relay1).state || id(relay2).state) ? "1" : "0";'
+          qos: 1
+          retain: true
+
+  - id: publish_relay3
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/state/relay3"
+          payload: !lambda 'return id(relay3).state ? "1" : "0";'
+          qos: 1
+          retain: true
+  - id: publish_relay4
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/state/relay4"
+          payload: !lambda 'return id(relay4).state ? "1" : "0";'
+          qos: 1
+          retain: true
+  - id: publish_relay5
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/state/relay5"
+          payload: !lambda 'return id(relay5).state ? "1" : "0";'
+          qos: 1
+          retain: true
+  - id: publish_relay6
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/state/relay6"
+          payload: !lambda 'return id(relay6).state ? "1" : "0";'
+          qos: 1
+          retain: true
+  - id: publish_relay7
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/state/relay7"
+          payload: !lambda 'return id(relay7).state ? "1" : "0";'
+          qos: 1
+          retain: true
+  - id: publish_relay8
+    mode: queued
+    then:
+      - mqtt.publish:
+          topic: "${base_topic}/state/relay8"
+          payload: !lambda 'return id(relay8).state ? "1" : "0";'
+          qos: 1
+          retain: true
+
+  - id: set_fault
+    mode: restart
+    parameters:
+      code: string
+    then:
+      - lambda: |-
+          id(fault_latched) = true;
+          id(last_fault_code) = code;
+      - script.execute: publish_fault
+      - mqtt.publish:
+          topic: "${base_topic}/fault_code"
+          payload: !lambda 'return id(last_fault_code);'
+          qos: 1
+          retain: true
+      - script.execute: stop_all
+
+  - id: clear_fault
+    mode: restart
+    then:
+      - lambda: |-
+          id(fault_latched) = false;
+          id(last_fault_code) = "0";
+      - script.execute: publish_fault
+      - mqtt.publish:
+          topic: "${base_topic}/fault_code"
+          payload: "0"
+          qos: 1
+          retain: true
+
+  - id: stop_all
+    mode: restart
+    then:
+      # Cancel watchdogs to prevent late faults after stopping
+      - script.stop: open_watchdog
+      - script.stop: close_watchdog
+
+      - switch.turn_off: relay1
+      - switch.turn_off: relay2
+      - script.execute: publish_moving
+
+      - light.turn_on:
+          id: rgb_led
+          brightness: ${led_brightness}
+          red: 0%
+          green: 0%
+          blue: 0%
+
+  - id: check_impossible_limits
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: 'return id(di1).state && id(di2).state;'
+          then:
+            - script.execute:
+                id: set_fault
+                code: "BOTH_LIMITS"
+
+  - id: open_watchdog
+    mode: restart
+    then:
+      - delay: ${max_run_open}
+      - if:
+          condition:
+            lambda: 'return id(relay1).state;'
+          then:
+            - script.execute:
+                id: set_fault
+                code: "TIMEOUT_OPEN"
+
+  - id: close_watchdog
+    mode: restart
+    then:
+      - delay: ${max_run_close}
+      - if:
+          condition:
+            lambda: 'return id(relay2).state;'
+          then:
+            - script.execute:
+                id: set_fault
+                code: "TIMEOUT_CLOSE"
+
+  # Unified start routines (used by MQTT commands and manual buttons)
+  - id: start_open
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(motion_enabled) || id(fault_latched) || id(di1).state;'
+          then:
+            - script.execute: stop_all
+          else:
+            - switch.turn_on: relay1
+
+  - id: start_close
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(motion_enabled) || id(fault_latched) || id(di2).state;'
+          then:
+            - script.execute: stop_all
+          else:
+            - switch.turn_on: relay2
+
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          id(hb_counter)++;
+      - mqtt.publish:
+          topic: "${base_topic}/heartbeat"
+          payload: !lambda |-
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%lu", (unsigned long) id(hb_counter));
+            return std::string(buf);
+          qos: 0
+          retain: false
+
+binary_sensor:
+  - platform: status
+    name: "Status"
+
+  - platform: gpio
+    name: "Boot Button"
+    pin:
+      number: 0
+      ignore_strapping_warning: true
+      mode:
+        input: true
+      inverted: true
+    disabled_by_default: true
+    on_press:
+      then:
+        - button.press: restart_button
+
+  # Open Limit
+  - platform: gpio
+    id: di1
+    name: "Open Limit"
+    pin:
+      number: GPIO4
+      mode: INPUT_PULLUP
+      inverted: false
+    filters:
+      - delayed_on_off: 10ms
+    on_press:
+      then:
+        - switch.turn_off: relay1
+        - mqtt.publish:
+            topic: "${base_topic}/open_limit"
+            payload: "1"
+            qos: 1
+            retain: true
+        - script.execute: publish_moving
+        - script.execute: check_impossible_limits
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${base_topic}/open_limit"
+            payload: "0"
+            qos: 1
+            retain: true
+        - script.execute: check_impossible_limits
+
+  # Close Limit
+  - platform: gpio
+    id: di2
+    name: "Close Limit"
+    pin:
+      number: GPIO5
+      mode: INPUT_PULLUP
+      inverted: false
+    filters:
+      - delayed_on_off: 10ms
+    on_press:
+      then:
+        - switch.turn_off: relay2
+        - mqtt.publish:
+            topic: "${base_topic}/close_limit"
+            payload: "1"
+            qos: 1
+            retain: true
+        - script.execute: publish_moving
+        - script.execute: check_impossible_limits
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: "${base_topic}/close_limit"
+            payload: "0"
+            qos: 1
+            retain: true
+        - script.execute: check_impossible_limits
+
+  # DI3 momentary toggles PC Power (relay6)
+  - platform: gpio
+    id: di3
+    name: "PC Toggle"
+    pin:
+      number: GPIO6
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on_off: 10ms
+    on_press:
+      then:
+        - switch.toggle: relay6
+        - script.execute: publish_relay6
+
+  # DI4 momentary toggles 12V Power Supply (relay3)
+  - platform: gpio
+    id: di4
+    name: "12V Power Supply Toggle"
+    pin:
+      number: GPIO7
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on_off: 10ms
+    on_press:
+      then:
+        - switch.toggle: relay3
+        - script.execute: publish_relay3
+
+  # DI5 momentary toggles Red LED (relay5)
+  - platform: gpio
+    id: di5
+    name: "Red LED Toggle"
+    pin:
+      number: GPIO8
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on_off: 10ms
+    on_press:
+      then:
+        - switch.toggle: relay5
+        - script.execute: publish_relay5
+
+  # DI6 momentary toggles Close Motor (uses interlocked start/stop)
+  - platform: gpio
+    id: di6
+    name: "Manual Close"
+    pin:
+      number: GPIO9
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on_off: 10ms
+    on_press:
+      then:
+        - if:
+            condition:
+              switch.is_on: relay2
+            then:
+              - script.execute: stop_all
+            else:
+              - script.execute: start_close
+
+  # DI7 momentary toggles Open Motor (uses interlocked start/stop)
+  - platform: gpio
+    id: di7
+    name: "Manual Open"
+    pin:
+      number: GPIO10
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on_off: 10ms
+    on_press:
+      then:
+        - if:
+            condition:
+              switch.is_on: relay1
+            then:
+              - script.execute: stop_all
+            else:
+              - script.execute: start_open
+
+  # DI8 momentary abort
+  - platform: gpio
+    id: di8
+    name: "Abort"
+    pin:
+      number: GPIO11
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on_off: 10ms
+    on_press:
+      then:
+        - script.execute: stop_all
+
+output:
+  - platform: ledc
+    pin:
+      number: GPIO46
+      ignore_strapping_warning: true
+    id: buzzer
+
+rtttl:
+  output: buzzer
+  id: rtttl_buzzer
+  gain: 30%
+
+button:
+  - platform: restart
+    name: "Restart"
+    id: restart_button
+    entity_category: config
+
+  - platform: factory_reset
+    name: "Factory Reset"
+    id: reset
+    entity_category: config
+
+  - platform: safe_mode
+    name: "Safe Mode"
+    internal: false
+    entity_category: config
+
+  - platform: template
+    name: "Buzzer Beep"
+    id: buzzer_beep
+    on_press:
+      then:
+        - rtttl.play:
+            rtttl: "beep:d=16,o=5,b=120:c6"
+
+light:
+  - platform: esp32_rmt_led_strip
+    rgb_order: RGB
+    chipset: WS2812
+    pin: GPIO38
+    num_leds: 1
+    name: "RGB LED"
+    id: rgb_led
+
+switch:
+  - platform: gpio
+    name: "Open Motor"
+    id: relay1
+    pin:
+      pca9554: TCA9554_hub
+      number: 0
+      mode:
+        output: true
+      inverted: false
+    on_turn_on:
+      then:
+        # Safety gate
+        - if:
+            condition:
+              lambda: 'return !id(motion_enabled) || id(fault_latched) || id(di1).state;'
+            then:
+              - switch.turn_off: relay1
+            else:
+              # Mutual exclusion and deadtime
+              - switch.turn_off: relay2
+              - delay: ${reversal_deadtime}
+
+              - mqtt.publish:
+                  topic: "${base_topic}/state/open_motor"
+                  payload: "1"
+                  qos: 1
+                  retain: true
+              - script.execute: publish_moving
+              - script.execute: open_watchdog
+
+              - light.turn_on:
+                  id: rgb_led
+                  brightness: ${led_brightness}
+                  red: 100%
+                  green: 0%
+                  blue: 0%
+    on_turn_off:
+      then:
+        - mqtt.publish:
+            topic: "${base_topic}/state/open_motor"
+            payload: "0"
+            qos: 1
+            retain: true
+        - script.execute: publish_moving
+        - script.stop: open_watchdog
+        - if:
+            condition:
+              lambda: 'return !(id(relay1).state || id(relay2).state);'
+            then:
+              - light.turn_on:
+                  id: rgb_led
+                  brightness: ${led_brightness}
+                  red: 0%
+                  green: 0%
+                  blue: 0%
+
+  - platform: gpio
+    name: "Close Motor"
+    id: relay2
+    pin:
+      pca9554: TCA9554_hub
+      number: 1
+      mode:
+        output: true
+      inverted: false
+    on_turn_on:
+      then:
+        # Safety gate
+        - if:
+            condition:
+              lambda: 'return !id(motion_enabled) || id(fault_latched) || id(di2).state;'
+            then:
+              - switch.turn_off: relay2
+            else:
+              # Mutual exclusion and deadtime
+              - switch.turn_off: relay1
+              - delay: ${reversal_deadtime}
+
+              - mqtt.publish:
+                  topic: "${base_topic}/state/close_motor"
+                  payload: "1"
+                  qos: 1
+                  retain: true
+              - script.execute: publish_moving
+              - script.execute: close_watchdog
+
+              - light.turn_on:
+                  id: rgb_led
+                  brightness: ${led_brightness}
+                  red: 0%
+                  green: 100%
+                  blue: 0%
+    on_turn_off:
+      then:
+        - mqtt.publish:
+            topic: "${base_topic}/state/close_motor"
+            payload: "0"
+            qos: 1
+            retain: true
+        - script.execute: publish_moving
+        - script.stop: close_watchdog
+        - if:
+            condition:
+              lambda: 'return !(id(relay1).state || id(relay2).state);'
+            then:
+              - light.turn_on:
+                  id: rgb_led
+                  brightness: ${led_brightness}
+                  red: 0%
+                  green: 0%
+                  blue: 0%
+
+  - platform: gpio
+    name: "12V Power Supply"
+    id: relay3
+    pin:
+      pca9554: TCA9554_hub
+      number: 2
+      mode:
+        output: true
+      inverted: false
+    on_turn_on:
+      then:
+        - script.execute: publish_relay3
+    on_turn_off:
+      then:
+        - script.execute: publish_relay3
+
+  - platform: gpio
+    name: "White LED"
+    id: relay4
+    pin:
+      pca9554: TCA9554_hub
+      number: 3
+      mode:
+        output: true
+      inverted: false
+    on_turn_on:
+      then:
+        - script.execute: publish_relay4
+    on_turn_off:
+      then:
+        - script.execute: publish_relay4
+
+  - platform: gpio
+    name: "Red LED"
+    id: relay5
+    pin:
+      pca9554: TCA9554_hub
+      number: 4
+      mode:
+        output: true
+      inverted: false
+    on_turn_on:
+      then:
+        - script.execute: publish_relay5
+    on_turn_off:
+      then:
+        - script.execute: publish_relay5
+
+  - platform: gpio
+    name: "PC Power"
+    id: relay6
+    pin:
+      pca9554: TCA9554_hub
+      number: 5
+      mode:
+        output: true
+      inverted: false
+    on_turn_on:
+      then:
+        - script.execute: publish_relay6
+    on_turn_off:
+      then:
+        - script.execute: publish_relay6
+
+  - platform: gpio
+    name: "Dew Heater 12V Power"
+    id: relay7
+    pin:
+      pca9554: TCA9554_hub
+      number: 6
+      mode:
+        output: true
+      inverted: false
+    on_turn_on:
+      then:
+        - script.execute: publish_relay7
+    on_turn_off:
+      then:
+        - script.execute: publish_relay7
+
+  - platform: gpio
+    name: "Mount - Focus - 12v Power"
+    id: relay8
+    pin:
+      pca9554: TCA9554_hub
+      number: 7
+      mode:
+        output: true
+      inverted: false
+    on_turn_on:
+      then:
+        - script.execute: publish_relay8
+    on_turn_off:
+      then:
+        - script.execute: publish_relay8
