@@ -112,6 +112,18 @@
               </div>
             </div>
             <div id="historyChart" class="mt-6 min-h-[18rem] rounded-2xl border border-slate-200/60 bg-slate-900/5 dark:border-white/10 dark:bg-black/20"></div>
+            <details id="debugPanel" class="group mt-6 rounded-2xl border border-slate-200/60 bg-white/70 p-5 text-sm text-slate-700 shadow-inner backdrop-blur dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200">
+              <summary class="cursor-pointer list-none font-semibold text-slate-900 transition group-open:text-aurora-500 dark:text-white">
+                <i class="fa-solid fa-bug mr-2 text-aurora-500"></i>Debug details
+              </summary>
+              <div class="mt-4 grid gap-4">
+                <div class="grid gap-2 sm:grid-cols-2" id="debugList"></div>
+                <div>
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500/80 dark:text-slate-400">Log</p>
+                  <pre id="debugLog" class="mt-2 max-h-48 overflow-auto rounded-xl border border-slate-200/70 bg-white/80 p-3 text-xs text-slate-700 shadow-inner dark:border-white/10 dark:bg-black/40 dark:text-slate-200"></pre>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       </main>
@@ -159,11 +171,52 @@
 
     const params = new URLSearchParams(window.location.search);
     const sensorPath = params.get('sensor');
+    const debugEnabled = params.has('debug');
 
     let historyChart;
     let currentRange = 'tonight';
+    let lastQueryStatus = 'Not started';
+    let lastQueryUrl = '';
 
     const themeSelect = document.getElementById('themeSelect');
+    const debugPanel = document.getElementById('debugPanel');
+    const debugList = document.getElementById('debugList');
+    const debugLog = document.getElementById('debugLog');
+
+    if (debugPanel && debugEnabled) {
+      debugPanel.open = true;
+    }
+
+    function maskToken(token) {
+      if (!token) return 'missing';
+      if (token.length <= 8) return `${token.slice(0, 2)}…`;
+      return `${token.slice(0, 4)}…${token.slice(-4)}`;
+    }
+
+    function appendDebugLog(message) {
+      if (!debugLog) return;
+      const timestamp = new Date().toLocaleTimeString();
+      const line = `[${timestamp}] ${message}`;
+      debugLog.textContent = debugLog.textContent ? `${debugLog.textContent}\n${line}` : line;
+      debugLog.scrollTop = debugLog.scrollHeight;
+    }
+
+    function renderDebugList(entries) {
+      if (!debugList) return;
+      debugList.innerHTML = '';
+      entries.forEach(({ label, value }) => {
+        const row = document.createElement('div');
+        row.className = 'flex flex-col gap-1 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-xs shadow-sm dark:border-white/10 dark:bg-black/40';
+        const title = document.createElement('span');
+        title.className = 'text-[0.65rem] uppercase tracking-[0.2em] text-slate-500/80 dark:text-slate-400';
+        title.textContent = label;
+        const content = document.createElement('span');
+        content.className = 'font-semibold text-slate-800 dark:text-slate-100';
+        content.textContent = value;
+        row.append(title, content);
+        debugList.append(row);
+      });
+    }
 
     function applyChartTheme(isDark) {
       Highcharts.setOptions({
@@ -228,10 +281,44 @@
     }
 
     async function init() {
-      const { sensors, influxHost, influxOrg, influxBucket, influxToken } = await loadConfig();
+      let config;
+      try {
+        config = await loadConfig();
+      } catch (error) {
+        appendDebugLog(`Config load failed: ${error.message}`);
+        document.getElementById('sensorTitle').textContent = 'Unable to load configuration';
+        return;
+      }
+
+      const { sensors, influxHost, influxOrg, influxBucket, influxToken } = config;
       const sensor = sensors.find(s => s.path === sensorPath);
+      const debugEntries = [
+        { label: 'Sensor path', value: sensorPath || 'missing' },
+        { label: 'Sensor found', value: sensor ? 'yes' : 'no' },
+        { label: 'Influx host', value: influxHost || 'missing' },
+        { label: 'Influx org', value: influxOrg || 'missing' },
+        { label: 'Influx bucket', value: influxBucket || 'missing' },
+        { label: 'Influx token', value: maskToken(influxToken) }
+      ];
+
+      if (sensor) {
+        debugEntries.push(
+          { label: 'Measurement', value: sensor.influxMeasurement || 'missing' },
+          { label: 'Field', value: sensor.influxField || 'missing' }
+        );
+      }
+
+      renderDebugList(debugEntries);
+
       if (!sensor || !sensor.influxMeasurement || !sensor.influxField) {
         document.getElementById('sensorTitle').textContent = 'No historical data';
+        appendDebugLog('Missing sensor measurement/field configuration.');
+        return;
+      }
+
+      if (!influxHost || !influxOrg || !influxBucket || !influxToken) {
+        document.getElementById('sensorTitle').textContent = 'Influx settings incomplete';
+        appendDebugLog('Influx settings are missing (host/org/bucket/token).');
         return;
       }
       document.getElementById('sensorTitle').textContent = `${sensor.name} History`;
@@ -244,6 +331,8 @@
 
       async function queryInflux(flux) {
         const url = `${influxHost.replace(/\/$/, '')}/api/v2/query?org=${encodeURIComponent(influxOrg)}`;
+        lastQueryUrl = url;
+        appendDebugLog(`POST ${url}`);
         const res = await fetch(url, {
           method: 'POST',
           headers: {
@@ -254,9 +343,13 @@
           body: flux
         });
         if (!res.ok) {
+          const errorText = await res.text();
+          appendDebugLog(`Influx error ${res.status}: ${errorText || res.statusText}`);
           throw new Error(`Influx query failed: ${res.status} ${res.statusText}`);
         }
-        return res.text();
+        const text = await res.text();
+        appendDebugLog(`Influx response ${res.status} (${text.length} bytes)`);
+        return text;
       }
 
       async function fetchData(rangeKey) {
@@ -270,10 +363,42 @@
         });
         const { start, window } = ranges[rangeKey];
         const flux = `from(bucket: "${influxBucket}")\n  |> range(start: ${start})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${window}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
+        lastQueryStatus = `Querying ${rangeKey}`;
+        renderDebugList([
+          { label: 'Sensor path', value: sensorPath || 'missing' },
+          { label: 'Sensor', value: sensor.name },
+          { label: 'Measurement', value: sensor.influxMeasurement },
+          { label: 'Field', value: sensor.influxField },
+          { label: 'Influx host', value: influxHost },
+          { label: 'Influx org', value: influxOrg },
+          { label: 'Influx bucket', value: influxBucket },
+          { label: 'Influx token', value: maskToken(influxToken) },
+          { label: 'Range', value: rangeKey },
+          { label: 'Last query', value: lastQueryStatus },
+          { label: 'Query URL', value: lastQueryUrl || 'pending' }
+        ]);
+        appendDebugLog(`Flux:\n${flux}`);
         try {
           const text = await queryInflux(flux);
           const lines = text.trim().split('\n').filter(line => !line.startsWith('#'));
-          if (lines.length < 2) return;
+          if (lines.length < 2) {
+            lastQueryStatus = 'No data returned';
+            renderDebugList([
+              { label: 'Sensor path', value: sensorPath || 'missing' },
+              { label: 'Sensor', value: sensor.name },
+              { label: 'Measurement', value: sensor.influxMeasurement },
+              { label: 'Field', value: sensor.influxField },
+              { label: 'Influx host', value: influxHost },
+              { label: 'Influx org', value: influxOrg },
+              { label: 'Influx bucket', value: influxBucket },
+              { label: 'Influx token', value: maskToken(influxToken) },
+              { label: 'Range', value: rangeKey },
+              { label: 'Last query', value: lastQueryStatus },
+              { label: 'Query URL', value: lastQueryUrl || 'pending' }
+            ]);
+            appendDebugLog('Influx returned no rows. Check bucket/measurement/field.');
+            return;
+          }
           const headers = lines[0].split(',');
           const timeIdx = headers.indexOf('_time');
           const valueIdx = headers.indexOf('_value');
@@ -281,6 +406,20 @@
             const parts = l.split(',');
             return [new Date(parts[timeIdx]).getTime(), parseFloat(parts[valueIdx])];
           });
+          lastQueryStatus = `Loaded ${data.length} points`;
+          renderDebugList([
+            { label: 'Sensor path', value: sensorPath || 'missing' },
+            { label: 'Sensor', value: sensor.name },
+            { label: 'Measurement', value: sensor.influxMeasurement },
+            { label: 'Field', value: sensor.influxField },
+            { label: 'Influx host', value: influxHost },
+            { label: 'Influx org', value: influxOrg },
+            { label: 'Influx bucket', value: influxBucket },
+            { label: 'Influx token', value: maskToken(influxToken) },
+            { label: 'Range', value: rangeKey },
+            { label: 'Last query', value: lastQueryStatus },
+            { label: 'Query URL', value: lastQueryUrl || 'pending' }
+          ]);
           historyChart = Highcharts.chart('historyChart', {
             chart: {
               backgroundColor: 'transparent',
@@ -294,6 +433,21 @@
             legend: { enabled: false }
           });
         } catch (err) {
+          lastQueryStatus = 'Query failed';
+          renderDebugList([
+            { label: 'Sensor path', value: sensorPath || 'missing' },
+            { label: 'Sensor', value: sensor.name },
+            { label: 'Measurement', value: sensor.influxMeasurement },
+            { label: 'Field', value: sensor.influxField },
+            { label: 'Influx host', value: influxHost },
+            { label: 'Influx org', value: influxOrg },
+            { label: 'Influx bucket', value: influxBucket },
+            { label: 'Influx token', value: maskToken(influxToken) },
+            { label: 'Range', value: rangeKey },
+            { label: 'Last query', value: lastQueryStatus },
+            { label: 'Query URL', value: lastQueryUrl || 'pending' }
+          ]);
+          appendDebugLog(`Query failed: ${err.message}`);
           console.error('Failed to load history', err);
         }
       }
