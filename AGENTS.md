@@ -59,3 +59,4 @@
 - Hue devices in Node-RED publish to MQTT status topics under `Observatory/hue/<device>/status` and accept commands at `Observatory/hue/<device>/command`.
 - Auxiliary switches use a single command topic (1/0 payloads) alongside a status topic (1/0).
 - History page includes a Debug details panel that can be auto-opened with `?debug=1` to surface InfluxDB configuration and query diagnostics.
+- History charts overlay the previous period as a dotted comparison series aligned to the current range.

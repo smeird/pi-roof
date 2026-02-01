@@ -106,7 +106,7 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
               <h2 id="sensorTitle" class="text-2xl font-semibold text-slate-900 dark:text-white">Sensor History</h2>
               <div class="flex flex-wrap gap-2">
-                <button data-range="tonight" class="range-btn inline-flex items-center gap-2 rounded-xl border border-aurora-300/40 bg-aurora-300/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-aurora-600 transition hover:-translate-y-0.5 hover:bg-aurora-300/30 dark:border-aurora-500/30 dark:bg-aurora-500/10 dark:text-aurora-200"><i class="fa-solid fa-moon"></i> Tonight</button>
+                <button data-range="day" class="range-btn inline-flex items-center gap-2 rounded-xl border border-aurora-300/40 bg-aurora-300/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-aurora-600 transition hover:-translate-y-0.5 hover:bg-aurora-300/30 dark:border-aurora-500/30 dark:bg-aurora-500/10 dark:text-aurora-200"><i class="fa-solid fa-clock"></i> Last 24h</button>
                 <button data-range="yesterday" class="range-btn inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600 transition hover:-translate-y-0.5 hover:border-aurora-300/40 hover:bg-aurora-300/20 hover:text-aurora-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:border-aurora-500/40 dark:hover:bg-aurora-500/10 dark:hover:text-aurora-200"><i class="fa-solid fa-calendar-day"></i> Yesterday</button>
                 <button data-range="week" class="range-btn inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600 transition hover:-translate-y-0.5 hover:border-aurora-300/40 hover:bg-aurora-300/20 hover:text-aurora-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:border-aurora-500/40 dark:hover:bg-aurora-500/10 dark:hover:text-aurora-200"><i class="fa-solid fa-calendar-week"></i> This Week</button>
               </div>
@@ -174,7 +174,7 @@
     const debugEnabled = params.has('debug');
 
     let historyChart;
-    let currentRange = 'tonight';
+    let currentRange = 'day';
     let lastQueryStatus = 'Not started';
     let lastQueryUrl = '';
 
@@ -324,10 +324,28 @@
       document.getElementById('sensorTitle').textContent = `${sensor.name} History`;
 
       const ranges = {
-        tonight: { start: '-12h', window: '10m' },
-        yesterday: { start: '-24h', window: '30m' },
-        week: { start: '-7d', window: '2h' }
+        day: { label: 'Last 24h', durationMs: 24 * 60 * 60 * 1000, window: '30m', offsetMs: 0 },
+        yesterday: { label: 'Yesterday', durationMs: 24 * 60 * 60 * 1000, window: '30m', offsetMs: 24 * 60 * 60 * 1000 },
+        week: { label: 'This Week', durationMs: 7 * 24 * 60 * 60 * 1000, window: '2h', offsetMs: 0 }
       };
+
+      function buildFluxQuery({ start, stop, window }) {
+        return `from(bucket: "${influxBucket}")\n  |> range(start: ${start}, stop: ${stop})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${window}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
+      }
+
+      function parseInfluxCsv(text) {
+        const lines = text.trim().split('\n').filter(line => !line.startsWith('#'));
+        if (lines.length < 2) {
+          return [];
+        }
+        const headers = lines[0].split(',');
+        const timeIdx = headers.indexOf('_time');
+        const valueIdx = headers.indexOf('_value');
+        return lines.slice(1).map(l => {
+          const parts = l.split(',');
+          return [new Date(parts[timeIdx]).getTime(), parseFloat(parts[valueIdx])];
+        });
+      }
 
       async function queryInflux(flux) {
         const url = `${influxHost.replace(/\/$/, '')}/api/v2/query?org=${encodeURIComponent(influxOrg)}`;
@@ -361,8 +379,12 @@
             btn.classList.remove('border-aurora-300/40', 'bg-aurora-300/30', 'text-aurora-600', 'dark:border-aurora-500/40', 'dark:bg-aurora-500/20', 'dark:text-aurora-200');
           }
         });
-        const { start, window } = ranges[rangeKey];
-        const flux = `from(bucket: "${influxBucket}")\n  |> range(start: ${start})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${window}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
+        const { durationMs, window, label, alignPrevious = true, offsetMs = 0 } = ranges[rangeKey];
+        const now = Date.now() - offsetMs;
+        const start = now - durationMs;
+        const prevStart = start - durationMs;
+        const flux = buildFluxQuery({ start: new Date(start).toISOString(), stop: new Date(now).toISOString(), window });
+        const prevFlux = buildFluxQuery({ start: new Date(prevStart).toISOString(), stop: new Date(start).toISOString(), window });
         lastQueryStatus = `Querying ${rangeKey}`;
         renderDebugList([
           { label: 'Sensor path', value: sensorPath || 'missing' },
@@ -373,15 +395,17 @@
           { label: 'Influx org', value: influxOrg },
           { label: 'Influx bucket', value: influxBucket },
           { label: 'Influx token', value: maskToken(influxToken) },
-          { label: 'Range', value: rangeKey },
+          { label: 'Range', value: label || rangeKey },
           { label: 'Last query', value: lastQueryStatus },
           { label: 'Query URL', value: lastQueryUrl || 'pending' }
         ]);
-        appendDebugLog(`Flux:\n${flux}`);
+        appendDebugLog(`Flux (current):\n${flux}`);
+        appendDebugLog(`Flux (previous):\n${prevFlux}`);
         try {
-          const text = await queryInflux(flux);
-          const lines = text.trim().split('\n').filter(line => !line.startsWith('#'));
-          if (lines.length < 2) {
+          const [currentText, previousText] = await Promise.all([queryInflux(flux), queryInflux(prevFlux)]);
+          const data = parseInfluxCsv(currentText);
+          const previousData = parseInfluxCsv(previousText);
+          if (data.length < 1 && previousData.length < 1) {
             lastQueryStatus = 'No data returned';
             renderDebugList([
               { label: 'Sensor path', value: sensorPath || 'missing' },
@@ -392,21 +416,17 @@
               { label: 'Influx org', value: influxOrg },
               { label: 'Influx bucket', value: influxBucket },
               { label: 'Influx token', value: maskToken(influxToken) },
-              { label: 'Range', value: rangeKey },
+              { label: 'Range', value: label || rangeKey },
               { label: 'Last query', value: lastQueryStatus },
               { label: 'Query URL', value: lastQueryUrl || 'pending' }
             ]);
             appendDebugLog('Influx returned no rows. Check bucket/measurement/field.');
             return;
           }
-          const headers = lines[0].split(',');
-          const timeIdx = headers.indexOf('_time');
-          const valueIdx = headers.indexOf('_value');
-          const data = lines.slice(1).map(l => {
-            const parts = l.split(',');
-            return [new Date(parts[timeIdx]).getTime(), parseFloat(parts[valueIdx])];
-          });
-          lastQueryStatus = `Loaded ${data.length} points`;
+          const alignedPrevious = alignPrevious
+            ? previousData.map(([timestamp, value]) => [timestamp + durationMs, value])
+            : previousData;
+          lastQueryStatus = `Loaded ${data.length} points (+${alignedPrevious.length} previous)`;
           renderDebugList([
             { label: 'Sensor path', value: sensorPath || 'missing' },
             { label: 'Sensor', value: sensor.name },
@@ -416,7 +436,7 @@
             { label: 'Influx org', value: influxOrg },
             { label: 'Influx bucket', value: influxBucket },
             { label: 'Influx token', value: maskToken(influxToken) },
-            { label: 'Range', value: rangeKey },
+            { label: 'Range', value: label || rangeKey },
             { label: 'Last query', value: lastQueryStatus },
             { label: 'Query URL', value: lastQueryUrl || 'pending' }
           ]);
@@ -429,8 +449,17 @@
             title: { text: null },
             xAxis: { type: 'datetime' },
             yAxis: { title: { text: sensor.unit || null } },
-            series: [{ name: sensor.name, data, tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' } }],
-            legend: { enabled: false }
+            series: [
+              { name: sensor.name, data, tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' } },
+              {
+                name: `${sensor.name} (previous)`,
+                data: alignedPrevious,
+                dashStyle: 'ShortDot',
+                color: '#94a3b8',
+                tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' }
+              }
+            ],
+            legend: { enabled: true }
           });
         } catch (err) {
           lastQueryStatus = 'Query failed';
@@ -443,7 +472,7 @@
             { label: 'Influx org', value: influxOrg },
             { label: 'Influx bucket', value: influxBucket },
             { label: 'Influx token', value: maskToken(influxToken) },
-            { label: 'Range', value: rangeKey },
+            { label: 'Range', value: label || rangeKey },
             { label: 'Last query', value: lastQueryStatus },
             { label: 'Query URL', value: lastQueryUrl || 'pending' }
           ]);
@@ -456,7 +485,7 @@
         btn.addEventListener('click', () => fetchData(btn.dataset.range));
       });
 
-      fetchData('tonight');
+      fetchData('day');
     }
     init();
   </script>
