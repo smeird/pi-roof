@@ -234,7 +234,12 @@
           tickColor: isDark ? '#334155' : '#94a3b8'
         },
         yAxis: {
-          labels: { style: { color: isDark ? '#e2e8f0' : '#0f172a' } },
+          labels: {
+            style: { color: isDark ? '#e2e8f0' : '#0f172a' },
+            formatter() {
+              return Highcharts.numberFormat(this.value, 1);
+            }
+          },
           title: { style: { color: isDark ? '#e2e8f0' : '#0f172a' } },
           gridLineColor: isDark ? '#1f2937' : '#e2e8f0',
           lineColor: isDark ? '#334155' : '#cbd5f5',
@@ -244,7 +249,8 @@
         tooltip: {
           backgroundColor: isDark ? '#111827' : '#ffffff',
           borderColor: isDark ? '#1d4ed8' : '#dbeafe',
-          style: { color: isDark ? '#f3f4f6' : '#0f172a' }
+          style: { color: isDark ? '#f3f4f6' : '#0f172a' },
+          valueDecimals: 1
         }
       });
     }
