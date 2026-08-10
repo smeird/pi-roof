@@ -11,7 +11,9 @@ $defaults = [
     'INFLUX_HOST' => 'http://localhost:8086',
     'INFLUX_ORG' => 'primary',
     'INFLUX_BUCKET' => 'Garden',
-    'INFLUX_TOKEN' => ''
+    'INFLUX_TOKEN' => '',
+    'DASHBOARD_SHOW_CHART' => '1',
+    'DASHBOARD_SHOW_SKYCAM' => '1'
 ];
 
 $stored = getAllSettings();
@@ -36,6 +38,12 @@ echo json_encode([
     'influxToken' => $config['INFLUX_TOKEN'],
     'sensors' => getSensors(),
     'switches' => getSwitches(),
+    'roofController' => getRoofController(),
+    'quickLinks' => getQuickLinks(),
+    'dashboard' => [
+        'showChart' => $config['DASHBOARD_SHOW_CHART'] === '1',
+        'showSkyCam' => $config['DASHBOARD_SHOW_SKYCAM'] === '1'
+    ],
     'roof' => [
         'open' => ['path' => $roof['open_path'], 'limit' => $roof['open_limit']],
         'close' => ['path' => $roof['close_path'], 'limit' => $roof['close_limit']]

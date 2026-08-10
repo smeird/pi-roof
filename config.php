@@ -1,6 +1,12 @@
 <?php
 function getDb() {
-    $db = new SQLite3('/var/www/data/config.db');
+    static $db = null;
+    if ($db instanceof SQLite3) {
+        return $db;
+    }
+    $dbPath = getenv('ROOF_CONFIG_DB_PATH') ?: '/var/www/data/config.db';
+    $db = new SQLite3($dbPath);
+    $db->exec('PRAGMA foreign_keys = ON');
     // create tables for simple key/value settings as well as dynamic lists
     $db->exec('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)');
     $db->exec('CREATE TABLE IF NOT EXISTS sensors (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, unit TEXT, name TEXT, green_value TEXT, green_direction TEXT, influx_measurement TEXT, influx_field TEXT)');
@@ -54,6 +60,52 @@ function getDb() {
         $db->exec('ALTER TABLE switches ADD COLUMN status_path TEXT');
     }
     $db->exec('CREATE TABLE IF NOT EXISTS roof (id INTEGER PRIMARY KEY CHECK (id = 1), open_path TEXT, open_limit TEXT, close_path TEXT, close_limit TEXT)');
+    $db->exec('CREATE TABLE IF NOT EXISTS roof_controller (id INTEGER PRIMARY KEY CHECK (id = 1), base_topic TEXT NOT NULL)');
+    $db->exec("INSERT OR IGNORE INTO roof_controller (id, base_topic) VALUES (1, 'Observatory/roof-esp')");
+
+    $db->exec('CREATE TABLE IF NOT EXISTS roof_relays (relay_key TEXT PRIMARY KEY, label TEXT NOT NULL, visible INTEGER NOT NULL DEFAULT 1, sort_order INTEGER NOT NULL DEFAULT 0)');
+    $relayCount = (int)$db->querySingle('SELECT COUNT(*) FROM roof_relays');
+    if ($relayCount === 0) {
+        $relayDefaults = [
+            ['relay3', '12V Power Supply (CH3)'],
+            ['relay4', 'White LED (CH4)'],
+            ['relay5', 'Red LED (CH5)'],
+            ['relay6', 'PC Power (CH6)'],
+            ['relay7', 'Dew Heater 12V Power (CH7)'],
+            ['relay8', 'Mount/Focus 12V Power (CH8)']
+        ];
+        $stmt = $db->prepare('INSERT INTO roof_relays (relay_key, label, visible, sort_order) VALUES (:relay_key, :label, 1, :sort_order)');
+        foreach ($relayDefaults as $order => $relay) {
+            $stmt->bindValue(':relay_key', $relay[0], SQLITE3_TEXT);
+            $stmt->bindValue(':label', $relay[1], SQLITE3_TEXT);
+            $stmt->bindValue(':sort_order', $order, SQLITE3_INTEGER);
+            $stmt->execute();
+        }
+    }
+
+    $db->exec('CREATE TABLE IF NOT EXISTS quick_links (id INTEGER PRIMARY KEY AUTOINCREMENT, label TEXT NOT NULL, url TEXT NOT NULL, icon TEXT NOT NULL, visible INTEGER NOT NULL DEFAULT 1, sort_order INTEGER NOT NULL DEFAULT 0)');
+    $linkCount = (int)$db->querySingle('SELECT COUNT(*) FROM quick_links');
+    $linksSeeded = $db->querySingle("SELECT value FROM settings WHERE key = 'QUICK_LINKS_SEEDED'");
+    if ($linkCount === 0 && $linksSeeded === null) {
+        $linkDefaults = [
+            ['AAGSolo', 'http://10.0.179.242', 'fa-mountain-sun'],
+            ['Obs Graphs', 'http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&from=now-24h&to=now&timezone=browser', 'fa-chart-line'],
+            ['Weather', 'http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59', 'fa-cloud-sun'],
+            ['Public obs', 'http://ob.smeird.com', 'fa-earth-europe'],
+            ['Public Weather', 'http://www.smeird.com', 'fa-droplet'],
+            ['Night Forecast', 'https://clearoutside.com/forecast/51.81/-0.29', 'fa-moon'],
+            ['SkyCam', 'https://skycam.smeird.com', 'fa-camera']
+        ];
+        $stmt = $db->prepare('INSERT INTO quick_links (label, url, icon, visible, sort_order) VALUES (:label, :url, :icon, 1, :sort_order)');
+        foreach ($linkDefaults as $order => $link) {
+            $stmt->bindValue(':label', $link[0], SQLITE3_TEXT);
+            $stmt->bindValue(':url', $link[1], SQLITE3_TEXT);
+            $stmt->bindValue(':icon', $link[2], SQLITE3_TEXT);
+            $stmt->bindValue(':sort_order', $order, SQLITE3_INTEGER);
+            $stmt->execute();
+        }
+    }
+    $db->exec("INSERT OR IGNORE INTO settings (key, value) VALUES ('QUICK_LINKS_SEEDED', '1')");
     return $db;
 }
 
@@ -169,5 +221,79 @@ function setRoof($data) {
     $stmt->bindValue(':close_path', $data['close_path'] ?? '', SQLITE3_TEXT);
     $stmt->bindValue(':close_limit', $data['close_limit'] ?? '', SQLITE3_TEXT);
     $stmt->execute();
+}
+
+function getRoofController() {
+    $db = getDb();
+    $baseTopic = $db->querySingle('SELECT base_topic FROM roof_controller WHERE id = 1');
+    $res = $db->query('SELECT relay_key, label, visible FROM roof_relays ORDER BY sort_order, relay_key');
+    $relays = [];
+    while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+        $relays[] = [
+            'key' => $row['relay_key'],
+            'label' => $row['label'],
+            'visible' => (bool)$row['visible']
+        ];
+    }
+    return [
+        'baseTopic' => $baseTopic ?: 'Observatory/roof-esp',
+        'relays' => $relays
+    ];
+}
+
+function setRoofController($controller) {
+    $db = getDb();
+    $db->exec('BEGIN IMMEDIATE');
+    try {
+        $stmt = $db->prepare('REPLACE INTO roof_controller (id, base_topic) VALUES (1, :base_topic)');
+        $stmt->bindValue(':base_topic', $controller['baseTopic'], SQLITE3_TEXT);
+        $stmt->execute();
+
+        $db->exec('DELETE FROM roof_relays');
+        $stmt = $db->prepare('INSERT INTO roof_relays (relay_key, label, visible, sort_order) VALUES (:relay_key, :label, :visible, :sort_order)');
+        foreach ($controller['relays'] as $order => $relay) {
+            $stmt->bindValue(':relay_key', $relay['key'], SQLITE3_TEXT);
+            $stmt->bindValue(':label', $relay['label'], SQLITE3_TEXT);
+            $stmt->bindValue(':visible', !empty($relay['visible']) ? 1 : 0, SQLITE3_INTEGER);
+            $stmt->bindValue(':sort_order', $order, SQLITE3_INTEGER);
+            $stmt->execute();
+        }
+        $db->exec('COMMIT');
+    } catch (Throwable $error) {
+        $db->exec('ROLLBACK');
+        throw $error;
+    }
+}
+
+function getQuickLinks() {
+    $db = getDb();
+    $res = $db->query('SELECT label, url, icon, visible FROM quick_links ORDER BY sort_order, id');
+    $links = [];
+    while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+        $row['visible'] = (bool)$row['visible'];
+        $links[] = $row;
+    }
+    return $links;
+}
+
+function replaceQuickLinks($links) {
+    $db = getDb();
+    $db->exec('BEGIN IMMEDIATE');
+    try {
+        $db->exec('DELETE FROM quick_links');
+        $stmt = $db->prepare('INSERT INTO quick_links (label, url, icon, visible, sort_order) VALUES (:label, :url, :icon, :visible, :sort_order)');
+        foreach ($links as $order => $link) {
+            $stmt->bindValue(':label', $link['label'], SQLITE3_TEXT);
+            $stmt->bindValue(':url', $link['url'], SQLITE3_TEXT);
+            $stmt->bindValue(':icon', $link['icon'], SQLITE3_TEXT);
+            $stmt->bindValue(':visible', !empty($link['visible']) ? 1 : 0, SQLITE3_INTEGER);
+            $stmt->bindValue(':sort_order', $order, SQLITE3_INTEGER);
+            $stmt->execute();
+        }
+        $db->exec('COMMIT');
+    } catch (Throwable $error) {
+        $db->exec('ROLLBACK');
+        throw $error;
+    }
 }
 ?>
