@@ -70,3 +70,4 @@
 - Built-in roof relays and auxiliary switches render together in the Devices panel, six per page. Sensors render eight per page.
 - Live Trends and SkyCam panels support an in-page maximize overlay and must reflow correctly when restored.
 - Configuration tests may override the SQLite location with `ROOF_CONFIG_DB_PATH`; production continues to default to `/var/www/data/config.db`.
+- Open and Close roof commands require the controller `relay3` 12V state topic to report `1`; otherwise the dashboard blocks publication and shows the power interlock dialog.

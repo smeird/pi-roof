@@ -108,6 +108,17 @@
   </div>
 
   <div id="modalBackdrop" class="ops-modal-backdrop" hidden></div>
+  <div id="powerDialogBackdrop" class="ops-modal-backdrop" hidden></div>
+  <div id="powerInterlockDialog" class="ops-dialog" role="alertdialog" aria-modal="true" aria-labelledby="powerDialogTitle" aria-describedby="powerDialogMessage" hidden>
+    <div class="flex h-11 w-11 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-300">
+      <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+    </div>
+    <div>
+      <h2 id="powerDialogTitle" class="text-sm font-extrabold uppercase tracking-wide">12V power required</h2>
+      <p id="powerDialogMessage" class="mt-2 text-sm leading-6 text-[var(--muted)]"></p>
+    </div>
+    <button id="dismissPowerDialog" type="button" class="ops-button ops-button-warning w-full">OK</button>
+  </div>
 
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
@@ -130,6 +141,8 @@
     initShell({ activePage: 'dashboard', quickLinks: config.quickLinks });
 
     const baseTopic = (config.roofController?.baseTopic || 'Observatory/roof-esp').replace(/\/+$/, '');
+    const powerRelayStateTopic = `${baseTopic}/state/relay3`;
+    const powerRelayLabel = config.roofController?.relays?.find(relay => relay.key === 'relay3')?.label || '12V Power Supply (CH3)';
     const roofEsp = {
       state: {
         online: `${baseTopic}/online`, openLimit: `${baseTopic}/open_limit`, closeLimit: `${baseTopic}/close_limit`,
@@ -144,6 +157,7 @@
     };
 
     const topics = new Set();
+    topics.add(powerRelayStateTopic);
     const staticTopics = new Set();
     const stateValues = {};
     const sensorValueEls = {};
@@ -176,14 +190,20 @@
       if (tone) element.classList.add(`tone-${tone}`);
     }
 
-    function createActionButton(label, icon, commandTopic, tone = 'primary') {
+    function createActionButton(label, icon, commandTopic, tone = 'primary', requires12V = false) {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = `ops-button ${tone === 'danger' ? 'ops-button-danger' : tone === 'warning' ? 'ops-button-warning' : 'ops-button-primary'}`;
       const glyph = makeElement('i', `fa-solid ${icon}`);
       glyph.setAttribute('aria-hidden', 'true');
       button.append(glyph, document.createTextNode(label));
-      button.addEventListener('click', () => sendCommand(commandTopic, '1', label));
+      button.addEventListener('click', () => {
+        if (requires12V && stateValues[powerRelayStateTopic] !== '1') {
+          showPowerInterlock(label.toLowerCase());
+          return;
+        }
+        sendCommand(commandTopic, '1', label);
+      });
       return button;
     }
 
@@ -229,8 +249,8 @@
 
     function renderRoofControls() {
       const container = document.getElementById('roofControls');
-      const open = createActionButton('Open', 'fa-arrow-up', roofEsp.command.open);
-      const close = createActionButton('Close', 'fa-arrow-down', roofEsp.command.close);
+      const open = createActionButton('Open', 'fa-arrow-up', roofEsp.command.open, 'primary', true);
+      const close = createActionButton('Close', 'fa-arrow-down', roofEsp.command.close, 'primary', true);
       const stop = createActionButton('Stop', 'fa-stop', roofEsp.command.stop, 'danger');
       const clear = createActionButton('Clear fault', 'fa-triangle-exclamation', roofEsp.command.faultClear, 'warning');
       const beep = createActionButton('Buzzer', 'fa-bell', roofEsp.command.beep);
@@ -430,6 +450,38 @@
       document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
     }
 
+    function setupPowerInterlock() {
+      const dialog = document.getElementById('powerInterlockDialog');
+      const backdrop = document.getElementById('powerDialogBackdrop');
+      const dismiss = document.getElementById('dismissPowerDialog');
+      const close = () => {
+        if (dialog.hidden) return;
+        dialog.hidden = true;
+        backdrop.hidden = true;
+        document.body.classList.remove('overflow-hidden');
+        dialog._returnFocus?.focus();
+      };
+      dismiss.addEventListener('click', close);
+      backdrop.addEventListener('click', close);
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !dialog.hidden) close();
+      });
+    }
+
+    function showPowerInterlock(action) {
+      const dialog = document.getElementById('powerInterlockDialog');
+      const message = document.getElementById('powerDialogMessage');
+      dialog._returnFocus = document.activeElement;
+      const stateUnknown = !(powerRelayStateTopic in stateValues) || stateValues[powerRelayStateTopic] === null;
+      message.textContent = stateUnknown
+        ? `${powerRelayLabel} has not reported that it is on. Confirm the 12V supply is on before trying to ${action} the roof.`
+        : `${powerRelayLabel} is off. Turn it on in Devices before trying to ${action} the roof.`;
+      document.getElementById('powerDialogBackdrop').hidden = false;
+      dialog.hidden = false;
+      document.body.classList.add('overflow-hidden');
+      document.getElementById('dismissPowerDialog').focus();
+    }
+
     function updateConnectionStatus(status) {
       const chip = document.getElementById('connectionStatus');
       const text = document.getElementById('statusText');
@@ -555,6 +607,7 @@
     configureDashboardVisibility();
     initChart();
     setupMaximize();
+    setupPowerInterlock();
     window.addEventListener('observatory-theme-change', applyChartTheme);
     setInterval(updateHeartbeat, 5000);
 

@@ -215,6 +215,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ops-maximized { position: fixed !important; inset: .75rem !important; z-index: 100 !important; width: auto !important; height: auto !important; grid-column: auto !important; grid-row: auto !important; box-shadow: var(--shadow-overlay); }
 .ops-modal-backdrop { position: fixed; inset: 0; z-index: 90; background: rgba(2, 6, 23, .72); }
 .ops-modal-backdrop[hidden] { display: none; }
+.ops-dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 110;
+  width: min(26rem, calc(100vw - 2rem));
+  display: grid;
+  gap: 1rem;
+  transform: translate(-50%, -50%);
+  padding: 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: .75rem;
+  background: var(--panel);
+  box-shadow: var(--shadow-overlay);
+}
 
 @media (min-width: 1280px) and (min-height: 700px) {
   body.dashboard-page { overflow: hidden; }
