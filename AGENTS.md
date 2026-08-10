@@ -61,3 +61,12 @@
 - History page includes a Debug details panel that can be auto-opened with `?debug=1` to surface InfluxDB configuration and query diagnostics.
 - History charts overlay the previous period as a dotted comparison series aligned to the current range.
 - Added `scripts/roof/startup.sh` and `scripts/roof/shutdown.sh` to publish MQTT relay commands for 12V power, dew heater power, and mount/focus power, configurable via environment variables.
+
+- The dashboard uses a fixed modern-operations grid at desktop viewports of 1366x768 or larger; smaller screens use a stacked scrolling layout.
+- Desktop navigation uses a compact icon rail populated by configurable quick links.
+- Light, dark, and system modes are managed by `js/theme.js`; do not add page-specific theme persistence logic.
+- Shared control-dashboard colors, panels, status chips, inputs, and responsive layout rules live in `css/app.css`.
+- Roof controller topics derive from the configurable `roofController.baseTopic`; the standard `roof-esp` command/state suffixes remain fixed.
+- Built-in roof relays and auxiliary switches render together in the Devices panel, six per page. Sensors render eight per page.
+- Live Trends and SkyCam panels support an in-page maximize overlay and must reflow correctly when restored.
+- Configuration tests may override the SQLite location with `ROOF_CONFIG_DB_PATH`; production continues to default to `/var/www/data/config.db`.

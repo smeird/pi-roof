@@ -3,497 +3,235 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>Sensor History</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script>
-    const savedTheme = localStorage.getItem('theme') || 'system';
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const enableDark = savedTheme === 'dark' || (savedTheme === 'system' && prefersDark);
-    document.documentElement.classList.toggle('dark', enableDark);
-  </script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif']
-          },
-          colors: {
-            aurora: {
-              200: '#c4d9ff',
-              300: '#92b4ff',
-              400: '#5b8fff',
-              500: '#2d72ff'
-            }
-          }
-        }
-      }
-    };
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/app.css">
   <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
-<body class="min-h-screen font-sans antialiased text-slate-900 dark:text-slate-100">
-  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"></div>
-    <div class="absolute left-1/2 top-[-10%] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-aurora-300/40 blur-3xl dark:bg-aurora-500/30"></div>
-    <div class="absolute bottom-[-25%] right-[-10%] h-[480px] w-[480px] rounded-full bg-aurora-200/40 blur-3xl dark:bg-aurora-400/20"></div>
-    <div class="absolute left-[-15%] top-1/3 h-72 w-72 rounded-full bg-white/40 blur-3xl dark:bg-white/5"></div>
-  </div>
-  <div id="overlay" class="fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-sm hidden md:hidden"></div>
-  <div class="relative z-10 min-h-screen md:flex">
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full transform flex-col border-r border-white/10 bg-slate-900/80 px-6 pb-6 pt-8 text-slate-100 backdrop-blur-lg transition-transform duration-300 md:relative md:translate-x-0 md:flex-shrink-0 md:border-r md:border-slate-200/20">
-      <div class="mb-8 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-3 text-lg font-semibold tracking-tight">
-          <span class="grid h-10 w-10 place-items-center rounded-2xl bg-white/10 text-aurora-200 shadow ring-1 ring-white/20"><i class="fa-solid fa-binoculars"></i></span>
-          <span class="leading-tight">Observatory</span>
-        </a>
-        <button id="closeSidebar" class="md:hidden text-slate-300 transition hover:text-white" aria-label="Close menu">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-      </div>
-      <div class="space-y-6 overflow-y-auto">
-        <div class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-inner backdrop-blur">
-          <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-200/80">
-            <span>Theme</span>
-            <i class="fa-solid fa-circle-half-stroke text-aurora-200"></i>
-          </div>
-          <select id="themeSelect" class="mt-3 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm font-medium text-slate-100 shadow-sm outline-none transition focus:border-aurora-400 focus:ring-2 focus:ring-aurora-300/40">
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="system">System</option>
-          </select>
-        </div>
-        <nav class="space-y-2 text-sm font-medium">
-          <p class="px-3 text-xs uppercase tracking-[0.3em] text-slate-200/60">Quick Links</p>
-          <ul class="space-y-2">
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://10.0.179.242" target="_blank"><i class="fa-solid fa-mountain-sun text-aurora-200"></i><span>AAGSolo</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&amp;from=now-24h&amp;to=now&amp;timezone=browser" target="_blank"><i class="fa-solid fa-chart-line text-aurora-200"></i><span>Obs Graphs</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank"><i class="fa-solid fa-cloud-sun text-aurora-200"></i><span>Weather</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://ob.smeird.com" target="_blank"><i class="fa-solid fa-earth-europe text-aurora-200"></i><span>Public obs</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://www.smeird.com" target="_blank"><i class="fa-solid fa-droplet text-aurora-200"></i><span>Public Weather</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank"><i class="fa-solid fa-moon-stars text-aurora-200"></i><span>Night Forecast</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="https://skycam.smeird.com" target="_blank"><i class="fa-solid fa-camera text-aurora-200"></i><span>SkyCam</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="settings.html"><i class="fa-solid fa-sliders text-aurora-200"></i><span>Settings</span></a></li>
-          </ul>
-        </nav>
-      </div>
-    </aside>
-
-    <div class="flex min-h-screen flex-1 flex-col">
-
-      <header class="flex items-center justify-between gap-4 bg-white/80 px-6 py-4 shadow-sm backdrop-blur dark:bg-slate-900/70 md:hidden">
-        <div class="flex items-center gap-3 text-base font-semibold text-slate-700 dark:text-slate-100">
-          <span class="grid h-9 w-9 place-items-center rounded-2xl bg-aurora-400/20 text-aurora-500 dark:bg-aurora-500/20"><i class="fa-solid fa-binoculars"></i></span>
-          Observatory
-        </div>
-        <button id="menuButton" class="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-100" aria-label="Open menu">
-          <i class="fa-solid fa-bars text-lg"></i>
-        </button>
+<body>
+  <div class="ops-shell">
+    <aside id="appRail" class="ops-rail" aria-label="Application navigation"></aside>
+    <main class="ops-main min-w-0">
+      <header class="ops-topbar sticky top-0 z-30">
+        <div class="flex items-center gap-3"><a href="/" class="ops-button ops-button-ghost" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a><h1 class="ops-page-title">Sensor History</h1></div>
+        <span id="queryState" class="ops-status-chip tone-warn" role="status" aria-live="polite"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading</span></span>
       </header>
-      <main class="flex-1 px-4 py-10 sm:px-8">
-        <div class="mx-auto flex w-full max-w-none flex-col gap-8">
-          <div class="flex flex-col gap-3">
-            <p class="text-sm uppercase tracking-[0.35em] text-slate-500/70 dark:text-slate-300/60">History</p>
-            <h1 class="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white"><span class="bg-gradient-to-r from-aurora-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">Sensor History</span></h1>
-            <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-300/80">Explore historical performance and threshold compliance using the interactive range filters below.</p>
-          </div>
-          <div class="rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-              <h2 id="sensorTitle" class="text-2xl font-semibold text-slate-900 dark:text-white">Sensor History</h2>
-              <div class="flex flex-wrap gap-2">
-                <button data-range="day" class="range-btn inline-flex items-center gap-2 rounded-xl border border-aurora-300/40 bg-aurora-300/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-aurora-600 transition hover:-translate-y-0.5 hover:bg-aurora-300/30 dark:border-aurora-500/30 dark:bg-aurora-500/10 dark:text-aurora-200"><i class="fa-solid fa-clock"></i> Last 24h</button>
-                <button data-range="yesterday" class="range-btn inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600 transition hover:-translate-y-0.5 hover:border-aurora-300/40 hover:bg-aurora-300/20 hover:text-aurora-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:border-aurora-500/40 dark:hover:bg-aurora-500/10 dark:hover:text-aurora-200"><i class="fa-solid fa-calendar-day"></i> Yesterday</button>
-                <button data-range="week" class="range-btn inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600 transition hover:-translate-y-0.5 hover:border-aurora-300/40 hover:bg-aurora-300/20 hover:text-aurora-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:border-aurora-500/40 dark:hover:bg-aurora-500/10 dark:hover:text-aurora-200"><i class="fa-solid fa-calendar-week"></i> This Week</button>
-              </div>
+
+      <div class="mx-auto w-full max-w-[100rem] space-y-3 p-3">
+        <section class="ops-card">
+          <header class="ops-card-header flex-wrap">
+            <h2 id="sensorTitle" class="ops-card-title">Sensor History</h2>
+            <div class="flex flex-wrap gap-1.5" role="group" aria-label="History range">
+              <button type="button" data-range="day" class="range-btn ops-button ops-button-primary"><i class="fa-solid fa-clock"></i>Last 24h</button>
+              <button type="button" data-range="yesterday" class="range-btn ops-button"><i class="fa-solid fa-calendar-day"></i>Yesterday</button>
+              <button type="button" data-range="week" class="range-btn ops-button"><i class="fa-solid fa-calendar-week"></i>This week</button>
             </div>
-            <div id="historyChart" class="mt-6 h-[55vh] min-h-[18rem] sm:min-h-[22rem] lg:min-h-[30rem] rounded-2xl border border-slate-200/60 bg-slate-900/5 dark:border-white/10 dark:bg-black/20"></div>
-            <details id="debugPanel" class="group mt-6 rounded-2xl border border-slate-200/60 bg-white/70 p-5 text-sm text-slate-700 shadow-inner backdrop-blur dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200">
-              <summary class="cursor-pointer list-none font-semibold text-slate-900 transition group-open:text-aurora-500 dark:text-white">
-                <i class="fa-solid fa-bug mr-2 text-aurora-500"></i>Debug details
-              </summary>
-              <div class="mt-4 grid gap-4">
-                <div class="grid gap-2 sm:grid-cols-2" id="debugList"></div>
-                <div>
-                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500/80 dark:text-slate-400">Log</p>
-                  <pre id="debugLog" class="mt-2 max-h-48 overflow-auto rounded-xl border border-slate-200/70 bg-white/80 p-3 text-xs text-slate-700 shadow-inner dark:border-white/10 dark:bg-black/40 dark:text-slate-200"></pre>
-                </div>
-              </div>
-            </details>
+          </header>
+          <div class="ops-card-body">
+            <div id="historyChart" class="h-[65vh] min-h-[22rem]"></div>
           </div>
-        </div>
-      </main>
-    </div>
+        </section>
+
+        <details id="debugPanel" class="ops-card">
+          <summary class="ops-card-header cursor-pointer list-none"><span class="ops-card-title"><i class="fa-solid fa-bug mr-2 text-blue-600"></i>Debug details</span></summary>
+          <div class="ops-card-body space-y-3">
+            <div id="debugList" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4"></div>
+            <pre id="debugLog" class="max-h-52 overflow-auto rounded-lg border bg-[var(--panel-subtle)] p-3 text-xs text-[var(--muted)]" style="border-color:var(--border)"></pre>
+          </div>
+        </details>
+      </div>
+    </main>
   </div>
 
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
-
-    const menuButton = document.getElementById('menuButton');
-    const closeSidebar = document.getElementById('closeSidebar');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-
-    function openMenu() {
-      if (!sidebar || !overlay) return;
-      sidebar.classList.remove('-translate-x-full');
-      overlay.classList.remove('hidden');
-      overlay.style.left = `${sidebar.offsetWidth}px`;
-      document.body.classList.add('overflow-hidden');
-    }
-
-    function closeMenu() {
-      if (!sidebar || !overlay) return;
-      sidebar.classList.add('-translate-x-full');
-      overlay.classList.add('hidden');
-      overlay.style.left = '';
-      document.body.classList.remove('overflow-hidden');
-    }
-
-    if (menuButton && sidebar && overlay) {
-      const toggleSidebar = () => {
-        if (sidebar.classList.contains('-translate-x-full')) {
-          openMenu();
-        } else {
-          closeMenu();
-        }
-      };
-      menuButton.addEventListener('click', toggleSidebar);
-      overlay.addEventListener('click', toggleSidebar);
-      if (closeSidebar) {
-        closeSidebar.addEventListener('click', closeMenu);
-      }
-    }
+    import { initShell } from './js/shell.js';
 
     const params = new URLSearchParams(window.location.search);
     const sensorPath = params.get('sensor');
-    const debugEnabled = params.has('debug');
-
-    let historyChart;
-    let currentRange = 'day';
-    let lastQueryStatus = 'Not started';
-    let lastQueryUrl = '';
-
-    const themeSelect = document.getElementById('themeSelect');
-    const debugPanel = document.getElementById('debugPanel');
+    const queryState = document.getElementById('queryState');
     const debugList = document.getElementById('debugList');
     const debugLog = document.getElementById('debugLog');
+    let historyChart;
+    let currentContext = {};
 
-    if (debugPanel && debugEnabled) {
-      debugPanel.open = true;
+    if (params.has('debug')) document.getElementById('debugPanel').open = true;
+
+    function chartColors() {
+      const dark = document.documentElement.classList.contains('dark');
+      return dark
+        ? { text: '#cbd5e1', muted: '#94a3b8', grid: '#334155', tooltip: '#172033', border: '#475569' }
+        : { text: '#334155', muted: '#64748b', grid: '#cbd5e1', tooltip: '#ffffff', border: '#94a3b8' };
+    }
+
+    function applyChartTheme() {
+      const colors = chartColors();
+      Highcharts.setOptions({
+        chart: { backgroundColor: 'transparent', plotBackgroundColor: 'transparent' },
+        xAxis: { gridLineColor: colors.grid, lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted } } },
+        yAxis: { gridLineColor: colors.grid, lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted } }, title: { style: { color: colors.muted } } },
+        legend: { itemStyle: { color: colors.text }, itemHoverStyle: { color: colors.text } },
+        tooltip: { backgroundColor: colors.tooltip, borderColor: colors.border, style: { color: colors.text }, valueDecimals: 1 }
+      });
+      if (historyChart) {
+        historyChart.update({
+          xAxis: { gridLineColor: colors.grid, lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted } } },
+          yAxis: { gridLineColor: colors.grid, lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted } }, title: { style: { color: colors.muted } } },
+          legend: { itemStyle: { color: colors.text }, itemHoverStyle: { color: colors.text } },
+          tooltip: { backgroundColor: colors.tooltip, borderColor: colors.border, style: { color: colors.text } }
+        }, true, true);
+      }
+    }
+
+    function setQueryState(label, tone, icon, spin = false) {
+      queryState.classList.remove('tone-good', 'tone-warn', 'tone-bad', 'tone-info');
+      queryState.classList.add(`tone-${tone}`);
+      queryState.querySelector('i').className = `fa-solid ${icon}${spin ? ' fa-spin' : ''}`;
+      queryState.querySelector('span').textContent = label;
     }
 
     function maskToken(token) {
       if (!token) return 'missing';
-      if (token.length <= 8) return `${token.slice(0, 2)}…`;
-      return `${token.slice(0, 4)}…${token.slice(-4)}`;
+      return token.length <= 8 ? `${token.slice(0, 2)}…` : `${token.slice(0, 4)}…${token.slice(-4)}`;
     }
 
-    function appendDebugLog(message) {
-      if (!debugLog) return;
-      const timestamp = new Date().toLocaleTimeString();
-      const line = `[${timestamp}] ${message}`;
+    function appendDebug(message) {
+      const line = `[${new Date().toLocaleTimeString('en-GB')}] ${message}`;
       debugLog.textContent = debugLog.textContent ? `${debugLog.textContent}\n${line}` : line;
       debugLog.scrollTop = debugLog.scrollHeight;
     }
 
-    function renderDebugList(entries) {
-      if (!debugList) return;
-      debugList.innerHTML = '';
-      entries.forEach(({ label, value }) => {
+    function renderDebug(extra = {}) {
+      const entries = { ...currentContext, ...extra };
+      debugList.replaceChildren();
+      Object.entries(entries).forEach(([label, value]) => {
         const row = document.createElement('div');
-        row.className = 'flex flex-col gap-1 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-xs shadow-sm dark:border-white/10 dark:bg-black/40';
-        const title = document.createElement('span');
-        title.className = 'text-[0.65rem] uppercase tracking-[0.2em] text-slate-500/80 dark:text-slate-400';
-        title.textContent = label;
-        const content = document.createElement('span');
-        content.className = 'font-semibold text-slate-800 dark:text-slate-100';
-        content.textContent = value;
-        row.append(title, content);
-        debugList.append(row);
+        row.className = 'rounded-lg border bg-[var(--panel-subtle)] p-2';
+        row.style.borderColor = 'var(--border)';
+        const key = document.createElement('div');
+        key.className = 'text-[.62rem] font-extrabold uppercase tracking-wide text-[var(--muted-soft)]';
+        key.textContent = label;
+        const content = document.createElement('div');
+        content.className = 'mt-1 truncate text-xs font-bold text-[var(--text)]';
+        content.textContent = String(value ?? 'missing');
+        row.append(key, content);
+        debugList.appendChild(row);
       });
     }
 
-    function applyChartTheme(isDark) {
-      Highcharts.setOptions({
-        chart: {
-          backgroundColor: 'transparent',
-          plotBackgroundColor: 'transparent',
-          plotBorderWidth: 0,
-          style: { color: isDark ? '#f3f4f6' : '#0f172a' }
-        },
-        title: { style: { color: isDark ? '#f3f4f6' : '#0f172a' } },
-        xAxis: {
-          labels: { style: { color: isDark ? '#e2e8f0' : '#0f172a' } },
-          gridLineColor: isDark ? '#1f2937' : '#e2e8f0',
-          lineColor: isDark ? '#334155' : '#cbd5f5',
-          tickColor: isDark ? '#334155' : '#94a3b8'
-        },
-        yAxis: {
-          labels: {
-            style: { color: isDark ? '#e2e8f0' : '#0f172a' },
-            formatter() {
-              return Highcharts.numberFormat(this.value, 1);
-            }
-          },
-          title: { style: { color: isDark ? '#e2e8f0' : '#0f172a' } },
-          gridLineColor: isDark ? '#1f2937' : '#e2e8f0',
-          lineColor: isDark ? '#334155' : '#cbd5f5',
-          tickColor: isDark ? '#334155' : '#94a3b8'
-        },
-        legend: { itemStyle: { color: isDark ? '#f3f4f6' : '#0f172a' } },
-        tooltip: {
-          backgroundColor: isDark ? '#111827' : '#ffffff',
-          borderColor: isDark ? '#1d4ed8' : '#dbeafe',
-          style: { color: isDark ? '#f3f4f6' : '#0f172a' },
-          valueDecimals: 1
-        }
-      });
+    function parseInfluxCsv(text) {
+      const lines = text.trim().split('\n').filter(line => line && !line.startsWith('#'));
+      if (lines.length < 2) return [];
+      const headers = lines[0].split(',');
+      const timeIndex = headers.indexOf('_time');
+      const valueIndex = headers.indexOf('_value');
+      if (timeIndex < 0 || valueIndex < 0) return [];
+      return lines.slice(1).map(line => {
+        const parts = line.split(',');
+        return [new Date(parts[timeIndex]).getTime(), Math.round(Number.parseFloat(parts[valueIndex]) * 10) / 10];
+      }).filter(point => Number.isFinite(point[0]) && Number.isFinite(point[1]));
     }
 
-    if (themeSelect) {
-      const storedTheme = localStorage.getItem('theme') || 'system';
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    try {
+      const config = await loadConfig();
+      initShell({ quickLinks: config.quickLinks });
+      applyChartTheme();
+      window.addEventListener('observatory-theme-change', applyChartTheme);
 
-      function setTheme(theme) {
-        const isDark = theme === 'dark' || (theme === 'system' && mediaQuery.matches);
-        document.documentElement.classList.toggle('dark', isDark);
-        applyChartTheme(isDark);
-        if (historyChart) {
-          fetchData(currentRange);
-        }
-      }
-
-      themeSelect.value = storedTheme;
-      setTheme(storedTheme);
-
-      themeSelect.addEventListener('change', e => {
-        const value = e.target.value;
-        localStorage.setItem('theme', value);
-        setTheme(value);
-      });
-
-      mediaQuery.addEventListener('change', () => {
-        if (localStorage.getItem('theme') === 'system') {
-          setTheme('system');
-        }
-      });
-    } else {
-      applyChartTheme(false);
-    }
-
-    async function init() {
-      let config;
-      try {
-        config = await loadConfig();
-      } catch (error) {
-        appendDebugLog(`Config load failed: ${error.message}`);
-        document.getElementById('sensorTitle').textContent = 'Unable to load configuration';
-        return;
-      }
-
-      const { sensors, influxHost, influxOrg, influxBucket, influxToken } = config;
-      const sensor = sensors.find(s => s.path === sensorPath);
-      const debugEntries = [
-        { label: 'Sensor path', value: sensorPath || 'missing' },
-        { label: 'Sensor found', value: sensor ? 'yes' : 'no' },
-        { label: 'Influx host', value: influxHost || 'missing' },
-        { label: 'Influx org', value: influxOrg || 'missing' },
-        { label: 'Influx bucket', value: influxBucket || 'missing' },
-        { label: 'Influx token', value: maskToken(influxToken) }
-      ];
-
+      const sensor = config.sensors.find(item => item.path === sensorPath);
+      currentContext = {
+        'Sensor path': sensorPath || 'missing', 'Sensor found': sensor ? 'yes' : 'no',
+        'Influx host': config.influxHost || 'missing', 'Influx org': config.influxOrg || 'missing',
+        'Influx bucket': config.influxBucket || 'missing', 'Influx token': maskToken(config.influxToken)
+      };
       if (sensor) {
-        debugEntries.push(
-          { label: 'Measurement', value: sensor.influxMeasurement || 'missing' },
-          { label: 'Field', value: sensor.influxField || 'missing' }
-        );
+        currentContext.Measurement = sensor.influxMeasurement || 'missing';
+        currentContext.Field = sensor.influxField || 'missing';
       }
+      renderDebug();
 
-      renderDebugList(debugEntries);
-
-      if (!sensor || !sensor.influxMeasurement || !sensor.influxField) {
-        document.getElementById('sensorTitle').textContent = 'No historical data';
-        appendDebugLog('Missing sensor measurement/field configuration.');
-        return;
-      }
-
-      if (!influxHost || !influxOrg || !influxBucket || !influxToken) {
-        document.getElementById('sensorTitle').textContent = 'Influx settings incomplete';
-        appendDebugLog('Influx settings are missing (host/org/bucket/token).');
-        return;
-      }
+      if (!sensor || !sensor.influxMeasurement || !sensor.influxField) throw new Error('No historical data is configured for this sensor.');
+      if (!config.influxHost || !config.influxOrg || !config.influxBucket || !config.influxToken) throw new Error('InfluxDB settings are incomplete.');
       document.getElementById('sensorTitle').textContent = `${sensor.name} History`;
 
       const ranges = {
-        day: { label: 'Last 24h', durationMs: 24 * 60 * 60 * 1000, window: '30m', offsetMs: 0 },
-        yesterday: { label: 'Yesterday', durationMs: 24 * 60 * 60 * 1000, window: '30m', offsetMs: 24 * 60 * 60 * 1000 },
-        week: { label: 'This Week', durationMs: 7 * 24 * 60 * 60 * 1000, window: '2h', offsetMs: 0 }
+        day: { label: 'Last 24h', duration: 86400000, window: '30m', offset: 0 },
+        yesterday: { label: 'Yesterday', duration: 86400000, window: '30m', offset: 86400000 },
+        week: { label: 'This week', duration: 604800000, window: '2h', offset: 0 }
       };
 
-      function buildFluxQuery({ start, stop, window }) {
-        return `from(bucket: "${influxBucket}")\n  |> range(start: ${start}, stop: ${stop})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${window}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
-      }
-
-      function parseInfluxCsv(text) {
-        const lines = text.trim().split('\n').filter(line => !line.startsWith('#'));
-        if (lines.length < 2) {
-          return [];
-        }
-        const headers = lines[0].split(',');
-        const timeIdx = headers.indexOf('_time');
-        const valueIdx = headers.indexOf('_value');
-        return lines.slice(1).map(l => {
-          const parts = l.split(',');
-          return [new Date(parts[timeIdx]).getTime(), parseFloat(parts[valueIdx])];
-        });
+      function buildFlux(start, stop, windowSize) {
+        return `from(bucket: "${config.influxBucket}")\n  |> range(start: ${start}, stop: ${stop})\n  |> filter(fn: (r) => r["_measurement"] == "${sensor.influxMeasurement}")\n  |> filter(fn: (r) => r["_field"] == "${sensor.influxField}")\n  |> aggregateWindow(every: ${windowSize}, fn: mean, createEmpty: false)\n  |> yield(name: "mean")`;
       }
 
       async function queryInflux(flux) {
-        const url = `${influxHost.replace(/\/$/, '')}/api/v2/query?org=${encodeURIComponent(influxOrg)}`;
-        lastQueryUrl = url;
-        appendDebugLog(`POST ${url}`);
-        const res = await fetch(url, {
+        const url = `${config.influxHost.replace(/\/$/, '')}/api/v2/query?org=${encodeURIComponent(config.influxOrg)}`;
+        appendDebug(`POST ${url}`);
+        const response = await fetch(url, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/vnd.flux',
-            'Accept': 'application/csv',
-            'Authorization': `Token ${influxToken}`
-          },
+          headers: { 'Content-Type': 'application/vnd.flux', Accept: 'application/csv', Authorization: `Token ${config.influxToken}` },
           body: flux
         });
-        if (!res.ok) {
-          const errorText = await res.text();
-          appendDebugLog(`Influx error ${res.status}: ${errorText || res.statusText}`);
-          throw new Error(`Influx query failed: ${res.status} ${res.statusText}`);
-        }
-        const text = await res.text();
-        appendDebugLog(`Influx response ${res.status} (${text.length} bytes)`);
-        return text;
+        if (!response.ok) throw new Error(`Influx query failed: ${response.status} ${response.statusText}`);
+        return response.text();
       }
 
       async function fetchData(rangeKey) {
-        currentRange = rangeKey;
-        document.querySelectorAll('.range-btn').forEach(btn => {
-          if (btn.dataset.range === rangeKey) {
-            btn.classList.add('border-aurora-300/40', 'bg-aurora-300/30', 'text-aurora-600', 'dark:border-aurora-500/40', 'dark:bg-aurora-500/20', 'dark:text-aurora-200');
-          } else {
-            btn.classList.remove('border-aurora-300/40', 'bg-aurora-300/30', 'text-aurora-600', 'dark:border-aurora-500/40', 'dark:bg-aurora-500/20', 'dark:text-aurora-200');
-          }
+        const range = ranges[rangeKey];
+        document.querySelectorAll('.range-btn').forEach(button => {
+          button.classList.toggle('ops-button-primary', button.dataset.range === rangeKey);
         });
-        const { durationMs, window, label, alignPrevious = true, offsetMs = 0 } = ranges[rangeKey];
-        const now = Date.now() - offsetMs;
-        const start = now - durationMs;
-        const prevStart = start - durationMs;
-        const flux = buildFluxQuery({ start: new Date(start).toISOString(), stop: new Date(now).toISOString(), window });
-        const prevFlux = buildFluxQuery({ start: new Date(prevStart).toISOString(), stop: new Date(start).toISOString(), window });
-        lastQueryStatus = `Querying ${rangeKey}`;
-        renderDebugList([
-          { label: 'Sensor path', value: sensorPath || 'missing' },
-          { label: 'Sensor', value: sensor.name },
-          { label: 'Measurement', value: sensor.influxMeasurement },
-          { label: 'Field', value: sensor.influxField },
-          { label: 'Influx host', value: influxHost },
-          { label: 'Influx org', value: influxOrg },
-          { label: 'Influx bucket', value: influxBucket },
-          { label: 'Influx token', value: maskToken(influxToken) },
-          { label: 'Range', value: label || rangeKey },
-          { label: 'Last query', value: lastQueryStatus },
-          { label: 'Query URL', value: lastQueryUrl || 'pending' }
-        ]);
-        appendDebugLog(`Flux (current):\n${flux}`);
-        appendDebugLog(`Flux (previous):\n${prevFlux}`);
+        setQueryState('Querying', 'info', 'fa-circle-notch', true);
+        const stop = Date.now() - range.offset;
+        const start = stop - range.duration;
+        const previousStart = start - range.duration;
+        renderDebug({ Range: range.label, Status: 'Querying' });
         try {
-          const [currentText, previousText] = await Promise.all([queryInflux(flux), queryInflux(prevFlux)]);
-          const data = parseInfluxCsv(currentText);
-          const previousData = parseInfluxCsv(previousText);
-          if (data.length < 1 && previousData.length < 1) {
-            lastQueryStatus = 'No data returned';
-            renderDebugList([
-              { label: 'Sensor path', value: sensorPath || 'missing' },
-              { label: 'Sensor', value: sensor.name },
-              { label: 'Measurement', value: sensor.influxMeasurement },
-              { label: 'Field', value: sensor.influxField },
-              { label: 'Influx host', value: influxHost },
-              { label: 'Influx org', value: influxOrg },
-              { label: 'Influx bucket', value: influxBucket },
-              { label: 'Influx token', value: maskToken(influxToken) },
-              { label: 'Range', value: label || rangeKey },
-              { label: 'Last query', value: lastQueryStatus },
-              { label: 'Query URL', value: lastQueryUrl || 'pending' }
-            ]);
-            appendDebugLog('Influx returned no rows. Check bucket/measurement/field.');
-            return;
-          }
-          const alignedPrevious = alignPrevious
-            ? previousData.map(([timestamp, value]) => [timestamp + durationMs, value])
-            : previousData;
-          lastQueryStatus = `Loaded ${data.length} points (+${alignedPrevious.length} previous)`;
-          renderDebugList([
-            { label: 'Sensor path', value: sensorPath || 'missing' },
-            { label: 'Sensor', value: sensor.name },
-            { label: 'Measurement', value: sensor.influxMeasurement },
-            { label: 'Field', value: sensor.influxField },
-            { label: 'Influx host', value: influxHost },
-            { label: 'Influx org', value: influxOrg },
-            { label: 'Influx bucket', value: influxBucket },
-            { label: 'Influx token', value: maskToken(influxToken) },
-            { label: 'Range', value: label || rangeKey },
-            { label: 'Last query', value: lastQueryStatus },
-            { label: 'Query URL', value: lastQueryUrl || 'pending' }
+          const [currentText, previousText] = await Promise.all([
+            queryInflux(buildFlux(new Date(start).toISOString(), new Date(stop).toISOString(), range.window)),
+            queryInflux(buildFlux(new Date(previousStart).toISOString(), new Date(start).toISOString(), range.window))
           ]);
+          const current = parseInfluxCsv(currentText);
+          const previous = parseInfluxCsv(previousText).map(([timestamp, value]) => [timestamp + range.duration, value]);
+          historyChart?.destroy();
           historyChart = Highcharts.chart('historyChart', {
-            chart: {
-              backgroundColor: 'transparent',
-              plotBackgroundColor: 'transparent',
-              plotBorderWidth: 0
-            },
-            title: { text: null },
-            xAxis: { type: 'datetime' },
-            yAxis: { title: { text: sensor.unit || null } },
+            chart: { type: 'line', backgroundColor: 'transparent', animation: false },
+            title: { text: null }, xAxis: { type: 'datetime' },
+            yAxis: { title: { text: sensor.unit || null }, labels: { formatter() { return Highcharts.numberFormat(this.value, 1); } } },
             series: [
-              { name: sensor.name, data, tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' } },
-              {
-                name: `${sensor.name} (previous)`,
-                data: alignedPrevious,
-                dashStyle: 'ShortDot',
-                color: '#94a3b8',
-                tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' }
-              }
+              { name: sensor.name, data: current, marker: { enabled: false }, tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' } },
+              { name: `${sensor.name} (previous)`, data: previous, dashStyle: 'ShortDot', color: '#94a3b8', marker: { enabled: false }, tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' } }
             ],
-            legend: { enabled: true }
+            credits: { enabled: false }, accessibility: { enabled: false }
           });
-        } catch (err) {
-          lastQueryStatus = 'Query failed';
-          renderDebugList([
-            { label: 'Sensor path', value: sensorPath || 'missing' },
-            { label: 'Sensor', value: sensor.name },
-            { label: 'Measurement', value: sensor.influxMeasurement },
-            { label: 'Field', value: sensor.influxField },
-            { label: 'Influx host', value: influxHost },
-            { label: 'Influx org', value: influxOrg },
-            { label: 'Influx bucket', value: influxBucket },
-            { label: 'Influx token', value: maskToken(influxToken) },
-            { label: 'Range', value: label || rangeKey },
-            { label: 'Last query', value: lastQueryStatus },
-            { label: 'Query URL', value: lastQueryUrl || 'pending' }
-          ]);
-          appendDebugLog(`Query failed: ${err.message}`);
-          console.error('Failed to load history', err);
+          const count = current.length + previous.length;
+          setQueryState(count ? `${current.length} points` : 'No data', count ? 'good' : 'warn', count ? 'fa-check' : 'fa-minus');
+          renderDebug({ Range: range.label, Status: count ? `Loaded ${current.length} current and ${previous.length} previous points` : 'No rows returned' });
+        } catch (error) {
+          appendDebug(error.message);
+          setQueryState('Query failed', 'bad', 'fa-triangle-exclamation');
+          renderDebug({ Range: range.label, Status: error.message });
         }
       }
 
-      document.querySelectorAll('.range-btn').forEach(btn => {
-        btn.addEventListener('click', () => fetchData(btn.dataset.range));
-      });
-
+      document.querySelectorAll('.range-btn').forEach(button => button.addEventListener('click', () => fetchData(button.dataset.range)));
       fetchData('day');
+    } catch (error) {
+      console.error('History initialization failed:', error);
+      initShell({ quickLinks: [] });
+      document.getElementById('sensorTitle').textContent = error.message;
+      setQueryState('Unavailable', 'bad', 'fa-triangle-exclamation');
+      appendDebug(error.message);
     }
-    init();
   </script>
 </body>
 </html>

@@ -1,1053 +1,602 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Observatory</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script>
-  const savedTheme = localStorage.getItem('theme') || 'system';
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const enableDark = savedTheme === 'dark' || (savedTheme === 'system' && prefersDark);
-  document.documentElement.classList.toggle('dark', enableDark);
-</script>
-<script>
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        fontFamily: {
-          sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif']
-        },
-        colors: {
-          aurora: {
-            200: '#c4d9ff',
-            300: '#92b4ff',
-            400: '#5b8fff',
-            500: '#2d72ff'
-          }
-        }
-      }
-    }
-  };
-</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-<script src="js/mqttClient.js"></script>
-<script src="https://code.highcharts.com/highcharts.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Observatory Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="js/mqttClient.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
-<body class="min-h-screen font-sans antialiased text-slate-900 dark:text-slate-100">
-<div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-  <div class="absolute inset-0 bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"></div>
-  <div class="absolute left-1/2 top-[-10%] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-aurora-300/40 blur-3xl dark:bg-aurora-500/30"></div>
-  <div class="absolute bottom-[-25%] right-[-10%] h-[480px] w-[480px] rounded-full bg-aurora-200/40 blur-3xl dark:bg-aurora-400/20"></div>
-  <div class="absolute left-[-15%] top-1/3 h-72 w-72 rounded-full bg-white/40 blur-3xl dark:bg-white/5"></div>
-</div>
-<div id="overlay" class="fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-sm hidden md:hidden"></div>
-<div class="relative z-10 min-h-screen md:flex">
-  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full transform flex-col border-r border-white/10 bg-slate-900/80 px-6 pb-6 pt-8 text-slate-100 backdrop-blur-lg transition-transform duration-300 md:relative md:translate-x-0 md:flex-shrink-0 md:border-r md:border-slate-200/20">
-    <div class="mb-8 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-3 text-lg font-semibold tracking-tight">
-        <span class="grid h-10 w-10 place-items-center rounded-2xl bg-white/10 text-aurora-200 shadow ring-1 ring-white/20"><i class="fa-solid fa-binoculars"></i></span>
-        <span class="leading-tight">Observatory</span>
-      </a>
-      <button id="closeSidebar" class="md:hidden text-slate-300 transition hover:text-white" aria-label="Close menu">
-        <i class="fa-solid fa-xmark text-xl"></i>
-      </button>
-    </div>
-    <div class="space-y-6 overflow-y-auto">
-      <div class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-inner backdrop-blur">
-        <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-200/80">
-          <span>Theme</span>
-          <i class="fa-solid fa-circle-half-stroke text-aurora-200"></i>
-        </div>
-        <select id="themeSelect" class="mt-3 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm font-medium text-slate-100 shadow-sm outline-none transition focus:border-aurora-400 focus:ring-2 focus:ring-aurora-300/40">
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="system">System</option>
-        </select>
-      </div>
-      <nav class="space-y-2 text-sm font-medium">
-        <p class="px-3 text-xs uppercase tracking-[0.3em] text-slate-200/60">Quick Links</p>
-        <ul class="space-y-2">
-          <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://10.0.179.242" target="_blank"><i class="fa-solid fa-mountain-sun text-aurora-200"></i><span>AAGSolo</span></a></li>
-          <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&amp;from=now-24h&amp;to=now&amp;timezone=browser" target="_blank"><i class="fa-solid fa-chart-line text-aurora-200"></i><span>Obs Graphs</span></a></li>
-          <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank"><i class="fa-solid fa-cloud-sun text-aurora-200"></i><span>Weather</span></a></li>
-          <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://ob.smeird.com" target="_blank"><i class="fa-solid fa-earth-europe text-aurora-200"></i><span>Public obs</span></a></li>
-          <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://www.smeird.com" target="_blank"><i class="fa-solid fa-droplet text-aurora-200"></i><span>Public Weather</span></a></li>
-          <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank"><i class="fa-solid fa-moon-stars text-aurora-200"></i><span>Night Forecast</span></a></li>
-          <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="https://skycam.smeird.com" target="_blank"><i class="fa-solid fa-camera text-aurora-200"></i><span>SkyCam</span></a></li>
-          <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="settings.html"><i class="fa-solid fa-sliders text-aurora-200"></i><span>Settings</span></a></li>
-        </ul>
-      </nav>
-    </div>
-    <div class="mt-auto rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner backdrop-blur">
-      <p class="text-xs uppercase tracking-[0.3em] text-slate-200/60">Connection</p>
-      <div id="connectionStatus" class="mt-3 flex items-center text-sm text-slate-200/80">
-        <span id="statusDot" class="mr-3 h-2.5 w-2.5 rounded-full bg-yellow-400 shadow-[0_0_0_4px_rgba(255,255,255,0.12)]"></span>
-        <span id="statusText">Connecting...</span>
-      </div>
-    </div>
-  </aside>
+<body class="dashboard-page">
+  <div class="ops-shell">
+    <aside id="appRail" class="ops-rail" aria-label="Application navigation"></aside>
 
-  <div class="flex min-h-screen flex-1 flex-col">
-
-    <header class="flex items-center justify-between gap-4 bg-white/80 px-6 py-4 shadow-sm backdrop-blur dark:bg-slate-900/70 md:hidden">
-      <div class="flex items-center gap-3 text-base font-semibold text-slate-700 dark:text-slate-100">
-        <span class="grid h-9 w-9 place-items-center rounded-2xl bg-aurora-400/20 text-aurora-500 dark:bg-aurora-500/20"><i class="fa-solid fa-binoculars"></i></span>
-        Observatory
-      </div>
-      <button id="menuButton" class="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-100" aria-label="Open menu">
-        <i class="fa-solid fa-bars text-lg"></i>
-      </button>
-    </header>
-    <main class="flex-1 px-4 py-10 sm:px-8">
-      <div class="mx-auto flex w-full max-w-7xl flex-col gap-10">
-        <div class="flex flex-col gap-3">
-          <p class="text-sm uppercase tracking-[0.35em] text-slate-500/70 dark:text-slate-300/60">Live Control</p>
-          <h1 class="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white"><span class="bg-gradient-to-r from-aurora-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">Dashboard</span></h1>
-          <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-300/80">Monitor sensor health, operate the roof and switches, and watch the skycam feed in a refreshed interface that keeps everything within easy reach.</p>
+    <main class="ops-main dashboard-main">
+      <header class="ops-topbar">
+        <div class="flex min-w-0 items-center gap-3">
+          <h1 class="ops-page-title">Observatory Control</h1>
+          <span id="roofSummary" class="ops-status-chip tone-warn"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Roof waiting</span></span>
         </div>
-        <section id="sensorCard" class="rounded-3xl border border-slate-200/60 bg-white/80 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Sensors</h2>
-            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"><span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>Optimal</div>
+        <div class="ops-topbar-status">
+          <span id="connectionStatus" class="ops-status-chip tone-warn" role="status" aria-live="polite">
+            <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><span id="statusText">Connecting</span>
+          </span>
+        </div>
+      </header>
+
+      <div class="dashboard-grid">
+        <section id="roofCard" class="ops-card dashboard-roof" aria-labelledby="roofTitle">
+          <header class="ops-card-header">
+            <h2 id="roofTitle" class="ops-card-title">Roof Control</h2>
+            <span id="roofMovingBadge" class="ops-status-chip tone-warn" hidden><i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i> Moving</span>
+          </header>
+          <div class="ops-card-body flex h-[calc(100%-2.65rem)] flex-col gap-3 overflow-hidden">
+            <div id="roofControls" class="grid grid-cols-2 gap-2" aria-label="Roof commands"></div>
+            <div class="flex items-center justify-between border-t pt-2" style="border-color: var(--border)">
+              <h3 class="text-[.68rem] font-extrabold uppercase tracking-[.08em] text-[var(--muted)]">Controller telemetry</h3>
+              <span id="lastCommand" class="text-[.65rem] font-semibold text-[var(--muted-soft)]">No command sent</span>
+            </div>
+            <div id="roofStatus" class="grid min-h-0 flex-1 grid-cols-2 content-start gap-1.5"></div>
           </div>
-          <div id="sensorsContainer" class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"></div>
         </section>
-        <section id="roofCard" class="rounded-3xl border border-slate-200/60 bg-white/80 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Roof Controls</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-300/80">Command roof motors and check limit sensors.</p>
-          </div>
-          <div id="roofBanner" class="mt-6 hidden items-center gap-3 rounded-2xl border border-rose-500/50 bg-rose-500/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-rose-600 shadow-sm dark:border-rose-400/60 dark:bg-rose-500/20 dark:text-rose-200">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>Roof Moving</span>
-          </div>
-          <div class="mt-6 grid gap-4 xl:grid-cols-3">
-            <div id="roofControls" class="grid gap-4 sm:grid-cols-2 xl:col-span-2"></div>
-            <div id="roofStatus" class="rounded-2xl border border-slate-200/60 bg-white/70 p-4 text-sm text-slate-700 shadow-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200"></div>
+
+        <section id="sensorCard" class="ops-card dashboard-sensors" aria-labelledby="sensorTitle">
+          <header class="ops-card-header">
+            <div class="flex items-center gap-2">
+              <h2 id="sensorTitle" class="ops-card-title">Sensors</h2>
+              <span id="sensorSummary" class="ops-status-chip tone-warn">Waiting</span>
+            </div>
+            <div id="sensorPager" class="ops-pager" hidden>
+              <button type="button" data-page="previous" aria-label="Previous sensors"><i class="fa-solid fa-chevron-left"></i></button>
+              <span data-page-label>1/1</span>
+              <button type="button" data-page="next" aria-label="Next sensors"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </header>
+          <div class="ops-card-body h-[calc(100%-2.65rem)]">
+            <div id="sensorsContainer" class="grid h-full grid-cols-2 content-start gap-1.5"></div>
           </div>
         </section>
-        <section class="rounded-3xl border border-slate-200/60 bg-white/80 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Switches</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-300/80">Toggle observatory equipment with a single tap.</p>
+
+        <section id="chartCard" class="ops-card dashboard-chart" aria-labelledby="chartTitle">
+          <header class="ops-card-header">
+            <h2 id="chartTitle" class="ops-card-title">Live Trends</h2>
+            <button type="button" class="ops-button ops-button-ghost" data-maximize="chartCard" aria-label="Maximize live trends" aria-expanded="false"><i class="fa-solid fa-expand"></i></button>
+          </header>
+          <div class="ops-card-body h-[calc(100%-2.65rem)] p-1.5">
+            <div id="lineChart" class="h-full min-h-[10rem]"></div>
           </div>
-          <div id="switchesContainer" class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
         </section>
-        <section class="rounded-3xl border border-slate-200/60 bg-white/80 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Auxiliary Switches</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-300/80">Additional MQTT-controlled toggles configured in settings.</p>
+
+        <section id="skyCamCard" class="ops-card dashboard-skycam" aria-labelledby="skyCamTitle">
+          <header class="ops-card-header">
+            <h2 id="skyCamTitle" class="ops-card-title">SkyCam</h2>
+            <button type="button" class="ops-button ops-button-ghost" data-maximize="skyCamCard" aria-label="Maximize SkyCam" aria-expanded="false"><i class="fa-solid fa-expand"></i></button>
+          </header>
+          <div class="ops-card-body flex h-[calc(100%-2.65rem)] items-center justify-center bg-black p-0">
+            <img id="skyCamImage" class="h-full w-full object-contain" alt="Live observatory sky camera" hidden>
+            <span id="skyCamWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-camera mr-2"></i>Waiting for image</span>
           </div>
-          <div id="auxSwitchesContainer" class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
         </section>
-        <section class="rounded-3xl border border-slate-200/60 bg-white/80 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Graphs</h2>
-            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"><span class="h-2 w-4 border-t-2 border-slate-400 border-dotted"></span>Dotted segments show values outside the green threshold.</div>
-          </div>
-          <div id="lineChart" class="mt-6 h-64 rounded-2xl bg-slate-900/5 dark:bg-black/30 md:h-96"></div>
-        </section>
-        <section id="skyCamCard" class="rounded-3xl border border-slate-200/60 bg-white/80 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">SkyCam</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-300/80">Live feed from the observatory sky camera.</p>
-          </div>
-          <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/10">
-            <img id="skyCamImage" class="h-auto w-full object-cover" alt="SkyCam" />
+
+        <section id="devicesCard" class="ops-card dashboard-devices" aria-labelledby="devicesTitle">
+          <header class="ops-card-header">
+            <h2 id="devicesTitle" class="ops-card-title">Devices</h2>
+            <div id="devicePager" class="ops-pager" hidden>
+              <button type="button" data-page="previous" aria-label="Previous devices"><i class="fa-solid fa-chevron-left"></i></button>
+              <span data-page-label>1/1</span>
+              <button type="button" data-page="next" aria-label="Next devices"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </header>
+          <div class="ops-card-body h-[calc(100%-2.65rem)]">
+            <div id="devicesContainer" class="grid content-start gap-1.5"></div>
           </div>
         </section>
       </div>
     </main>
   </div>
-</div>
 
-<script type="module">
-import { loadConfig } from './js/mqttConfig.js';
+  <div id="modalBackdrop" class="ops-modal-backdrop" hidden></div>
 
-const menuButton = document.getElementById('menuButton');
-const closeSidebar = document.getElementById('closeSidebar');
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('overlay');
-const themeSelect = document.getElementById('themeSelect');
+  <script type="module">
+    import { loadConfig } from './js/mqttConfig.js';
+    import { createPager, initShell } from './js/shell.js';
 
-function applyChartTheme(isDark) {
-  Highcharts.setOptions({
-    chart: {
-      backgroundColor: 'transparent',
-      plotBackgroundColor: 'transparent',
-      plotBorderWidth: 0,
-      style: { color: isDark ? '#f3f4f6' : '#0f172a' }
-    },
-    title: { style: { color: isDark ? '#f3f4f6' : '#0f172a' } },
-    xAxis: {
-      labels: { style: { color: isDark ? '#e2e8f0' : '#0f172a' } },
-      gridLineColor: isDark ? '#1f2937' : '#e2e8f0',
-      lineColor: isDark ? '#334155' : '#cbd5f5',
-      tickColor: isDark ? '#334155' : '#94a3b8'
-    },
-    yAxis: {
-      labels: { style: { color: isDark ? '#e2e8f0' : '#0f172a' } },
-      title: { style: { color: isDark ? '#e2e8f0' : '#0f172a' } },
-      gridLineColor: isDark ? '#1f2937' : '#e2e8f0',
-      lineColor: isDark ? '#334155' : '#cbd5f5',
-      tickColor: isDark ? '#334155' : '#94a3b8'
-    },
-    legend: { itemStyle: { color: isDark ? '#f3f4f6' : '#0f172a' } },
-    tooltip: {
-      backgroundColor: isDark ? '#111827' : '#ffffff',
-      borderColor: isDark ? '#1d4ed8' : '#dbeafe',
-      style: { color: isDark ? '#f3f4f6' : '#0f172a' }
+    const fallbackConfig = {
+      brokerUrl: '', port: 0, username: '', password: '', sensors: [], switches: [],
+      skyCamTopic: '', quickLinks: [], dashboard: { showChart: true, showSkyCam: true },
+      roofController: { baseTopic: 'Observatory/roof-esp', relays: [] }
+    };
+    let config = fallbackConfig;
+    let configLoaded = true;
+    try {
+      config = { ...fallbackConfig, ...(await loadConfig()) };
+    } catch (error) {
+      configLoaded = false;
+      console.error('Configuration load failed:', error);
     }
-  });
-}
 
-function openMenu() {
-  if (!sidebar || !overlay) return;
-  sidebar.classList.remove('-translate-x-full');
-  overlay.classList.remove('hidden');
-  overlay.style.left = `${sidebar.offsetWidth}px`;
-  document.body.classList.add('overflow-hidden');
-}
+    initShell({ activePage: 'dashboard', quickLinks: config.quickLinks });
 
-function closeMenu() {
-  if (!sidebar || !overlay) return;
-  sidebar.classList.add('-translate-x-full');
-  overlay.classList.add('hidden');
-  overlay.style.left = '';
-  document.body.classList.remove('overflow-hidden');
-}
+    const baseTopic = (config.roofController?.baseTopic || 'Observatory/roof-esp').replace(/\/+$/, '');
+    const roofEsp = {
+      state: {
+        online: `${baseTopic}/online`, openLimit: `${baseTopic}/open_limit`, closeLimit: `${baseTopic}/close_limit`,
+        moving: `${baseTopic}/moving`, enabled: `${baseTopic}/enabled`, fault: `${baseTopic}/fault`,
+        faultCode: `${baseTopic}/fault_code`, openMotor: `${baseTopic}/state/open_motor`,
+        closeMotor: `${baseTopic}/state/close_motor`, heartbeat: `${baseTopic}/heartbeat`
+      },
+      command: {
+        open: `${baseTopic}/command/open`, close: `${baseTopic}/command/close`, stop: `${baseTopic}/command/stop`,
+        enabled: `${baseTopic}/command/enabled`, faultClear: `${baseTopic}/command/fault_clear`, beep: `${baseTopic}/command/beep`
+      }
+    };
 
-if (menuButton && sidebar && overlay) {
-  const toggleSidebar = () => {
-    if (sidebar.classList.contains('-translate-x-full')) {
-      openMenu();
-    } else {
-      closeMenu();
+    const topics = new Set();
+    const staticTopics = new Set();
+    const stateValues = {};
+    const sensorValueEls = {};
+    const sensorIndicators = {};
+    const statusValueEls = {};
+    const toggleButtonsByTopic = {};
+    const relayToggleButtons = [];
+    const roofMotionButtons = {};
+    const lineSeries = {};
+    const faultLabels = {
+      BOTH_LIMITS: 'Both limits active', TIMEOUT_OPEN: 'Open timeout', TIMEOUT_CLOSE: 'Close timeout'
+    };
+    let mqttClient;
+    let mqttConnected = false;
+    let lastHeartbeatAt = null;
+    let lineChart;
+    let activeMaximized = null;
+    let maximizeTrigger = null;
+
+    function makeElement(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
     }
-  };
-  menuButton.addEventListener('click', toggleSidebar);
-  overlay.addEventListener('click', toggleSidebar);
-}
 
-if (closeSidebar && overlay) {
-  closeSidebar.addEventListener('click', closeMenu);
-}
-
-if (themeSelect) {
-  const storedTheme = localStorage.getItem('theme') || 'system';
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-  function setTheme(theme) {
-    const isDark = theme === 'dark' || (theme === 'system' && mediaQuery.matches);
-    document.documentElement.classList.toggle('dark', isDark);
-    applyChartTheme(isDark);
-  }
-
-  themeSelect.value = storedTheme;
-  setTheme(storedTheme);
-
-  themeSelect.addEventListener('change', e => {
-    const value = e.target.value;
-    localStorage.setItem('theme', value);
-    setTheme(value);
-    if (lineChart) {
-      lineChart.destroy();
-      initLineChart();
+    function setTone(element, tone) {
+      if (!element) return;
+      element.classList.remove('tone-good', 'tone-warn', 'tone-bad', 'tone-info');
+      if (tone) element.classList.add(`tone-${tone}`);
     }
-  });
 
-  mediaQuery.addEventListener('change', () => {
-    if (localStorage.getItem('theme') === 'system') {
-      setTheme('system');
-      if (lineChart) {
-        lineChart.destroy();
-        initLineChart();
+    function createActionButton(label, icon, commandTopic, tone = 'primary') {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `ops-button ${tone === 'danger' ? 'ops-button-danger' : tone === 'warning' ? 'ops-button-warning' : 'ops-button-primary'}`;
+      const glyph = makeElement('i', `fa-solid ${icon}`);
+      glyph.setAttribute('aria-hidden', 'true');
+      button.append(glyph, document.createTextNode(label));
+      button.addEventListener('click', () => sendCommand(commandTopic, '1', label));
+      return button;
+    }
+
+    function createToggle(label, stateTopic, commandTopic, kind = 'auxiliary') {
+      const row = makeElement('div', 'flex min-h-[2.7rem] items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5');
+      row.style.borderColor = 'var(--border)';
+      row.style.background = 'var(--panel-subtle)';
+      const text = makeElement('div', 'min-w-0');
+      text.appendChild(makeElement('div', 'truncate text-[.72rem] font-bold text-[var(--text)]', label));
+      const state = makeElement('div', 'text-[.62rem] font-semibold text-[var(--muted-soft)]', 'Waiting for state');
+      text.appendChild(state);
+      const button = makeElement('button', 'ops-toggle');
+      button.type = 'button';
+      button.dataset.state = '0';
+      button.dataset.stateTopic = stateTopic;
+      button.dataset.commandTopic = commandTopic;
+      button.setAttribute('role', 'switch');
+      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-checked', 'false');
+      button.appendChild(makeElement('span'));
+      button.addEventListener('click', () => {
+        const current = stateValues[stateTopic] === '1' ? '1' : button.dataset.state;
+        const next = current === '1' ? '0' : '1';
+        if (!(stateTopic in stateValues)) setToggleVisual(button, next, state);
+        sendCommand(commandTopic, next, `${label} ${next === '1' ? 'on' : 'off'}`);
+      });
+      row.append(text, button);
+      topics.add(stateTopic);
+      toggleButtonsByTopic[stateTopic] = { button, state };
+      if (kind === 'relay') relayToggleButtons.push(button);
+      return row;
+    }
+
+    function setToggleVisual(button, value, stateLabel) {
+      const isOn = value === '1';
+      button.dataset.state = isOn ? '1' : '0';
+      button.setAttribute('aria-checked', isOn ? 'true' : 'false');
+      if (stateLabel) {
+        stateLabel.textContent = isOn ? 'On' : 'Off';
+        stateLabel.style.color = isOn ? 'var(--green)' : 'var(--muted-soft)';
       }
     }
-  });
-} else {
-  applyChartTheme(false);
-}
 
-let brokerUrl, port, username, password, dashboardTopics, sensors, skyCamTopic, switches;
-try {
-  ({ brokerUrl, port, username, password, dashboardTopics, sensors, skyCamTopic, switches } = await loadConfig());
-} catch (err) {
-  const statusEl = document.getElementById('statusText');
-  if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
-  setControlsDisabled(true);
-  console.error('MQTT init error:', err);
-}
+    function renderRoofControls() {
+      const container = document.getElementById('roofControls');
+      const open = createActionButton('Open', 'fa-arrow-up', roofEsp.command.open);
+      const close = createActionButton('Close', 'fa-arrow-down', roofEsp.command.close);
+      const stop = createActionButton('Stop', 'fa-stop', roofEsp.command.stop, 'danger');
+      const clear = createActionButton('Clear fault', 'fa-triangle-exclamation', roofEsp.command.faultClear, 'warning');
+      const beep = createActionButton('Buzzer', 'fa-bell', roofEsp.command.beep);
+      const enableWrap = makeElement('div', 'flex min-h-[2.3rem] items-center justify-between rounded-lg border px-2.5');
+      enableWrap.style.borderColor = 'var(--border)';
+      enableWrap.style.background = 'var(--panel-subtle)';
+      enableWrap.appendChild(makeElement('span', 'text-[.72rem] font-extrabold', 'Motion enabled'));
+      const enable = makeElement('button', 'ops-toggle');
+      enable.type = 'button';
+      enable.dataset.state = '0';
+      enable.dataset.stateTopic = roofEsp.state.enabled;
+      enable.dataset.commandTopic = roofEsp.command.enabled;
+      enable.setAttribute('role', 'switch');
+      enable.setAttribute('aria-label', 'Motion enabled');
+      enable.setAttribute('aria-checked', 'false');
+      enable.appendChild(makeElement('span'));
+      enable.addEventListener('click', () => {
+        const next = stateValues[roofEsp.state.enabled] === '1' ? '0' : '1';
+        sendCommand(roofEsp.command.enabled, next, `Motion ${next === '1' ? 'enabled' : 'disabled'}`);
+      });
+      enableWrap.appendChild(enable);
+      toggleButtonsByTopic[roofEsp.state.enabled] = { button: enable };
+      roofMotionButtons.open = open;
+      roofMotionButtons.close = close;
+      roofMotionButtons.stop = stop;
+      container.append(open, close, stop, clear, enableWrap, beep);
+    }
 
-const roofEspBase = 'Observatory/roof-esp';
-const faultCodeLabels = {
-  BOTH_LIMITS: 'Fault: Both limit switches active',
-  TIMEOUT_OPEN: 'Fault: Open timeout exceeded',
-  TIMEOUT_CLOSE: 'Fault: Close timeout exceeded'
-};
-const roofEsp = {
-  state: {
-    online: `${roofEspBase}/online`,
-    openLimit: `${roofEspBase}/open_limit`,
-    closeLimit: `${roofEspBase}/close_limit`,
-    moving: `${roofEspBase}/moving`,
-    enabled: `${roofEspBase}/enabled`,
-    fault: `${roofEspBase}/fault`,
-    faultCode: `${roofEspBase}/fault_code`,
-    openMotor: `${roofEspBase}/state/open_motor`,
-    closeMotor: `${roofEspBase}/state/close_motor`,
-    relay3: `${roofEspBase}/state/relay3`,
-    relay4: `${roofEspBase}/state/relay4`,
-    relay5: `${roofEspBase}/state/relay5`,
-    relay6: `${roofEspBase}/state/relay6`,
-    relay7: `${roofEspBase}/state/relay7`,
-    relay8: `${roofEspBase}/state/relay8`,
-    heartbeat: `${roofEspBase}/heartbeat`
-  },
-  command: {
-    open: `${roofEspBase}/command/open`,
-    close: `${roofEspBase}/command/close`,
-    stop: `${roofEspBase}/command/stop`,
-    enabled: `${roofEspBase}/command/enabled`,
-    faultClear: `${roofEspBase}/command/fault_clear`,
-    beep: `${roofEspBase}/command/beep`,
-    relay3: `${roofEspBase}/command/relay3`,
-    relay4: `${roofEspBase}/command/relay4`,
-    relay5: `${roofEspBase}/command/relay5`,
-    relay6: `${roofEspBase}/command/relay6`,
-    relay7: `${roofEspBase}/command/relay7`,
-    relay8: `${roofEspBase}/command/relay8`
-  },
-  relayLabels: {
-    relay3: '12V Power Supply (CH3)',
-    relay4: 'White LED (CH4)',
-    relay5: 'Red LED (CH5)',
-    relay6: 'PC Power (CH6)',
-    relay7: 'Dew Heater 12V Power (CH7)',
-    relay8: 'Mount/Focus 12V Power (CH8)'
-  }
-};
+    const statusDefinitions = [
+      ['Online', 'online', roofEsp.state.online], ['Moving', 'moving', roofEsp.state.moving],
+      ['Open limit', 'openLimit', roofEsp.state.openLimit], ['Closed limit', 'closeLimit', roofEsp.state.closeLimit],
+      ['Open motor', 'openMotor', roofEsp.state.openMotor], ['Close motor', 'closeMotor', roofEsp.state.closeMotor],
+      ['Enabled', 'enabled', roofEsp.state.enabled], ['Fault', 'fault', roofEsp.state.fault],
+      ['Fault code', 'faultCode', roofEsp.state.faultCode], ['Heartbeat', 'heartbeat', roofEsp.state.heartbeat]
+    ];
 
-const sensorValueEls = {};
-const sensorIndicators = {};
-const topics = new Set(dashboardTopics || []);
-const skyCamCard = document.getElementById('skyCamCard');
-const skyCamImage = document.getElementById('skyCamImage');
-if (skyCamTopic) {
-  topics.add(skyCamTopic);
-  skyCamImage?.setAttribute('data-topic', skyCamTopic);
-  skyCamImage?.setAttribute('data-static', '');
-} else {
-  skyCamCard?.classList.add('hidden');
-}
-const stateValues = {};
-const commandStatusEls = {};
-const stateStatusEls = {};
-const statusValueEls = {};
-const relayToggleButtons = [];
-let lastHeartbeatAt = null;
-const roofMotionButtons = {};
-let mqttConnected = false;
-let lineChart;
-const lineSeries = {};
-const sensorCard = document.getElementById('sensorCard');
-const roofCard = document.getElementById('roofCard');
-let roofClosed = false;
-
-const sensorCardBaseBorderClasses = ['border-slate-200/60', 'dark:border-white/10'];
-const sensorCardBaseBackgroundClasses = ['bg-white/80', 'dark:bg-slate-900/60'];
-const sensorCardSafeBorderClasses = ['border-emerald-400/70', 'dark:border-emerald-400/50'];
-const sensorCardSafeBackgroundClasses = [
-  'bg-gradient-to-br',
-  'from-emerald-200/80',
-  'via-emerald-300/60',
-  'to-emerald-400/80',
-  'dark:from-emerald-600/40',
-  'dark:via-emerald-500/30',
-  'dark:to-emerald-400/30'
-];
-
-function setSensorCardState(isSafe) {
-  if (!sensorCard) return;
-  sensorCardSafeBorderClasses.forEach(cls => sensorCard.classList.toggle(cls, isSafe));
-  sensorCardSafeBackgroundClasses.forEach(cls => sensorCard.classList.toggle(cls, isSafe));
-  sensorCardBaseBorderClasses.forEach(cls => sensorCard.classList.toggle(cls, !isSafe));
-  sensorCardBaseBackgroundClasses.forEach(cls => sensorCard.classList.toggle(cls, !isSafe));
-}
-
-setSensorCardState(false);
-
-function updateRoofCardBorder() {
-  if (!roofCard) return;
-  if (roofClosed) {
-    roofCard.classList.remove('border-rose-400/70');
-  } else {
-    roofCard.classList.add('border-rose-400/70');
-  }
-}
-
-updateRoofCardBorder();
-
-function addSensorCards() {
-  const container = document.getElementById('sensorsContainer');
-  sensors.forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'group relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-aurora-400/50 hover:shadow-xl dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
-
-    const left = document.createElement('span');
-    left.className = 'flex items-center gap-3 text-sm font-medium';
-    const indicator = document.createElement('span');
-    indicator.className = 'h-3 w-3 rounded-full bg-rose-500 shadow-[0_0_0_3px_rgba(255,255,255,0.35)] dark:shadow-none';
-    left.appendChild(indicator);
-    const nameSpan = document.createElement('span');
-    nameSpan.textContent = s.name;
-    left.appendChild(nameSpan);
-    if (s.influxMeasurement && s.influxField) {
-      const icon = document.createElement('i');
-      icon.className = 'fa-solid fa-chart-line text-aurora-400 transition group-hover:text-aurora-500';
-      left.appendChild(icon);
-      card.classList.add('cursor-pointer');
-      card.addEventListener('click', () => {
-        window.location.href = `history.html?sensor=${encodeURIComponent(s.path)}`;
+    function renderRoofStatus() {
+      const container = document.getElementById('roofStatus');
+      statusDefinitions.forEach(([label, key, topic]) => {
+        const row = makeElement('div', 'flex min-h-[2.1rem] items-center justify-between gap-2 rounded-md border px-2 py-1');
+        row.style.borderColor = 'var(--border)';
+        row.style.background = 'var(--panel-subtle)';
+        row.appendChild(makeElement('span', 'text-[.6rem] font-extrabold uppercase tracking-wide text-[var(--muted-soft)]', label));
+        const value = makeElement('span', 'truncate text-right text-[.66rem] font-bold text-[var(--muted)]', 'Waiting');
+        row.appendChild(value);
+        container.appendChild(row);
+        statusValueEls[topic] = { element: value, key };
+        topics.add(topic);
       });
     }
-    card.appendChild(left);
 
-    const valueEl = document.createElement('span');
-    valueEl.className = 'sensor-value font-mono text-base';
-    valueEl.textContent = '--';
-    valueEl.setAttribute('data-topic', s.path);
-    valueEl.setAttribute('data-static', '');
-    if (s.unit) valueEl.setAttribute('data-unit', s.unit);
-    card.appendChild(valueEl);
-
-    container.appendChild(card);
-    sensorValueEls[s.path] = valueEl;
-    sensorIndicators[s.path] = {
-      el: indicator,
-      green: parseFloat(s.green),
-      direction: s.greenDirection || 'below',
-      isGreen: false
-    };
-    topics.add(s.path);
-  });
-}
-
-function createCommandStatusRow(commandTopic, stateTopic) {
-  const statusRow = document.createElement('div');
-  statusRow.className = 'mt-2 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400';
-  if (commandTopic) {
-    const commandStatus = document.createElement('span');
-    commandStatus.textContent = 'Command: --';
-    commandStatus.dataset.commandStatus = commandTopic;
-    commandStatusEls[commandTopic] = commandStatus;
-    statusRow.appendChild(commandStatus);
-  }
-  if (stateTopic) {
-    const stateStatus = document.createElement('span');
-    stateStatus.textContent = 'State: waiting';
-    stateStatus.dataset.stateStatus = stateTopic;
-    stateStatus.dataset.topic = stateTopic;
-    stateStatusEls[stateTopic] = stateStatus;
-    statusRow.appendChild(stateStatus);
-  }
-  return statusRow;
-}
-
-function createActionCard({ label, description, commandTopic, stateTopic, icon }) {
-  const card = document.createElement('div');
-  card.className = 'rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm transition dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
-  const header = document.createElement('div');
-  header.className = 'flex items-center justify-between gap-4';
-  const textWrap = document.createElement('div');
-  textWrap.innerHTML = `<p class="text-sm font-medium">${label}</p>${description ? `<p class="text-xs text-slate-500 dark:text-slate-400">${description}</p>` : ''}`;
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-aurora-400/60 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:text-white';
-  button.dataset.commandTopic = commandTopic;
-  button.innerHTML = `${icon ? `<i class="fa-solid ${icon}"></i>` : ''}<span>Send</span>`;
-  header.appendChild(textWrap);
-  header.appendChild(button);
-  card.appendChild(header);
-  card.appendChild(createCommandStatusRow(commandTopic, stateTopic));
-  return { card, button };
-}
-
-function createToggleCard({ label, description, stateTopic, commandTopic }) {
-  const card = document.createElement('div');
-  card.className = 'rounded-2xl border border-slate-200/60 bg-white/70 px-4 py-3 text-slate-800 shadow-sm transition dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
-  const header = document.createElement('div');
-  header.className = 'flex items-center justify-between gap-4';
-  const textWrap = document.createElement('div');
-  textWrap.innerHTML = `<p class="text-sm font-medium">${label}</p>${description ? `<p class="text-xs text-slate-500 dark:text-slate-400">${description}</p>` : ''}`;
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'toggleButton relative inline-flex h-7 w-12 items-center rounded-full bg-slate-300 transition-colors duration-300 ease-out dark:bg-slate-700';
-  button.dataset.topic = stateTopic;
-  button.dataset.commandTopic = commandTopic;
-  button.dataset.localState = '0';
-  button.innerHTML = '<span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition"></span>';
-  header.appendChild(textWrap);
-  header.appendChild(button);
-  card.appendChild(header);
-  card.appendChild(createCommandStatusRow(commandTopic, stateTopic));
-  return { card, button };
-}
-
-function addRoofControls() {
-  const container = document.getElementById('roofControls');
-  if (!container) return;
-  const openAction = createActionCard({
-    label: 'Open Roof',
-    description: 'Start opening the roof.',
-    commandTopic: roofEsp.command.open,
-    stateTopic: roofEsp.state.openMotor,
-    icon: 'fa-arrow-up'
-  });
-  openAction.button.dataset.action = 'open';
-  const closeAction = createActionCard({
-    label: 'Close Roof',
-    description: 'Start closing the roof.',
-    commandTopic: roofEsp.command.close,
-    stateTopic: roofEsp.state.closeMotor,
-    icon: 'fa-arrow-down'
-  });
-  closeAction.button.dataset.action = 'close';
-  const stopAction = createActionCard({
-    label: 'Stop Motion',
-    description: 'Halt roof movement.',
-    commandTopic: roofEsp.command.stop,
-    stateTopic: roofEsp.state.moving,
-    icon: 'fa-ban'
-  });
-  stopAction.button.dataset.action = 'stop';
-  const enabledToggle = createToggleCard({
-    label: 'Motion Enabled',
-    description: 'Master enable for roof movement.',
-    stateTopic: roofEsp.state.enabled,
-    commandTopic: roofEsp.command.enabled
-  });
-  const faultClearAction = createActionCard({
-    label: 'Clear Fault',
-    description: 'Reset latched faults.',
-    commandTopic: roofEsp.command.faultClear,
-    stateTopic: roofEsp.state.fault,
-    icon: 'fa-triangle-exclamation'
-  });
-  const beepAction = createActionCard({
-    label: 'Buzzer',
-    description: 'Trigger the buzzer.',
-    commandTopic: roofEsp.command.beep,
-    stateTopic: roofEsp.state.heartbeat,
-    icon: 'fa-bell'
-  });
-
-  [openAction, closeAction, stopAction, enabledToggle, faultClearAction, beepAction].forEach(item => {
-    container.appendChild(item.card);
-  });
-
-  topics.add(roofEsp.state.online);
-  topics.add(roofEsp.state.openMotor);
-  topics.add(roofEsp.state.closeMotor);
-  topics.add(roofEsp.state.moving);
-  topics.add(roofEsp.state.enabled);
-  topics.add(roofEsp.state.fault);
-  topics.add(roofEsp.state.faultCode);
-  topics.add(roofEsp.state.heartbeat);
-
-  roofMotionButtons.open = openAction.button;
-  roofMotionButtons.close = closeAction.button;
-  roofMotionButtons.stop = stopAction.button;
-}
-
-function addSwitchCards() {
-  const container = document.getElementById('switchesContainer');
-  if (!container) return;
-  Object.entries(roofEsp.relayLabels).forEach(([relayKey, label]) => {
-    const stateTopic = roofEsp.state[relayKey];
-    const commandTopic = roofEsp.command[relayKey];
-    const { card, button } = createToggleCard({
-      label,
-      description: 'Auxiliary relay output.',
-      stateTopic,
-      commandTopic
-    });
-    relayToggleButtons.push(button);
-    container.appendChild(card);
-    topics.add(stateTopic);
-  });
-}
-
-function addAuxSwitchCards() {
-  const container = document.getElementById('auxSwitchesContainer');
-  if (!container) return;
-  if (!Array.isArray(switches) || switches.length === 0) {
-    container.innerHTML = '<p class="text-sm text-slate-500 dark:text-slate-400">No auxiliary switches configured yet.</p>';
-    return;
-  }
-  switches.forEach(sw => {
-    const commandTopic = sw.commandPath || sw.path || sw.statusPath;
-    const stateTopic = sw.statusPath || sw.path || '';
-    if (!commandTopic && !stateTopic) return;
-    const { card } = createToggleCard({
-      label: sw.name || stateTopic || commandTopic,
-      description: 'Auxiliary MQTT integration.',
-      stateTopic,
-      commandTopic
-    });
-    container.appendChild(card);
-    if (stateTopic) {
-      topics.add(stateTopic);
+    function renderSensors() {
+      const container = document.getElementById('sensorsContainer');
+      const cards = [];
+      (config.sensors || []).forEach(sensor => {
+        const card = makeElement('div', 'flex min-h-[2.7rem] items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5');
+        card.style.borderColor = 'var(--border)';
+        card.style.background = 'var(--panel-subtle)';
+        const identity = makeElement('div', 'flex min-w-0 items-center gap-2');
+        const dot = makeElement('span', 'h-2 w-2 flex-none rounded-full bg-slate-400');
+        const name = makeElement('span', 'truncate text-[.7rem] font-bold', sensor.name || sensor.path);
+        identity.append(dot, name);
+        if (sensor.influxMeasurement && sensor.influxField) {
+          const history = makeElement('a', 'text-[var(--blue)]');
+          history.href = `history.html?sensor=${encodeURIComponent(sensor.path)}`;
+          history.setAttribute('aria-label', `${sensor.name} history`);
+          history.innerHTML = '<i class="fa-solid fa-chart-line" aria-hidden="true"></i>';
+          identity.appendChild(history);
+        }
+        const value = makeElement('span', 'flex-none font-mono text-[.76rem] font-bold tabular-nums', '--');
+        card.append(identity, value);
+        container.appendChild(card);
+        cards.push(card);
+        sensorValueEls[sensor.path] = { element: value, unit: sensor.unit || '' };
+        sensorIndicators[sensor.path] = {
+          dot, green: Number.parseFloat(sensor.green), direction: sensor.greenDirection || 'below', isGreen: false, hasValue: false
+        };
+        topics.add(sensor.path);
+        staticTopics.add(sensor.path);
+      });
+      if (!cards.length) container.appendChild(makeElement('p', 'col-span-2 text-xs font-semibold text-[var(--muted)]', 'No sensors configured.'));
+      const pager = createPager(document.getElementById('sensorPager'), 8, (page, size) => {
+        cards.forEach((card, index) => { card.hidden = index < page * size || index >= (page + 1) * size; });
+      });
+      pager.setCount(cards.length);
     }
-  });
-}
 
-function addRoofStatus() {
-  const container = document.getElementById('roofStatus');
-  if (!container) return;
-  container.innerHTML = '';
-  const items = [
-    { label: 'Online', topic: roofEsp.state.online },
-    { label: 'Moving', topic: roofEsp.state.moving },
-    { label: 'Open limit', topic: roofEsp.state.openLimit },
-    { label: 'Close limit', topic: roofEsp.state.closeLimit },
-    { label: 'Open motor', topic: roofEsp.state.openMotor },
-    { label: 'Close motor', topic: roofEsp.state.closeMotor },
-    { label: 'Fault', topic: roofEsp.state.fault },
-    { label: 'Fault code', topic: roofEsp.state.faultCode },
-    { label: 'Enabled', topic: roofEsp.state.enabled },
-    { label: 'Heartbeat', topic: roofEsp.state.heartbeat }
-  ];
-
-  const list = document.createElement('div');
-  list.className = 'space-y-2';
-  items.forEach(item => {
-    const row = document.createElement('div');
-    row.className = 'flex items-center justify-between gap-3 rounded-xl border border-slate-200/60 bg-white/70 px-3 py-2 text-xs dark:border-white/10 dark:bg-slate-900/70';
-    const label = document.createElement('span');
-    label.className = 'font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400';
-    label.textContent = item.label;
-    const value = document.createElement('span');
-    value.className = 'font-medium text-slate-700 dark:text-slate-100';
-    value.textContent = 'Waiting...';
-    value.dataset.topic = item.topic;
-    statusValueEls[item.topic] = value;
-    row.appendChild(label);
-    row.appendChild(value);
-    list.appendChild(row);
-    topics.add(item.topic);
-  });
-  container.appendChild(list);
-}
-
-addSensorCards();
-addRoofControls();
-addSwitchCards();
-addAuxSwitchCards();
-addRoofStatus();
-initLineChart();
-setInterval(updateHeartbeatDisplay, 5000);
-
-const topicElements = Array.from(document.querySelectorAll('[data-topic]'));
-const staticTopics = new Set(
-  topicElements.filter(el => el.hasAttribute('data-static')).map(el => el.getAttribute('data-topic'))
-);
-
-function setControlsDisabled(disabled) {
-  document.querySelectorAll('.toggleButton').forEach(button => {
-    button.disabled = disabled;
-    button.classList.toggle('opacity-50', disabled);
-    button.classList.toggle('cursor-not-allowed', disabled);
-  });
-  document.querySelectorAll('[data-command-topic]').forEach(button => {
-    if (button.classList.contains('toggleButton')) return;
-    button.disabled = disabled;
-    button.classList.toggle('opacity-50', disabled);
-    button.classList.toggle('cursor-not-allowed', disabled);
-  });
-}
-
-function updateConnectionStatus(status, info) {
-  const dot = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
-  let color = 'bg-rose-500';
-  let message = 'Disconnected';
-  if (status === 'connected') {
-    color = 'bg-emerald-400';
-    message = 'Connected';
-    mqttConnected = true;
-    setControlsDisabled(false);
-  } else if (status === 'reconnecting') {
-    color = 'bg-amber-400';
-    message = 'Reconnecting...';
-    setControlsDisabled(true);
-    mqttConnected = false;
-  } else if (status === 'connecting') {
-    color = 'bg-amber-400';
-    message = 'Connecting...';
-    setControlsDisabled(true);
-    mqttConnected = false;
-  } else if (status === 'error') {
-    message = 'Error';
-    if (info && info.message) message += ': ' + info.message;
-    setControlsDisabled(true);
-    mqttConnected = false;
-  } else {
-    setControlsDisabled(true);
-    mqttConnected = false;
-  }
-  if (dot) dot.className = `mr-3 h-2.5 w-2.5 rounded-full shadow-[0_0_0_4px_rgba(255,255,255,0.12)] ${color}`;
-  if (text) text.textContent = message;
-  updateMotionButtons();
-  updateRelayLockout();
-}
-setControlsDisabled(true);
-
-function initLineChart() {
-  const yAxis = sensors.map((s, idx) => ({
-    title: { text: s.unit ? `${s.name} (${s.unit})` : s.name },
-    opposite: idx % 2 === 1
-  }));
-  const series = sensors.map((s, idx) => {
-    const green = parseFloat(s.green);
-    let zones;
-    if (!isNaN(green)) {
-      zones = s.greenDirection === 'above'
-        ? [{ value: green, dashStyle: 'Dot' }, {}]
-        : [{ value: green }, { dashStyle: 'Dot' }];
+    function renderDevices() {
+      const container = document.getElementById('devicesContainer');
+      const cards = [];
+      (config.roofController?.relays || []).filter(relay => relay.visible !== false).forEach(relay => {
+        const stateTopic = `${baseTopic}/state/${relay.key}`;
+        const commandTopic = `${baseTopic}/command/${relay.key}`;
+        cards.push(createToggle(relay.label, stateTopic, commandTopic, 'relay'));
+      });
+      (config.switches || []).forEach(device => {
+        cards.push(createToggle(device.name || device.statusPath, device.statusPath || device.path, device.commandPath || device.path));
+      });
+      cards.forEach(card => container.appendChild(card));
+      if (!cards.length) container.appendChild(makeElement('p', 'text-xs font-semibold text-[var(--muted)]', 'No devices configured.'));
+      const pager = createPager(document.getElementById('devicePager'), 6, (page, size) => {
+        cards.forEach((card, index) => { card.hidden = index < page * size || index >= (page + 1) * size; });
+      });
+      pager.setCount(cards.length);
     }
-    return { name: s.name, data: [], yAxis: idx, zones, tooltip: { valueSuffix: s.unit ? ` ${s.unit}` : '' } };
-  });
-  lineChart = Highcharts.chart('lineChart', {
-    chart: {
-      type: 'line',
-      backgroundColor: 'transparent',
-      plotBackgroundColor: 'transparent',
-      plotBorderWidth: 0
-    },
-    title: { text: null },
-    xAxis: { type: 'datetime' },
-    yAxis,
-    series,
-    credits: { enabled: false }
-  });
-  sensors.forEach((s, idx) => {
-    lineSeries[s.path] = lineChart.series[idx];
-  });
-}
 
-let mqttClient;
-try {
-  const url = new URL(brokerUrl);
-  if (port) url.port = port;
-  mqttClient = createClient({
-    brokerUrl: url.toString(),
-    options: { username, password }
-  });
-  mqttClient.on('status', updateConnectionStatus);
-  mqttClient.on('error', err => console.error('MQTT client error:', err));
+    function chartColors() {
+      const dark = document.documentElement.classList.contains('dark');
+      return dark
+        ? { text: '#cbd5e1', muted: '#94a3b8', grid: '#334155', tooltip: '#172033', border: '#475569' }
+        : { text: '#334155', muted: '#64748b', grid: '#cbd5e1', tooltip: '#ffffff', border: '#94a3b8' };
+    }
 
-  mqttClient.on('connect', function() {
-    topics.forEach(t => {
-      mqttClient.subscribe(t);
-      if (!staticTopics.has(t)) stateValues[t] = null;
-    });
-  });
+    function initChart() {
+      if (!config.dashboard?.showChart) return;
+      const colors = chartColors();
+      const sensors = config.sensors || [];
+      lineChart = Highcharts.chart('lineChart', {
+        chart: { type: 'line', backgroundColor: 'transparent', animation: false, marginTop: 8, spacing: [4, 4, 4, 4] },
+        title: { text: null },
+        xAxis: { type: 'datetime', lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted, fontSize: '9px' } } },
+        yAxis: sensors.map((sensor, index) => ({
+          title: { text: index < 2 ? (sensor.unit || sensor.name) : null, style: { color: colors.muted, fontSize: '9px' } },
+          labels: { enabled: index < 2, style: { color: colors.muted, fontSize: '9px' } },
+          gridLineColor: colors.grid, opposite: index % 2 === 1
+        })),
+        legend: { itemStyle: { color: colors.text, fontSize: '9px' }, itemHoverStyle: { color: colors.text }, symbolWidth: 14, itemDistance: 8 },
+        tooltip: { shared: true, backgroundColor: colors.tooltip, borderColor: colors.border, style: { color: colors.text } },
+        series: sensors.map((sensor, index) => {
+          const green = Number.parseFloat(sensor.green);
+          let zones;
+          if (!Number.isNaN(green)) zones = sensor.greenDirection === 'above' ? [{ value: green, dashStyle: 'Dot' }, {}] : [{ value: green }, { dashStyle: 'Dot' }];
+          return { name: sensor.name, data: [], yAxis: index, zones, marker: { enabled: false }, lineWidth: 1.5, tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' } };
+        }),
+        credits: { enabled: false },
+        accessibility: { enabled: false }
+      });
+      sensors.forEach((sensor, index) => { lineSeries[sensor.path] = lineChart.series[index]; });
+    }
 
-  mqttClient.on('message', function(topic, message) {
-    if (skyCamTopic && topic === skyCamTopic) {
-      if (skyCamImage) {
-        const blob = new Blob([message]);
-        const url = URL.createObjectURL(blob);
-        const prev = skyCamImage.dataset.url;
-        if (prev) URL.revokeObjectURL(prev);
-        skyCamImage.src = url;
-        skyCamImage.dataset.url = url;
+    function applyChartTheme() {
+      if (!lineChart) return;
+      const colors = chartColors();
+      lineChart.update({
+        xAxis: { lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted } } },
+        yAxis: lineChart.yAxis.map(() => ({ gridLineColor: colors.grid, labels: { style: { color: colors.muted } }, title: { style: { color: colors.muted } } })),
+        legend: { itemStyle: { color: colors.text }, itemHoverStyle: { color: colors.text } },
+        tooltip: { backgroundColor: colors.tooltip, borderColor: colors.border, style: { color: colors.text } }
+      }, true, true);
+    }
+
+    function configureDashboardVisibility() {
+      const chartCard = document.getElementById('chartCard');
+      const sensorCard = document.getElementById('sensorCard');
+      const skyCard = document.getElementById('skyCamCard');
+      const deviceCard = document.getElementById('devicesCard');
+      const showChart = config.dashboard?.showChart !== false;
+      const showSky = config.dashboard?.showSkyCam !== false && !!config.skyCamTopic;
+      chartCard.hidden = !showChart;
+      sensorCard.classList.toggle('dashboard-fill-column', !showChart);
+      skyCard.hidden = !showSky;
+      deviceCard.classList.toggle('dashboard-fill-column', !showSky);
+      if (showSky) {
+        topics.add(config.skyCamTopic);
+        staticTopics.add(config.skyCamTopic);
       }
-      return;
-    }
-    const rawValue = message.toString();
-    if (topic === roofEsp.state.heartbeat) {
-      lastHeartbeatAt = new Date();
     }
 
-    const num = parseFloat(rawValue);
-    const rounded = !isNaN(num) ? Math.round(num * 10) / 10 : null;
-    const displayValue = rounded !== null ? rounded.toString() : rawValue;
-    if (sensorValueEls[topic]) {
-      const el = sensorValueEls[topic];
-      const unit = el.getAttribute('data-unit');
-      el.textContent = unit ? displayValue + ' ' + unit : displayValue;
+    function setupMaximize() {
+      const backdrop = document.getElementById('modalBackdrop');
+      function close() {
+        if (!activeMaximized) return;
+        activeMaximized.classList.remove('ops-maximized');
+        activeMaximized = null;
+        backdrop.hidden = true;
+        document.body.classList.remove('overflow-hidden');
+        maximizeTrigger?.setAttribute('aria-expanded', 'false');
+        maximizeTrigger?.querySelector('i')?.classList.replace('fa-compress', 'fa-expand');
+        maximizeTrigger?.focus();
+        setTimeout(() => lineChart?.reflow(), 60);
+      }
+      document.querySelectorAll('[data-maximize]').forEach(button => {
+        button.addEventListener('click', () => {
+          const card = document.getElementById(button.dataset.maximize);
+          if (activeMaximized === card) { close(); return; }
+          activeMaximized = card;
+          maximizeTrigger = button;
+          card.classList.add('ops-maximized');
+          backdrop.hidden = false;
+          document.body.classList.add('overflow-hidden');
+          button.setAttribute('aria-expanded', 'true');
+          button.querySelector('i')?.classList.replace('fa-expand', 'fa-compress');
+          setTimeout(() => lineChart?.reflow(), 60);
+        });
+      });
+      backdrop.addEventListener('click', close);
+      document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
     }
-    if (sensorIndicators[topic]) updateSensorIndicator(topic, displayValue);
-    if (lineSeries[topic] && rounded !== null) {
+
+    function updateConnectionStatus(status) {
+      const chip = document.getElementById('connectionStatus');
+      const text = document.getElementById('statusText');
+      const icon = chip.querySelector('i');
+      const values = {
+        connecting: ['Connecting', 'warn', 'fa-circle-notch', true], connected: ['Connected', 'good', 'fa-circle', false],
+        reconnecting: ['Reconnecting', 'warn', 'fa-rotate', true], disconnected: ['Disconnected', 'bad', 'fa-plug-circle-xmark', false],
+        error: ['Connection error', 'bad', 'fa-triangle-exclamation', false]
+      };
+      const [label, tone, iconName, spin] = values[status] || values.disconnected;
+      text.textContent = label;
+      setTone(chip, tone);
+      icon.className = `fa-solid ${iconName}${spin ? ' fa-spin' : ''}`;
+      mqttConnected = status === 'connected';
+      setControlsDisabled(!mqttConnected);
+      updateRoofSafety();
+    }
+
+    function setControlsDisabled(disabled) {
+      document.querySelectorAll('#roofControls button, #devicesContainer button').forEach(button => { button.disabled = disabled; });
+    }
+
+    function sendCommand(topic, payload, label) {
+      if (!mqttClient || !mqttConnected || !topic) return;
+      mqttClient.publish(topic, payload, { qos: 1 });
+      document.getElementById('lastCommand').textContent = `${label} · ${new Date().toLocaleTimeString('en-GB')}`;
+    }
+
+    function formatRoofValue(key, value) {
+      if (key === 'online') return [value === '1' ? 'Online' : 'Offline', value === '1' ? 'good' : 'bad'];
+      if (key === 'moving') return [value === '1' ? 'Moving' : 'Stopped', value === '1' ? 'warn' : 'good'];
+      if (key === 'openLimit') return [value === '1' ? 'Open' : 'Not open', value === '1' ? 'warn' : null];
+      if (key === 'closeLimit') return [value === '1' ? 'Closed' : 'Not closed', value === '1' ? 'good' : 'warn'];
+      if (key === 'openMotor' || key === 'closeMotor') return [value === '1' ? 'Active' : 'Idle', value === '1' ? 'warn' : null];
+      if (key === 'enabled') return [value === '1' ? 'Enabled' : 'Disabled', value === '1' ? 'good' : 'bad'];
+      if (key === 'fault') return [value === '1' ? 'Fault' : 'Clear', value === '1' ? 'bad' : 'good'];
+      if (key === 'faultCode') return [!value || value === '0' ? 'None' : (faultLabels[value] || value), !value || value === '0' ? 'good' : 'bad'];
+      return [value, null];
+    }
+
+    function updateRoofStatus(topic, rawValue) {
+      const status = statusValueEls[topic];
+      if (!status) return;
+      if (status.key === 'heartbeat') {
+        lastHeartbeatAt = new Date();
+        updateHeartbeat();
+        return;
+      }
+      const [label, tone] = formatRoofValue(status.key, rawValue);
+      status.element.textContent = label;
+      status.element.style.color = tone ? `var(--${tone === 'good' ? 'green' : tone === 'warn' ? 'amber' : 'red'})` : 'var(--muted)';
+    }
+
+    function updateHeartbeat() {
+      const status = statusValueEls[roofEsp.state.heartbeat];
+      if (!status) return;
+      if (!lastHeartbeatAt) {
+        status.element.textContent = 'Waiting';
+        status.element.style.color = 'var(--amber)';
+      } else {
+        const stale = Date.now() - lastHeartbeatAt.getTime() > 90000;
+        status.element.textContent = stale ? 'Stale' : lastHeartbeatAt.toLocaleTimeString('en-GB');
+        status.element.style.color = stale ? 'var(--red)' : 'var(--green)';
+      }
+      updateRoofSafety();
+    }
+
+    function updateRoofSafety() {
+      const open = stateValues[roofEsp.state.openLimit] === '1';
+      const closed = stateValues[roofEsp.state.closeLimit] === '1';
+      const moving = stateValues[roofEsp.state.moving] === '1';
+      const fault = stateValues[roofEsp.state.fault] === '1';
+      const enabled = stateValues[roofEsp.state.enabled];
+      const online = stateValues[roofEsp.state.online];
+      const heartbeatStale = lastHeartbeatAt && Date.now() - lastHeartbeatAt.getTime() > 90000;
+      const motorAllowed = mqttConnected && online !== '0' && !heartbeatStale;
+      const baseAllowed = enabled !== '0' && !fault;
+      roofMotionButtons.open.disabled = !motorAllowed || !baseAllowed || open;
+      roofMotionButtons.close.disabled = !motorAllowed || !baseAllowed || closed;
+      roofMotionButtons.stop.disabled = !motorAllowed;
+      relayToggleButtons.forEach(button => { button.disabled = !mqttConnected || online === '0' || moving; });
+
+      const badge = document.getElementById('roofMovingBadge');
+      badge.hidden = !moving;
+      const summary = document.getElementById('roofSummary');
+      const card = document.getElementById('roofCard');
+      let label = 'Roof waiting';
+      let tone = 'warn';
+      if (fault) { label = 'Roof fault'; tone = 'bad'; }
+      else if (moving) { label = 'Roof moving'; tone = 'warn'; }
+      else if (closed) { label = 'Roof closed'; tone = 'good'; }
+      else if (open) { label = 'Roof open'; tone = 'warn'; }
+      summary.querySelector('span').textContent = label;
+      setTone(summary, tone);
+      card.dataset.tone = tone;
+    }
+
+    function updateSensor(topic, rawValue) {
+      const target = sensorValueEls[topic];
+      if (!target) return;
+      const numeric = Number.parseFloat(rawValue);
+      const display = Number.isNaN(numeric) ? rawValue : String(Math.round(numeric * 10) / 10);
+      target.element.textContent = target.unit ? `${display} ${target.unit}` : display;
+      const indicator = sensorIndicators[topic];
+      indicator.hasValue = true;
+      indicator.isGreen = !Number.isNaN(numeric) && !Number.isNaN(indicator.green) && (indicator.direction === 'above' ? numeric >= indicator.green : numeric <= indicator.green);
+      indicator.dot.className = `h-2 w-2 flex-none rounded-full ${indicator.isGreen ? 'bg-emerald-500' : 'bg-rose-500'}`;
+      const values = Object.values(sensorIndicators);
+      const received = values.filter(item => item.hasValue).length;
+      const safe = values.length > 0 && values.every(item => item.hasValue && item.isGreen);
+      const summary = document.getElementById('sensorSummary');
+      summary.textContent = safe ? 'All safe' : `${received}/${values.length} received`;
+      setTone(summary, safe ? 'good' : 'warn');
+      document.getElementById('sensorCard').dataset.tone = safe ? 'good' : '';
       const series = lineSeries[topic];
-      const shift = series.data.length > 50;
-      series.addPoint([Date.now(), rounded], true, shift);
+      if (series && !Number.isNaN(numeric)) series.addPoint([Date.now(), Math.round(numeric * 10) / 10], true, series.data.length >= 50);
     }
 
-    if (statusValueEls[topic]) updateStatusValue(topic, rawValue);
-    if (stateStatusEls[topic]) updateStateStatus(topic, rawValue);
+    renderRoofControls();
+    renderRoofStatus();
+    renderSensors();
+    renderDevices();
+    configureDashboardVisibility();
+    initChart();
+    setupMaximize();
+    window.addEventListener('observatory-theme-change', applyChartTheme);
+    setInterval(updateHeartbeat, 5000);
 
-    if (!staticTopics.has(topic)) {
-      stateValues[topic] = rawValue;
-      updateToggleButton(topic, rawValue);
-    }
-
-    updateMotionButtons();
-    updateRelayLockout();
-    updateRoofBanner();
-  });
-
-  const sendCommand = (commandTopic, payload) => {
-    if (!commandTopic) return;
-    mqttClient.publish(commandTopic, payload, { qos: 1 });
-    updateCommandStatus(commandTopic, payload);
-  };
-
-  document.querySelectorAll('.toggleButton').forEach(button => {
-    button.addEventListener('click', function() {
-      const stateTopic = this.getAttribute('data-topic');
-      const commandTopic = this.getAttribute('data-command-topic');
-      const hasStateValue = stateTopic && Object.prototype.hasOwnProperty.call(stateValues, stateTopic);
-      const currentState = hasStateValue
-        ? (stateValues[stateTopic] === '1' ? '1' : '0')
-        : (this.dataset.localState === '1' ? '1' : '0');
-      const newState = currentState === '1' ? '0' : '1';
-      this.dataset.localState = newState;
-      if (!hasStateValue) {
-        setToggleVisual(this, newState);
+    if (!configLoaded || !config.brokerUrl) {
+      updateConnectionStatus('error');
+    } else {
+      try {
+        const url = new URL(config.brokerUrl);
+        if (config.port) url.port = config.port;
+        mqttClient = createClient({ brokerUrl: url.toString(), options: { username: config.username, password: config.password } });
+        mqttClient.on('status', updateConnectionStatus);
+        mqttClient.on('error', error => console.error('MQTT client error:', error));
+        mqttClient.on('connect', () => {
+          topics.forEach(topic => {
+            mqttClient.subscribe(topic);
+            if (!staticTopics.has(topic)) stateValues[topic] = null;
+          });
+        });
+        mqttClient.on('message', (topic, message) => {
+          if (topic === config.skyCamTopic) {
+            const image = document.getElementById('skyCamImage');
+            const url = URL.createObjectURL(new Blob([message]));
+            if (image.dataset.objectUrl) URL.revokeObjectURL(image.dataset.objectUrl);
+            image.src = url;
+            image.dataset.objectUrl = url;
+            image.hidden = false;
+            document.getElementById('skyCamWaiting').hidden = true;
+            return;
+          }
+          const rawValue = message.toString();
+          stateValues[topic] = rawValue;
+          updateSensor(topic, rawValue);
+          updateRoofStatus(topic, rawValue);
+          const toggle = toggleButtonsByTopic[topic];
+          if (toggle) setToggleVisual(toggle.button, rawValue, toggle.state);
+          updateRoofSafety();
+        });
+      } catch (error) {
+        console.error('MQTT initialization failed:', error);
+        updateConnectionStatus('error');
       }
-      sendCommand(commandTopic, newState);
-    });
-  });
-
-  document.querySelectorAll('[data-command-topic]').forEach(button => {
-    if (button.classList.contains('toggleButton')) return;
-    button.addEventListener('click', function() {
-      const commandTopic = this.getAttribute('data-command-topic');
-      sendCommand(commandTopic, '1');
-    });
-  });
-} catch (err) {
-  const statusEl = document.getElementById('statusText');
-  if (statusEl) statusEl.textContent = 'Error connecting to MQTT';
-  setControlsDisabled(true);
-  console.error('MQTT init error:', err);
-}
-
-function formatTimestamp(date) {
-  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-
-function updateCommandStatus(commandTopic, payload) {
-  const el = commandStatusEls[commandTopic];
-  if (!el) return;
-  el.textContent = `Command: ${payload} at ${formatTimestamp(new Date())}`;
-}
-
-function updateStateStatus(topic, value) {
-  const el = stateStatusEls[topic];
-  if (!el) return;
-  el.textContent = `State: ${value} at ${formatTimestamp(new Date())}`;
-}
-
-function setStatusTone(el, tone) {
-  const tones = [
-    'text-emerald-600',
-    'dark:text-emerald-200',
-    'text-rose-600',
-    'dark:text-rose-200',
-    'text-amber-600',
-    'dark:text-amber-200',
-    'text-slate-700',
-    'dark:text-slate-100'
-  ];
-  el.classList.remove(...tones);
-  if (tone === 'good') {
-    el.classList.add('text-emerald-600', 'dark:text-emerald-200');
-  } else if (tone === 'bad') {
-    el.classList.add('text-rose-600', 'dark:text-rose-200');
-  } else if (tone === 'warn') {
-    el.classList.add('text-amber-600', 'dark:text-amber-200');
-  } else {
-    el.classList.add('text-slate-700', 'dark:text-slate-100');
-  }
-}
-
-function updateHeartbeatDisplay() {
-  const el = statusValueEls[roofEsp.state.heartbeat];
-  if (!el) return;
-  if (!lastHeartbeatAt) {
-    el.textContent = 'Waiting...';
-    setStatusTone(el, 'warn');
-    updateMotionButtons();
-    return;
-  }
-  const now = new Date();
-  const diffMs = now - lastHeartbeatAt;
-  if (diffMs > 90000) {
-    el.textContent = 'Device offline';
-    setStatusTone(el, 'bad');
-  } else {
-    el.textContent = `Last seen ${formatTimestamp(lastHeartbeatAt)}`;
-    setStatusTone(el, 'good');
-  }
-  updateMotionButtons();
-}
-
-function updateStatusValue(topic, value) {
-  const el = statusValueEls[topic];
-  if (!el) return;
-  let text = value;
-  let tone = 'neutral';
-  if (topic === roofEsp.state.moving) {
-    text = value === '1' ? 'Moving' : 'Stopped';
-    tone = value === '1' ? 'warn' : 'good';
-  } else if (topic === roofEsp.state.online) {
-    if (value === '1') {
-      text = 'Online';
-      tone = 'good';
-    } else if (value === '0') {
-      text = 'Offline';
-      tone = 'bad';
-    } else {
-      text = 'Unknown';
-      tone = 'warn';
     }
-  } else if (topic === roofEsp.state.openLimit) {
-    text = value === '1' ? 'Roof is open' : "Roof isn't open";
-    tone = value === '1' ? 'good' : 'neutral';
-    if (value === '1') roofClosed = false;
-  } else if (topic === roofEsp.state.closeLimit) {
-    text = value === '1' ? 'Roof is closed' : "Roof isn't closed";
-    tone = value === '1' ? 'good' : 'neutral';
-    roofClosed = value === '1';
-  } else if (topic === roofEsp.state.openMotor) {
-    text = value === '1' ? 'Open motor active' : 'Open motor idle';
-    tone = value === '1' ? 'warn' : 'neutral';
-  } else if (topic === roofEsp.state.closeMotor) {
-    text = value === '1' ? 'Close motor active' : 'Close motor idle';
-    tone = value === '1' ? 'warn' : 'neutral';
-  } else if (topic === roofEsp.state.enabled) {
-    text = value === '1' ? 'Enabled' : 'Disabled';
-    tone = value === '1' ? 'good' : 'bad';
-  } else if (topic === roofEsp.state.fault) {
-    text = value === '1' ? 'Fault' : 'OK';
-    tone = value === '1' ? 'bad' : 'good';
-  } else if (topic === roofEsp.state.faultCode) {
-    if (!value || value === '0') {
-      text = 'No fault';
-      tone = 'good';
-    } else {
-      text = faultCodeLabels[value] || `Fault: ${value}`;
-      tone = 'bad';
-    }
-  } else if (topic === roofEsp.state.heartbeat) {
-    updateHeartbeatDisplay();
-    updateRoofCardBorder();
-    return;
-  }
-  el.textContent = text;
-  setStatusTone(el, tone);
-  updateRoofCardBorder();
-}
-
-function updateMotionButtons() {
-  const enabled = stateValues[roofEsp.state.enabled];
-  const fault = stateValues[roofEsp.state.fault];
-  const openLimit = stateValues[roofEsp.state.openLimit];
-  const closeLimit = stateValues[roofEsp.state.closeLimit];
-  const online = stateValues[roofEsp.state.online];
-  const heartbeatStale = lastHeartbeatAt
-    ? (new Date() - lastHeartbeatAt) > 90000
-    : false;
-  const baseAllowed = enabled !== '0' && fault !== '1';
-  const motorAllowed = mqttConnected && online !== '0' && !heartbeatStale;
-
-  if (roofMotionButtons.open) {
-    roofMotionButtons.open.disabled = !motorAllowed || !baseAllowed || openLimit === '1';
-  }
-  if (roofMotionButtons.close) {
-    roofMotionButtons.close.disabled = !motorAllowed || !baseAllowed || closeLimit === '1';
-  }
-  if (roofMotionButtons.stop) {
-    roofMotionButtons.stop.disabled = !motorAllowed;
-  }
-}
-
-function updateRelayLockout() {
-  if (!mqttConnected) return;
-  const moving = stateValues[roofEsp.state.moving];
-  const online = stateValues[roofEsp.state.online];
-  relayToggleButtons.forEach(button => {
-    if (!button) return;
-    const shouldDisable = online === '0' || moving === '1';
-    button.disabled = shouldDisable;
-    button.classList.toggle('opacity-50', shouldDisable);
-    button.classList.toggle('cursor-not-allowed', shouldDisable);
-  });
-}
-
-function updateRoofBanner() {
-  const banner = document.getElementById('roofBanner');
-  if (!banner) return;
-  const moving = stateValues[roofEsp.state.moving];
-  banner.classList.toggle('hidden', moving !== '1');
-  banner.classList.toggle('flex', moving === '1');
-}
-
-function updateSensorIndicator(topic, value) {
-  const data = sensorIndicators[topic];
-  if (!data) return;
-  const num = parseFloat(value);
-  if (!isNaN(num) && !isNaN(data.green)) {
-    const isGreen = data.direction === 'above' ? num >= data.green : num <= data.green;
-    data.isGreen = isGreen;
-    if (isGreen) {
-      data.el.classList.remove('bg-rose-500');
-      data.el.classList.add('bg-emerald-400');
-    } else {
-      data.el.classList.remove('bg-emerald-400');
-      data.el.classList.add('bg-rose-500');
-    }
-  } else {
-    data.isGreen = false;
-  }
-
-  if (sensorCard) {
-    const allGreen = Object.values(sensorIndicators).length > 0 &&
-      Object.values(sensorIndicators).every(s => s.isGreen);
-    setSensorCardState(allGreen);
-  }
-}
-
-function updateToggleButton(topic, value) {
-  const button = document.querySelector(`.toggleButton[data-topic='${topic}']`);
-  if (button) {
-    button.dataset.localState = value === '1' ? '1' : '0';
-    setToggleVisual(button, value);
-  }
-}
-
-function setToggleVisual(button, value) {
-  const knob = button.querySelector('span');
-  if (value === '1') {
-    button.classList.remove('bg-slate-300', 'dark:bg-slate-700');
-    button.classList.add('bg-emerald-500');
-    knob.classList.add('translate-x-5');
-  } else {
-    button.classList.remove('bg-emerald-500');
-    button.classList.add('bg-slate-300', 'dark:bg-slate-700');
-    knob.classList.remove('translate-x-5');
-  }
-}
-</script>
+  </script>
 </body>
 </html>

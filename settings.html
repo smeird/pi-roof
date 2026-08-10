@@ -3,392 +3,353 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings</title>
+  <meta name="color-scheme" content="light dark">
+  <title>Observatory Settings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script>
-    const savedTheme = localStorage.getItem('theme') || 'system';
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const enableDark = savedTheme === 'dark' || (savedTheme === 'system' && prefersDark);
-    document.documentElement.classList.toggle('dark', enableDark);
-  </script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif']
-          },
-          colors: {
-            aurora: {
-              200: '#c4d9ff',
-              300: '#92b4ff',
-              400: '#5b8fff',
-              500: '#2d72ff'
-            }
-          }
-        }
-      }
-    };
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/app.css">
 </head>
-<body class="min-h-screen font-sans antialiased text-slate-900 dark:text-slate-100">
-  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"></div>
-    <div class="absolute left-1/2 top-[-10%] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-aurora-300/40 blur-3xl dark:bg-aurora-500/30"></div>
-    <div class="absolute bottom-[-25%] right-[-10%] h-[480px] w-[480px] rounded-full bg-aurora-200/40 blur-3xl dark:bg-aurora-400/20"></div>
-    <div class="absolute left-[-15%] top-1/3 h-72 w-72 rounded-full bg-white/40 blur-3xl dark:bg-white/5"></div>
-  </div>
-  <div id="overlay" class="fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-sm hidden md:hidden"></div>
-  <div class="relative z-10 min-h-screen md:flex">
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full transform flex-col border-r border-white/10 bg-slate-900/80 px-6 pb-6 pt-8 text-slate-100 backdrop-blur-lg transition-transform duration-300 md:relative md:translate-x-0 md:flex-shrink-0 md:border-r md:border-slate-200/20">
-      <div class="mb-8 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-3 text-lg font-semibold tracking-tight">
-          <span class="grid h-10 w-10 place-items-center rounded-2xl bg-white/10 text-aurora-200 shadow ring-1 ring-white/20"><i class="fa-solid fa-binoculars"></i></span>
-          <span class="leading-tight">Observatory</span>
-        </a>
-        <button id="closeSidebar" class="md:hidden text-slate-300 transition hover:text-white" aria-label="Close menu">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-      </div>
-      <div class="space-y-6 overflow-y-auto">
-        <div class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-inner backdrop-blur">
-          <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-200/80">
-            <span>Theme</span>
-            <i class="fa-solid fa-circle-half-stroke text-aurora-200"></i>
-          </div>
-          <select id="themeSelect" class="mt-3 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm font-medium text-slate-100 shadow-sm outline-none transition focus:border-aurora-400 focus:ring-2 focus:ring-aurora-300/40">
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="system">System</option>
-          </select>
-        </div>
-        <nav class="space-y-2 text-sm font-medium">
-          <p class="px-3 text-xs uppercase tracking-[0.3em] text-slate-200/60">Quick Links</p>
-          <ul class="space-y-2">
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://10.0.179.242" target="_blank"><i class="fa-solid fa-mountain-sun text-aurora-200"></i><span>AAGSolo</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/9d4866d34e934549a20debd888358718?refresh=1m&amp;from=now-24h&amp;to=now&amp;timezone=browser" target="_blank"><i class="fa-solid fa-chart-line text-aurora-200"></i><span>Obs Graphs</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://data.smeird.com:3000/public-dashboards/2ed28400ef714b6899a67ca635137a59" target="_blank"><i class="fa-solid fa-cloud-sun text-aurora-200"></i><span>Weather</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://ob.smeird.com" target="_blank"><i class="fa-solid fa-earth-europe text-aurora-200"></i><span>Public obs</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="http://www.smeird.com" target="_blank"><i class="fa-solid fa-droplet text-aurora-200"></i><span>Public Weather</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="https://clearoutside.com/forecast/51.81/-0.29" target="_blank"><i class="fa-solid fa-moon-stars text-aurora-200"></i><span>Night Forecast</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="https://skycam.smeird.com" target="_blank"><i class="fa-solid fa-camera text-aurora-200"></i><span>SkyCam</span></a></li>
-            <li><a class="flex items-center gap-3 rounded-xl border border-transparent bg-white/5 px-3 py-2 text-slate-200 transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/10 hover:text-white" href="settings.html"><i class="fa-solid fa-sliders text-aurora-200"></i><span>Settings</span></a></li>
-          </ul>
-        </nav>
-      </div>
-    </aside>
-
-    <div class="flex min-h-screen flex-1 flex-col">
-
-      <header class="flex items-center justify-between gap-4 bg-white/80 px-6 py-4 shadow-sm backdrop-blur dark:bg-slate-900/70 md:hidden">
-        <div class="flex items-center gap-3 text-base font-semibold text-slate-700 dark:text-slate-100">
-          <span class="grid h-9 w-9 place-items-center rounded-2xl bg-aurora-400/20 text-aurora-500 dark:bg-aurora-500/20"><i class="fa-solid fa-binoculars"></i></span>
-          Observatory
-        </div>
-        <button id="menuButton" class="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-100" aria-label="Open menu">
-          <i class="fa-solid fa-bars text-lg"></i>
-        </button>
+<body>
+  <div class="ops-shell">
+    <aside id="appRail" class="ops-rail" aria-label="Application navigation"></aside>
+    <main class="ops-main min-w-0">
+      <header class="ops-topbar sticky top-0 z-30">
+        <h1 class="ops-page-title">Observatory Settings</h1>
+        <span id="settingsState" class="ops-status-chip tone-warn" role="status" aria-live="polite"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading</span></span>
       </header>
-      <main class="flex-1 px-4 py-10 sm:px-8">
-        <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
-          <div class="flex flex-col gap-3">
-            <p class="text-sm uppercase tracking-[0.35em] text-slate-500/70 dark:text-slate-300/60">Configuration</p>
-            <h1 class="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white"><span class="bg-gradient-to-r from-aurora-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">Settings</span></h1>
-            <p class="max-w-3xl text-sm text-slate-600 dark:text-slate-300/80">Update MQTT, InfluxDB, and dashboard behaviour with streamlined controls. Changes take effect immediately after saving.</p>
+
+      <form id="settingsForm" class="mx-auto w-full max-w-[90rem] space-y-3 p-3 pb-24">
+        <section class="ops-card" aria-labelledby="connectionTitle">
+          <header class="ops-card-header"><h2 id="connectionTitle" class="ops-card-title">Connection</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">MQTT WebSocket broker</span></header>
+          <div class="ops-card-body grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <label><span class="ops-label">Broker URL</span><input name="MQTT_BROKER_URL" class="ops-input" placeholder="wss://broker.example.com" autocomplete="url"></label>
+            <label><span class="ops-label">Port</span><input name="MQTT_PORT" class="ops-input" type="number" min="1" max="65535" inputmode="numeric"></label>
+            <label><span class="ops-label">Username</span><input name="MQTT_USERNAME" class="ops-input" autocomplete="username"></label>
+            <label><span class="ops-label">Password</span><input name="MQTT_PASSWORD" class="ops-input" type="password" autocomplete="current-password"></label>
           </div>
-          <div class="rounded-3xl border border-slate-200/60 bg-white/80 p-8 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
-            <form id="settingsForm" class="space-y-10">
-              <section class="space-y-4">
-                <div class="flex flex-col gap-1">
-                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">MQTT Server</h2>
-                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Provide connection details for the observatory broker.</p>
-                </div>
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Host</label>
-                    <input name="MQTT_BROKER_URL" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Port</label>
-                    <input name="MQTT_PORT" type="number" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Username</label>
-                    <input name="MQTT_USERNAME" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Password</label>
-                    <input name="MQTT_PASSWORD" type="password" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                  </div>
-                </div>
-              </section>
+        </section>
 
-              <section class="space-y-4">
-                <div class="flex flex-col gap-1">
-                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">InfluxDB</h2>
-                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Configure historical storage and query access.</p>
-                </div>
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Host</label>
-                    <input name="INFLUX_HOST" placeholder="http://localhost:8086" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Use the full base URL including scheme and port (e.g. http://influxdb:8086).</p>
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Org</label>
-                    <input name="INFLUX_ORG" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Bucket</label>
-                    <input name="INFLUX_BUCKET" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Token</label>
-                    <input name="INFLUX_TOKEN" type="password" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                  </div>
-                </div>
-              </section>
+        <section class="ops-card" aria-labelledby="historyTitle">
+          <header class="ops-card-header"><h2 id="historyTitle" class="ops-card-title">History</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">InfluxDB query connection</span></header>
+          <div class="ops-card-body grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <label><span class="ops-label">Host</span><input name="INFLUX_HOST" class="ops-input" placeholder="http://influxdb:8086"></label>
+            <label><span class="ops-label">Organization</span><input name="INFLUX_ORG" class="ops-input"></label>
+            <label><span class="ops-label">Bucket</span><input name="INFLUX_BUCKET" class="ops-input"></label>
+            <label><span class="ops-label">Token</span><input name="INFLUX_TOKEN" class="ops-input" type="password"></label>
+          </div>
+        </section>
 
-              <section class="space-y-4">
-                <div class="flex flex-col gap-1">
-                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Sensors</h2>
-                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Define sensor names, MQTT topics, thresholds, and history metadata.</p>
-                </div>
-                <div id="sensorsList" class="space-y-3"></div>
-                <button type="button" id="addSensor" class="inline-flex items-center gap-2 rounded-xl border border-aurora-300/50 bg-aurora-300/20 px-4 py-2 text-sm font-semibold text-aurora-600 transition hover:-translate-y-0.5 hover:bg-aurora-300/30 dark:border-aurora-500/40 dark:bg-aurora-500/10 dark:text-aurora-200"> <i class="fa-solid fa-plus"></i> Add Sensor</button>
-              </section>
+        <section class="ops-card" aria-labelledby="dashboardTitle">
+          <header class="ops-card-header"><h2 id="dashboardTitle" class="ops-card-title">Dashboard</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">Live monitoring panels</span></header>
+          <div class="ops-card-body grid items-end gap-3 md:grid-cols-[1fr_auto_auto]">
+            <label><span class="ops-label">SkyCam MQTT topic</span><input name="MQTT_SKYCAM_TOPIC" class="ops-input" placeholder="Observatory/skycam/image"></label>
+            <label class="flex min-h-[2.45rem] items-center gap-2 rounded-lg border px-3 text-sm font-bold" style="border-color:var(--border);background:var(--panel-subtle)"><input name="DASHBOARD_SHOW_CHART" type="checkbox" class="h-4 w-4 accent-blue-600"> Show live graph</label>
+            <label class="flex min-h-[2.45rem] items-center gap-2 rounded-lg border px-3 text-sm font-bold" style="border-color:var(--border);background:var(--panel-subtle)"><input name="DASHBOARD_SHOW_SKYCAM" type="checkbox" class="h-4 w-4 accent-blue-600"> Show SkyCam</label>
+          </div>
+        </section>
 
-              <section class="space-y-4">
-                <div class="flex flex-col gap-1">
-                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Roof</h2>
-                  <p class="text-sm text-slate-600 dark:text-slate-300/80">MQTT topics for motor control and position feedback.</p>
-                </div>
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <input id="roofOpenPath" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" placeholder="Open Path" />
-                  <input id="roofOpenLimit" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" placeholder="Roof Open Status Topic" />
-                  <input id="roofClosePath" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" placeholder="Close Path" />
-                  <input id="roofCloseLimit" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" placeholder="Roof Closed Status Topic" />
-                </div>
-              </section>
+        <section class="ops-card" aria-labelledby="roofControllerTitle">
+          <header class="ops-card-header"><h2 id="roofControllerTitle" class="ops-card-title">Roof Controller</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">Standard roof-esp contract</span></header>
+          <div class="ops-card-body space-y-3">
+            <label><span class="ops-label">Controller base topic</span><input id="roofBaseTopic" class="ops-input" placeholder="Observatory/roof-esp"><span class="ops-help">Commands and telemetry are derived from this base topic.</span></label>
+            <div>
+              <div class="mb-2 flex items-center justify-between"><h3 class="text-xs font-extrabold uppercase tracking-wide">Controller relays</h3><span class="text-[.68rem] text-[var(--muted)]">Edit labels, visibility, and order</span></div>
+              <div id="relaysList" class="space-y-1.5"></div>
+            </div>
+          </div>
+        </section>
 
-              <section class="space-y-4">
-                <div class="flex flex-col gap-1">
-                  <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Switches</h2>
-                  <p class="text-sm text-slate-600 dark:text-slate-300/80">Create quick toggles for auxiliary equipment, with a command topic and a status topic.</p>
-                </div>
-                <div id="switchesList" class="space-y-3"></div>
-                <button type="button" id="addSwitch" class="inline-flex items-center gap-2 rounded-xl border border-aurora-300/50 bg-aurora-300/20 px-4 py-2 text-sm font-semibold text-aurora-600 transition hover:-translate-y-0.5 hover:bg-aurora-300/30 dark:border-aurora-500/40 dark:bg-aurora-500/10 dark:text-aurora-200"><i class="fa-solid fa-plus"></i> Add Switch</button>
-              </section>
+        <section class="ops-card" aria-labelledby="sensorsTitle">
+          <header class="ops-card-header">
+            <h2 id="sensorsTitle" class="ops-card-title">Sensors</h2>
+            <button id="addSensor" type="button" class="ops-button"><i class="fa-solid fa-plus"></i>Add sensor</button>
+          </header>
+          <div class="ops-card-body"><div id="sensorsList" class="space-y-2"></div></div>
+        </section>
 
-              <section class="grid gap-4 sm:grid-cols-2">
-                <div class="flex flex-col gap-2">
-                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">SkyCam Topic</h2>
-                  <input name="MQTT_SKYCAM_TOPIC" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                </div>
-                <div class="flex flex-col gap-2">
-                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Dashboard Topics (comma separated)</h2>
-                  <input name="MQTT_DASHBOARD_TOPICS" class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100" />
-                </div>
-              </section>
+        <section class="ops-card" aria-labelledby="devicesTitle">
+          <header class="ops-card-header">
+            <h2 id="devicesTitle" class="ops-card-title">Auxiliary Devices</h2>
+            <button id="addSwitch" type="button" class="ops-button"><i class="fa-solid fa-plus"></i>Add device</button>
+          </header>
+          <div class="ops-card-body"><div id="switchesList" class="space-y-2"></div></div>
+        </section>
 
-              <div class="flex flex-col gap-3">
-                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-aurora-300 via-blue-400 to-indigo-500 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-aurora-300/30 transition hover:shadow-xl hover:shadow-aurora-300/40 dark:from-aurora-400 dark:via-blue-500 dark:to-indigo-500 dark:text-white">
-                  <i class="fa-solid fa-floppy-disk"></i> Save Configuration
-                </button>
-                <div id="status" class="text-sm text-rose-500"></div>
-              </div>
-            </form>
+        <section class="ops-card" aria-labelledby="linksTitle">
+          <header class="ops-card-header">
+            <h2 id="linksTitle" class="ops-card-title">Quick Links</h2>
+            <button id="addLink" type="button" class="ops-button"><i class="fa-solid fa-plus"></i>Add link</button>
+          </header>
+          <div class="ops-card-body"><div id="linksList" class="space-y-2"></div></div>
+        </section>
+
+        <div class="sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-[var(--panel)] p-3 shadow-lg" style="border-color:var(--border)">
+          <div id="formMessage" class="min-w-0 text-xs font-semibold text-[var(--muted)]">Changes apply after the dashboard reloads.</div>
+          <div class="flex gap-2">
+            <a href="/" class="ops-button"><i class="fa-solid fa-arrow-left"></i>Dashboard</a>
+            <button id="saveButton" type="submit" class="ops-button ops-button-primary"><i class="fa-solid fa-floppy-disk"></i>Save configuration</button>
           </div>
         </div>
-      </main>
-    </div>
+      </form>
+    </main>
   </div>
 
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
+    import { initShell } from './js/shell.js';
 
-    const menuButton = document.getElementById('menuButton');
-    const closeSidebar = document.getElementById('closeSidebar');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
+    const iconOptions = [
+      ['fa-mountain-sun', 'Landscape'], ['fa-chart-line', 'Chart'], ['fa-cloud-sun', 'Weather'],
+      ['fa-earth-europe', 'Globe'], ['fa-droplet', 'Droplet'], ['fa-moon', 'Moon'],
+      ['fa-camera', 'Camera'], ['fa-link', 'Link'], ['fa-house', 'House'],
+      ['fa-server', 'Server'], ['fa-gauge-high', 'Gauge']
+    ];
+    const settingsState = document.getElementById('settingsState');
+    const form = document.getElementById('settingsForm');
 
-    function openMenu() {
-      if (!sidebar || !overlay) return;
-      sidebar.classList.remove('-translate-x-full');
-      overlay.classList.remove('hidden');
-      overlay.style.left = `${sidebar.offsetWidth}px`;
-      document.body.classList.add('overflow-hidden');
+    function make(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
     }
 
-    function closeMenu() {
-      if (!sidebar || !overlay) return;
-      sidebar.classList.add('-translate-x-full');
-      overlay.classList.add('hidden');
-      overlay.style.left = '';
-      document.body.classList.remove('overflow-hidden');
-    }
-
-    if (menuButton && sidebar && overlay) {
-      const toggleSidebar = () => {
-        if (sidebar.classList.contains('-translate-x-full')) {
-          openMenu();
-        } else {
-          closeMenu();
-        }
-      };
-      menuButton.addEventListener('click', toggleSidebar);
-      overlay.addEventListener('click', toggleSidebar);
-    }
-
-    if (closeSidebar && overlay) {
-      closeSidebar.addEventListener('click', closeMenu);
-    }
-
-    const themeSelect = document.getElementById('themeSelect');
-    if (themeSelect) {
-      const storedTheme = localStorage.getItem('theme') || 'system';
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-      function setTheme(theme) {
-        const isDark = theme === 'dark' || (theme === 'system' && mediaQuery.matches);
-        document.documentElement.classList.toggle('dark', isDark);
+    function input(label, className, value = '', options = {}) {
+      const wrap = make('label');
+      wrap.appendChild(make('span', 'ops-label', label));
+      const field = make(options.select ? 'select' : 'input', `ops-input ${className || ''}`);
+      if (!options.select) {
+        field.type = options.type || 'text';
+        if (options.placeholder) field.placeholder = options.placeholder;
+        field.value = value ?? '';
       }
-
-      themeSelect.value = storedTheme;
-      setTheme(storedTheme);
-
-      themeSelect.addEventListener('change', e => {
-        const value = e.target.value;
-        localStorage.setItem('theme', value);
-        setTheme(value);
-      });
-
-      mediaQuery.addEventListener('change', () => {
-        if (localStorage.getItem('theme') === 'system') {
-          setTheme('system');
-        }
-      });
+      wrap.appendChild(field);
+      return { wrap, field };
     }
 
-    const sensorsList = document.getElementById('sensorsList');
-    const switchesList = document.getElementById('switchesList');
+    function iconButton(icon, label, action, className = '') {
+      const button = make('button', `ops-button ${className}`);
+      button.type = 'button';
+      button.setAttribute('aria-label', label);
+      button.innerHTML = `<i class="fa-solid ${icon}" aria-hidden="true"></i>`;
+      button.addEventListener('click', action);
+      return button;
+    }
 
-    const inputBase = 'rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
-    const selectBase = 'rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm transition focus:border-aurora-400 focus:outline-none focus:ring-2 focus:ring-aurora-300/40 dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-100';
-    const rowBase = 'flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/70 bg-white/70 px-3 py-3 shadow-sm dark:border-white/10 dark:bg-slate-900/60';
+    function moveRow(row, direction) {
+      const sibling = direction < 0 ? row.previousElementSibling : row.nextElementSibling;
+      if (!sibling) return;
+      if (direction < 0) row.parentElement.insertBefore(row, sibling);
+      else row.parentElement.insertBefore(sibling, row);
+      markDirty();
+    }
+
+    function controls(row, removable = true) {
+      const wrap = make('div', 'flex items-end gap-1');
+      wrap.append(
+        iconButton('fa-chevron-up', 'Move up', () => moveRow(row, -1), 'ops-button-ghost'),
+        iconButton('fa-chevron-down', 'Move down', () => moveRow(row, 1), 'ops-button-ghost')
+      );
+      if (removable) wrap.appendChild(iconButton('fa-trash', 'Remove', () => { row.remove(); markDirty(); }, 'ops-button-ghost text-rose-600'));
+      return wrap;
+    }
+
+    function visibility(value = true) {
+      const label = make('label', 'flex min-h-[2.45rem] items-center gap-2 rounded-lg border px-2.5 text-[.7rem] font-bold');
+      label.style.borderColor = 'var(--border)';
+      label.style.background = 'var(--panel-subtle)';
+      const checkbox = make('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = value !== false;
+      checkbox.className = 'h-4 w-4 accent-blue-600';
+      label.append(checkbox, document.createTextNode('Visible'));
+      return { wrap: label, field: checkbox };
+    }
+
+    function createRelayRow(data) {
+      const row = make('div', 'relay-row grid gap-2 rounded-lg border p-2 sm:grid-cols-[6rem_1fr_auto_auto]');
+      row.style.borderColor = 'var(--border)';
+      row.style.background = 'var(--panel-subtle)';
+      row.dataset.key = data.key;
+      const key = make('div', 'flex items-center font-mono text-xs font-extrabold text-[var(--muted)]', data.key);
+      const label = input('Dashboard label', 'relay-label', data.label);
+      const shown = visibility(data.visible);
+      shown.field.classList.add('relay-visible');
+      row.append(key, label.wrap, shown.wrap, controls(row, false));
+      document.getElementById('relaysList').appendChild(row);
+    }
 
     function createSensorRow(data = {}) {
-      const row = document.createElement('div');
-      row.className = `${rowBase} sensor-row`;
-      row.innerHTML = `
-        <input class="${inputBase} flex-1 min-w-[10rem] sensor-path" placeholder="Path" value="${data.path || ''}">
-        <input class="${inputBase} w-28 sensor-unit" placeholder="Unit" value="${data.unit || ''}">
-        <input class="${inputBase} flex-1 min-w-[10rem] sensor-name" placeholder="Name" value="${data.name || ''}">
-        <input class="${inputBase} w-28 sensor-green" type="number" step="any" placeholder="Green" value="${data.green || ''}">
-        <select class="${selectBase} w-32 sensor-direction">
-          <option value="below" ${data.greenDirection === 'above' ? '' : 'selected'}>Below</option>
-          <option value="above" ${data.greenDirection === 'above' ? 'selected' : ''}>Above</option>
-        </select>
-        <input class="${inputBase} w-40 sensor-measurement" placeholder="Measurement" value="${data.influxMeasurement || ''}">
-        <input class="${inputBase} w-40 sensor-field" placeholder="Field" value="${data.influxField || ''}">
-        <button type="button" class="remove inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/80 text-white shadow transition hover:bg-rose-500"><i class="fa-solid fa-xmark"></i></button>`;
-      row.querySelector('.remove').addEventListener('click', () => row.remove());
-      sensorsList.appendChild(row);
+      const row = make('div', 'sensor-row rounded-lg border p-2');
+      row.style.borderColor = 'var(--border)';
+      row.style.background = 'var(--panel-subtle)';
+      const grid = make('div', 'grid gap-2 md:grid-cols-2 xl:grid-cols-[1.4fr_1fr_.55fr_.65fr_.75fr_1fr_1fr_auto]');
+      const path = input('MQTT topic', 'sensor-path', data.path, { placeholder: 'Observatory/sensor/value' });
+      const name = input('Name', 'sensor-name', data.name);
+      const unit = input('Unit', 'sensor-unit', data.unit);
+      const threshold = input('Safe threshold', 'sensor-green', data.green, { type: 'number' });
+      threshold.field.step = 'any';
+      const direction = input('Safe when', 'sensor-direction', '', { select: true });
+      [['below', 'At or below'], ['above', 'At or above']].forEach(([value, label]) => direction.field.add(new Option(label, value)));
+      direction.field.value = data.greenDirection || 'below';
+      const measurement = input('Influx measurement', 'sensor-measurement', data.influxMeasurement);
+      const influxField = input('Influx field', 'sensor-field', data.influxField);
+      grid.append(path.wrap, name.wrap, unit.wrap, threshold.wrap, direction.wrap, measurement.wrap, influxField.wrap, controls(row));
+      row.appendChild(grid);
+      document.getElementById('sensorsList').appendChild(row);
     }
 
     function createSwitchRow(data = {}) {
-      const row = document.createElement('div');
-      row.className = `${rowBase} switch-row`;
-      row.innerHTML = `
-        <input class="${inputBase} flex-1 min-w-[10rem] switch-name" placeholder="Name" value="${data.name || ''}">
-        <input class="${inputBase} flex-1 min-w-[12rem] switch-command" placeholder="Command Topic" value="${data.commandPath || data.path || ''}">
-        <input class="${inputBase} flex-1 min-w-[12rem] switch-status" placeholder="Status Topic" value="${data.statusPath || data.path || ''}">
-        <button type="button" class="remove inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/80 text-white shadow transition hover:bg-rose-500"><i class="fa-solid fa-xmark"></i></button>`;
-      row.querySelector('.remove').addEventListener('click', () => row.remove());
-      switchesList.appendChild(row);
+      const row = make('div', 'switch-row rounded-lg border p-2');
+      row.style.borderColor = 'var(--border)';
+      row.style.background = 'var(--panel-subtle)';
+      const grid = make('div', 'grid gap-2 md:grid-cols-2 xl:grid-cols-[1fr_1.5fr_1.5fr_auto]');
+      const name = input('Device name', 'switch-name', data.name);
+      const command = input('Command topic', 'switch-command', data.commandPath || data.path);
+      const status = input('Status topic', 'switch-status', data.statusPath || data.path);
+      grid.append(name.wrap, command.wrap, status.wrap, controls(row));
+      row.appendChild(grid);
+      document.getElementById('switchesList').appendChild(row);
     }
 
-    document.getElementById('addSensor').addEventListener('click', () => createSensorRow());
-    document.getElementById('addSwitch').addEventListener('click', () => createSwitchRow());
-
-    async function loadSettings() {
-      const cfg = await loadConfig();
-      document.querySelector('[name="MQTT_BROKER_URL"]').value = cfg.brokerUrl;
-      document.querySelector('[name="MQTT_PORT"]').value = cfg.port;
-      document.querySelector('[name="MQTT_USERNAME"]').value = cfg.username;
-      document.querySelector('[name="MQTT_PASSWORD"]').value = cfg.password;
-      document.querySelector('[name="MQTT_SKYCAM_TOPIC"]').value = cfg.skyCamTopic || '';
-      document.querySelector('[name="MQTT_DASHBOARD_TOPICS"]').value = cfg.dashboardTopics.join(',');
-      document.querySelector('[name="INFLUX_HOST"]').value = cfg.influxHost || '';
-      document.querySelector('[name="INFLUX_ORG"]').value = cfg.influxOrg || '';
-      document.querySelector('[name="INFLUX_BUCKET"]').value = cfg.influxBucket || '';
-      document.querySelector('[name="INFLUX_TOKEN"]').value = cfg.influxToken || '';
-      cfg.sensors.forEach(s => createSensorRow(s));
-      cfg.switches.forEach(s => createSwitchRow(s));
-      document.getElementById('roofOpenPath').value = cfg.roof.open.path || '';
-      document.getElementById('roofOpenLimit').value = cfg.roof.open.limit || '';
-      document.getElementById('roofClosePath').value = cfg.roof.close.path || '';
-      document.getElementById('roofCloseLimit').value = cfg.roof.close.limit || '';
+    function createLinkRow(data = {}) {
+      const row = make('div', 'link-row rounded-lg border p-2');
+      row.style.borderColor = 'var(--border)';
+      row.style.background = 'var(--panel-subtle)';
+      const grid = make('div', 'grid gap-2 md:grid-cols-2 xl:grid-cols-[1fr_2fr_1fr_auto_auto]');
+      const label = input('Label', 'link-label', data.label);
+      const url = input('URL', 'link-url', data.url, { type: 'url' });
+      const icon = input('Icon', 'link-icon', '', { select: true });
+      iconOptions.forEach(([value, text]) => icon.field.add(new Option(text, value)));
+      icon.field.value = data.icon || 'fa-link';
+      const shown = visibility(data.visible);
+      shown.field.classList.add('link-visible');
+      grid.append(label.wrap, url.wrap, icon.wrap, shown.wrap, controls(row));
+      row.appendChild(grid);
+      document.getElementById('linksList').appendChild(row);
     }
-    loadSettings();
 
-    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const data = {
-        MQTT_BROKER_URL: document.querySelector('[name="MQTT_BROKER_URL"]').value,
-        MQTT_PORT: document.querySelector('[name="MQTT_PORT"]').value,
-        MQTT_USERNAME: document.querySelector('[name="MQTT_USERNAME"]').value,
-        MQTT_PASSWORD: document.querySelector('[name="MQTT_PASSWORD"]').value,
-        MQTT_SKYCAM_TOPIC: document.querySelector('[name="MQTT_SKYCAM_TOPIC"]').value,
-        MQTT_DASHBOARD_TOPICS: document.querySelector('[name="MQTT_DASHBOARD_TOPICS"]').value,
-        INFLUX_HOST: document.querySelector('[name="INFLUX_HOST"]').value,
-        INFLUX_ORG: document.querySelector('[name="INFLUX_ORG"]').value,
-        INFLUX_BUCKET: document.querySelector('[name="INFLUX_BUCKET"]').value,
-        INFLUX_TOKEN: document.querySelector('[name="INFLUX_TOKEN"]').value,
-        sensors: Array.from(document.querySelectorAll('.sensor-row')).map(r => ({
-          path: r.querySelector('.sensor-path').value,
-          unit: r.querySelector('.sensor-unit').value,
-          name: r.querySelector('.sensor-name').value,
-          green: r.querySelector('.sensor-green').value,
-          greenDirection: r.querySelector('.sensor-direction').value,
-          influxMeasurement: r.querySelector('.sensor-measurement').value,
-          influxField: r.querySelector('.sensor-field').value
+    function setState(label, tone, icon, spin = false) {
+      settingsState.classList.remove('tone-good', 'tone-warn', 'tone-bad', 'tone-info');
+      settingsState.classList.add(`tone-${tone}`);
+      settingsState.querySelector('i').className = `fa-solid ${icon}${spin ? ' fa-spin' : ''}`;
+      settingsState.querySelector('span').textContent = label;
+    }
+
+    function markDirty() { setState('Unsaved changes', 'warn', 'fa-pen'); }
+    form.addEventListener('input', markDirty);
+    form.addEventListener('change', markDirty);
+
+    function setNamedValue(name, value) {
+      const field = form.elements.namedItem(name);
+      if (field) field.value = value ?? '';
+    }
+
+    let config;
+    try {
+      config = await loadConfig();
+      initShell({ activePage: 'settings', quickLinks: config.quickLinks });
+      setNamedValue('MQTT_BROKER_URL', config.brokerUrl);
+      setNamedValue('MQTT_PORT', config.port);
+      setNamedValue('MQTT_USERNAME', config.username);
+      setNamedValue('MQTT_PASSWORD', config.password);
+      setNamedValue('INFLUX_HOST', config.influxHost);
+      setNamedValue('INFLUX_ORG', config.influxOrg);
+      setNamedValue('INFLUX_BUCKET', config.influxBucket);
+      setNamedValue('INFLUX_TOKEN', config.influxToken);
+      setNamedValue('MQTT_SKYCAM_TOPIC', config.skyCamTopic);
+      form.elements.namedItem('DASHBOARD_SHOW_CHART').checked = config.dashboard?.showChart !== false;
+      form.elements.namedItem('DASHBOARD_SHOW_SKYCAM').checked = config.dashboard?.showSkyCam !== false;
+      document.getElementById('roofBaseTopic').value = config.roofController?.baseTopic || 'Observatory/roof-esp';
+      (config.roofController?.relays || []).forEach(createRelayRow);
+      (config.sensors || []).forEach(createSensorRow);
+      (config.switches || []).forEach(createSwitchRow);
+      (config.quickLinks || []).forEach(createLinkRow);
+      setState('Ready', 'good', 'fa-check');
+    } catch (error) {
+      console.error('Settings load failed:', error);
+      initShell({ activePage: 'settings', quickLinks: [] });
+      setState('Load failed', 'bad', 'fa-triangle-exclamation');
+      document.getElementById('formMessage').textContent = 'Unable to load configuration.';
+      document.getElementById('saveButton').disabled = true;
+    }
+
+    document.getElementById('addSensor').addEventListener('click', () => { createSensorRow(); markDirty(); });
+    document.getElementById('addSwitch').addEventListener('click', () => { createSwitchRow(); markDirty(); });
+    document.getElementById('addLink').addEventListener('click', () => { createLinkRow({ visible: true, icon: 'fa-link' }); markDirty(); });
+
+    function collectData() {
+      return {
+        MQTT_BROKER_URL: form.elements.namedItem('MQTT_BROKER_URL').value.trim(),
+        MQTT_PORT: form.elements.namedItem('MQTT_PORT').value,
+        MQTT_USERNAME: form.elements.namedItem('MQTT_USERNAME').value,
+        MQTT_PASSWORD: form.elements.namedItem('MQTT_PASSWORD').value,
+        INFLUX_HOST: form.elements.namedItem('INFLUX_HOST').value.trim(),
+        INFLUX_ORG: form.elements.namedItem('INFLUX_ORG').value.trim(),
+        INFLUX_BUCKET: form.elements.namedItem('INFLUX_BUCKET').value.trim(),
+        INFLUX_TOKEN: form.elements.namedItem('INFLUX_TOKEN').value,
+        MQTT_SKYCAM_TOPIC: form.elements.namedItem('MQTT_SKYCAM_TOPIC').value.trim(),
+        DASHBOARD_SHOW_CHART: form.elements.namedItem('DASHBOARD_SHOW_CHART').checked,
+        DASHBOARD_SHOW_SKYCAM: form.elements.namedItem('DASHBOARD_SHOW_SKYCAM').checked,
+        roofController: {
+          baseTopic: document.getElementById('roofBaseTopic').value.trim(),
+          relays: Array.from(document.querySelectorAll('.relay-row')).map(row => ({
+            key: row.dataset.key, label: row.querySelector('.relay-label').value.trim(), visible: row.querySelector('.relay-visible').checked
+          }))
+        },
+        sensors: Array.from(document.querySelectorAll('.sensor-row')).map(row => ({
+          path: row.querySelector('.sensor-path').value.trim(), name: row.querySelector('.sensor-name').value.trim(),
+          unit: row.querySelector('.sensor-unit').value.trim(), green: row.querySelector('.sensor-green').value,
+          greenDirection: row.querySelector('.sensor-direction').value,
+          influxMeasurement: row.querySelector('.sensor-measurement').value.trim(), influxField: row.querySelector('.sensor-field').value.trim()
         })),
-        switches: Array.from(document.querySelectorAll('.switch-row')).map(r => ({
-          name: r.querySelector('.switch-name').value,
-          commandPath: r.querySelector('.switch-command').value,
-          statusPath: r.querySelector('.switch-status').value
+        switches: Array.from(document.querySelectorAll('.switch-row')).map(row => ({
+          name: row.querySelector('.switch-name').value.trim(), commandPath: row.querySelector('.switch-command').value.trim(), statusPath: row.querySelector('.switch-status').value.trim()
         })),
-        roof: {
-          open: {
-            path: document.getElementById('roofOpenPath').value,
-            limit: document.getElementById('roofOpenLimit').value
-          },
-          close: {
-            path: document.getElementById('roofClosePath').value,
-            limit: document.getElementById('roofCloseLimit').value
-          }
-        }
+        quickLinks: Array.from(document.querySelectorAll('.link-row')).map(row => ({
+          label: row.querySelector('.link-label').value.trim(), url: row.querySelector('.link-url').value.trim(),
+          icon: row.querySelector('.link-icon').value, visible: row.querySelector('.link-visible').checked
+        }))
       };
+    }
+
+    function showErrors(body) {
+      document.querySelectorAll('[data-invalid]').forEach(field => { field.removeAttribute('data-invalid'); field.style.borderColor = ''; });
+      const errors = Object.entries(body.fields || {});
+      document.getElementById('formMessage').textContent = errors.length
+        ? errors.slice(0, 4).map(([, message]) => message).join(' ')
+        : (body.error || 'Unable to save configuration.');
+      document.getElementById('formMessage').style.color = 'var(--red)';
+      setState('Check settings', 'bad', 'fa-triangle-exclamation');
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const saveButton = document.getElementById('saveButton');
+      saveButton.disabled = true;
+      setState('Saving', 'info', 'fa-circle-notch', true);
+      document.getElementById('formMessage').textContent = 'Validating and saving configuration…';
+      document.getElementById('formMessage').style.color = '';
       try {
-        const res = await fetch('/save_config.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+        const response = await fetch('/save_config.php', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(collectData())
         });
-        const body = await res.json();
-        if (res.ok) {
-          window.location.href = '/';
-        } else {
-          document.getElementById('status').textContent = body.error || 'Error';
-        }
-      } catch {
-        document.getElementById('status').textContent = 'Error';
+        const body = await response.json();
+        if (!response.ok) { showErrors(body); return; }
+        setState('Saved', 'good', 'fa-check');
+        document.getElementById('formMessage').textContent = 'Configuration saved. Reload the dashboard to apply it.';
+      } catch (error) {
+        console.error('Settings save failed:', error);
+        showErrors({ error: 'The server could not be reached.' });
+      } finally {
+        saveButton.disabled = false;
       }
     });
   </script>

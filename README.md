@@ -37,16 +37,20 @@ flowchart TD
 
 ## Features
 
-- **Observatory control panel** (`index.html`): displays sensor values such as clouds, rain, light, dew point, SQM and star count via MQTT and provides toggle buttons for devices.
+- **Observatory control panel** (`index.html`): a single-screen operations dashboard for sensors, roof safety and commands, device toggles, live trends, and SkyCam monitoring.
 
-- **Settings editor** (`settings.html`): allows updating MQTT connection details stored in the local SQLite database.
+- **Settings editor** (`settings.html`): configures MQTT and InfluxDB connections, sensors, the roof controller base topic and relays, auxiliary devices, dashboard panels, and quick links.
+
+- **Shared themes** (`js/theme.js`): consistent Light, Dark, and System modes across the dashboard, settings, and history pages.
 
 The site depends on MQTT for live updates. The helper in `js/mqttClient.js` treats broker `offline` events the same as a `close`, prompting the UI to show "Reconnecting..." when the connection silently drops.
 
 ## MQTT Configuration
 Connection details are stored in a SQLite `config.db` database located at `/var/www/data/config.db` outside the web root. Client-side scripts load these settings through `js/mqttConfig.js` which fetches `/get_config.php`.
 
-Use `settings.html` to edit values such as broker URL, port, username, password and dashboard topics. Changes are saved via `/save_config.php` and take effect immediately on subsequent page loads.
+Use `settings.html` to edit the broker, history connection, dashboard panels, sensors, controller relays, auxiliary devices, and quick links. Changes are saved via `/save_config.php` and take effect on subsequent page loads.
+
+The roof controller follows the standard `roof-esp` topic contract. Configure its base topic once in Settings; command, telemetry, and relay topics are derived from it. Existing installations are migrated non-destructively when the configuration endpoints are first loaded.
 
 ### First-time database setup
 The application will create tables automatically the first time `/get_config.php` or `/save_config.php` is accessed, but you still need to create the directory and database file with permissions that your web server user can write to. A typical setup looks like:
