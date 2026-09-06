@@ -231,7 +231,9 @@
     let mqttConnected = false;
     let lastHeartbeatAt = null;
     let lineChart;
-    const liveTrendWindowMs = 30 * 60 * 1000;
+    // The chart begins when this dashboard session starts.  Keep this edge fixed
+    // while the newest reading advances, so all session readings use the plot width.
+    const liveTrendStartedAt = Date.now();
     let activeMaximized = null;
     let maximizeTrigger = null;
 
@@ -467,7 +469,7 @@
       lineChart = Highcharts.chart('lineChart', {
         chart: { style: { fontFamily: 'IBM Plex Mono, monospace' }, type: 'line', backgroundColor: 'transparent', animation: false, marginTop: 8, spacing: [4, 4, 4, 4] },
         title: { text: null },
-        xAxis: { type: 'datetime', minRange: liveTrendWindowMs, tickPixelInterval: 110, dateTimeLabelFormats: { millisecond: '%H:%M:%S', second: '%H:%M:%S', minute: '%H:%M', hour: '%H:%M' }, lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted, fontSize: '9px' } } },
+        xAxis: { type: 'datetime', min: liveTrendStartedAt, tickPixelInterval: 110, dateTimeLabelFormats: { millisecond: '%H:%M:%S', second: '%H:%M:%S', minute: '%H:%M', hour: '%H:%M' }, lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted, fontSize: '9px' } } },
         yAxis: sensors.map((sensor, index) => ({
           title: { text: index < 2 ? (sensor.unit || sensor.name) : null, style: { color: colors.muted, fontSize: '9px' } },
           labels: { enabled: index < 2, style: { color: colors.muted, fontSize: '9px' } },
@@ -722,11 +724,9 @@
       const series = lineSeries[topic];
       if (series && !Number.isNaN(numeric)) {
         const now = Date.now();
-        const cutoff = now - liveTrendWindowMs;
         series.addPoint([now, Math.round(numeric * 10) / 10], false, false, false);
-        while (series.data.length && series.data[0].x < cutoff) series.removePoint(0, false, false);
         lineChart.redraw();
-        lineChart.xAxis[0].setExtremes(cutoff, now, true, false);
+        lineChart.xAxis[0].setExtremes(liveTrendStartedAt, now, true, false);
       }
     }
 
