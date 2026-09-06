@@ -8,6 +8,8 @@ if (!is_string($name) || !preg_match('/^(stream\.m3u8|segment[0-9]+\.ts)$/D', $n
 }
 $directory = '/var/tmp/roof-camera';
 $manifest = $directory . '/stream.m3u8';
+header('X-Camera-Manifest-Exists: ' . (is_file($manifest) ? 'yes' : 'no'));
+header('X-Camera-Manifest-Age: ' . (is_file($manifest) ? (string)(time() - filemtime($manifest)) : 'na'));
 // TC70 keyframes can arrive in bursts; allow a short network/keyframe pause
 // while still rejecting genuinely abandoned output.
 if (!is_file($manifest) || time() - filemtime($manifest) > 90) {
