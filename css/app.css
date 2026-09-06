@@ -456,7 +456,7 @@ input[type="checkbox"] { accent-color: var(--blue); }
 .dashboard-tapo .camera-message { font-size: .62rem; padding: .5rem; }
 .dashboard-tapo .camera-message::before { width: 2rem; height: 2rem; margin-bottom: .45rem; }
 @media (min-width: 1366px) and (min-height: 768px) {
-  .dashboard-grid { grid-template-columns: clamp(305px, 24vw, 360px) repeat(3, minmax(0, 1fr)); grid-template-rows: 252px minmax(112px, .5fr) minmax(188px, 1.5fr); gap: .75rem; }
+  .dashboard-grid { grid-template-columns: clamp(305px, 24vw, 360px) repeat(3, minmax(0, 1fr)); grid-template-rows: 252px minmax(168px, .75fr) minmax(188px, 1.25fr); gap: .75rem; }
   .dashboard-equipment { grid-column: 1; grid-row: 1 / 4; }
   .dashboard-grid .dashboard-sensors { grid-column: 2 / 5; grid-row: 1; }
   .dashboard-grid .dashboard-keogram { grid-column: 2; grid-row: 2; }
@@ -476,10 +476,10 @@ input[type="checkbox"] { accent-color: var(--blue); }
   .dashboard-grid .dashboard-roof { grid-column: 1; grid-row: 1; }
   .dashboard-grid .dashboard-devices { grid-column: 2 / 4; grid-row: 1; }
   .dashboard-grid .dashboard-sensors { grid-column: 1 / 4; grid-row: 2; height: 260px; }
-  .dashboard-grid .dashboard-keogram { grid-column: 1; grid-row: 3; height: 125px; min-height: 125px !important; }
-  .dashboard-grid .dashboard-tapo { grid-column: 2; grid-row: 3; height: 125px; min-height: 125px !important; }
-  .dashboard-grid .dashboard-skycam { grid-column: 3; grid-row: 3; height: 125px; min-height: 125px !important; }
-  .dashboard-grid .dashboard-chart { grid-column: 1 / 4; grid-row: 4; height: 335px; min-height: 335px !important; }
+  .dashboard-grid .dashboard-keogram { grid-column: 1; grid-row: 3; height: 188px; min-height: 188px !important; }
+  .dashboard-grid .dashboard-tapo { grid-column: 2; grid-row: 3; height: 188px; min-height: 188px !important; }
+  .dashboard-grid .dashboard-skycam { grid-column: 3; grid-row: 3; height: 188px; min-height: 188px !important; }
+  .dashboard-grid .dashboard-chart { grid-column: 1 / 4; grid-row: 4; height: 272px; min-height: 272px !important; }
   .dashboard-grid.without-camera .dashboard-keogram,
   .dashboard-grid.without-sky .dashboard-keogram { grid-column: 1 / 3; }
   .dashboard-grid.without-camera.without-sky .dashboard-keogram { grid-column: 1 / 4; }
@@ -495,10 +495,10 @@ input[type="checkbox"] { accent-color: var(--blue); }
   .dashboard-grid .dashboard-roof { order: 0; }
   .dashboard-grid .dashboard-devices { order: 1; }
   .dashboard-grid .dashboard-sensors { order: 2; }
-  .dashboard-grid .dashboard-keogram { grid-column: 1 / -1; order: 3; min-height: 130px !important; height: 130px; }
-  .dashboard-grid .dashboard-tapo, .dashboard-grid .dashboard-skycam { grid-column: auto; order: 4; min-height: 82px !important; height: 82px; }
+  .dashboard-grid .dashboard-keogram { grid-column: 1 / -1; order: 3; min-height: 195px !important; height: 195px; }
+  .dashboard-grid .dashboard-tapo, .dashboard-grid .dashboard-skycam { grid-column: auto; order: 4; min-height: 124px !important; height: 124px; }
   .dashboard-grid .dashboard-tapo, .dashboard-grid .dashboard-skycam { overflow: hidden; }
-  .dashboard-grid .dashboard-chart { grid-column: 1 / -1; order: 5; min-height: 300px !important; height: 300px; }
+  .dashboard-grid .dashboard-chart { grid-column: 1 / -1; order: 5; min-height: 262px !important; height: 262px; }
   #sensorsContainer { height: auto; grid-auto-rows: minmax(115px, auto); grid-template-rows: none; }
   .sensor-value { font-size: 1.8rem; }
   .sensor-legend { display: none; }
