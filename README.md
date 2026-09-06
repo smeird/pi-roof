@@ -52,6 +52,23 @@ Use `settings.html` to edit the broker, history connection, dashboard panels, se
 
 The roof controller follows the standard `roof-esp` topic contract. Configure its base topic once in Settings; command, telemetry, and relay topics are derived from it. Existing installations are migrated non-destructively when the configuration endpoints are first loaded.
 
+## Deployment
+
+The live checkout is `/var/www/roof` on `data`. To allow the `dom` deployment account to update the application without a repeated root prompt, run this one-time command on `data` as an administrator:
+
+```bash
+sudo chown -R dom:dom /var/www/roof
+```
+
+Then, from a login shell on the development Mac, reload the profile and deploy with:
+
+```bash
+source ~/.profile
+deploy-roof
+```
+
+The helper performs a fast-forward-only pull from `origin/main` and runs PHP syntax checks. The SQLite database remains outside the checkout at `/var/www/data/config.db`.
+
 ### First-time database setup
 The application will create tables automatically the first time `/get_config.php` or `/save_config.php` is accessed, but you still need to create the directory and database file with permissions that your web server user can write to. A typical setup looks like:
 
