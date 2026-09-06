@@ -337,6 +337,9 @@ input[type="checkbox"] { accent-color: var(--blue); }
 .sensor-unit { font: 400 .65rem var(--font-data); color: var(--muted-soft); }
 #roofStatus, .skycam-label, .skycam-link, .ops-pager, #lastCommand { font-family: var(--font-data); }
 .camera-message, .skycam-feed { background-color: #060c14; background-image: radial-gradient(ellipse at center, #132b3d70, transparent 70%), url('../assets/celestial-grid.svg'); background-size: auto, 1000px; }
+.dashboard-tapo.ops-maximized { height: min(calc((100vw - 1.5rem) * .5625), calc(100dvh - 1.5rem)) !important; }
+.dashboard-tapo.ops-maximized .camera-body { min-height: 0; }
+.dashboard-tapo .camera-body video { display: block; width: 100%; height: 100%; object-fit: contain; }
 .camera-message::before { content: ''; display: block; width: 3rem; height: 3rem; margin: 0 auto 1rem; border: 1px solid #365368; border-radius: 50%; background: radial-gradient(circle, #78d7ed 0 2px, transparent 3px 10px, #365368 11px 12px, transparent 13px); }
 .skycam-feed { border-color: #1d3445; }
 .skycam-label, .skycam-link { font-weight: 500; }
