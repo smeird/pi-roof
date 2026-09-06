@@ -12,10 +12,12 @@ function getDb() {
     $db->exec('CREATE TABLE IF NOT EXISTS sensors (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, unit TEXT, name TEXT, green_value TEXT, green_direction TEXT, influx_measurement TEXT, influx_field TEXT)');
     $cols = $db->query('PRAGMA table_info(sensors)');
     $hasGreen = false;
+    $hasAmber = false;
     $hasDirection = false;
     $hasMeasurement = false;
     $hasField = false;
     while ($col = $cols->fetchArray(SQLITE3_ASSOC)) {
+        if ($col['name'] === 'amber_value') $hasAmber = true;
         if ($col['name'] === 'green_value') {
             $hasGreen = true;
         }
@@ -31,6 +33,9 @@ function getDb() {
     }
     if (!$hasGreen) {
         $db->exec('ALTER TABLE sensors ADD COLUMN green_value TEXT');
+    }
+    if (!$hasAmber) {
+        $db->exec('ALTER TABLE sensors ADD COLUMN amber_value TEXT');
     }
     if (!$hasDirection) {
         $db->exec('ALTER TABLE sensors ADD COLUMN green_direction TEXT');
@@ -137,17 +142,18 @@ function setSetting($key, $value) {
 
 function getSensors() {
     $db = getDb();
-    $res = $db->query('SELECT path, unit, name, green_value, green_direction, influx_measurement, influx_field FROM sensors ORDER BY id');
+    $res = $db->query('SELECT path, unit, name, green_value, amber_value, green_direction, influx_measurement, influx_field FROM sensors ORDER BY id');
     $sensors = [];
     if (!$res) {
         return $sensors;
     }
     while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
         $row['green'] = $row['green_value'];
+        $row['amber'] = $row['amber_value'];
         $row['greenDirection'] = $row['green_direction'];
         $row['influxMeasurement'] = $row['influx_measurement'];
         $row['influxField'] = $row['influx_field'];
-        unset($row['green_value'], $row['green_direction'], $row['influx_measurement'], $row['influx_field']);
+        unset($row['green_value'], $row['amber_value'], $row['green_direction'], $row['influx_measurement'], $row['influx_field']);
         $sensors[] = $row;
     }
     return $sensors;
@@ -156,13 +162,14 @@ function getSensors() {
 function replaceSensors($sensors) {
     $db = getDb();
     $db->exec('DELETE FROM sensors');
-    $stmt = $db->prepare('INSERT INTO sensors (path, unit, name, green_value, green_direction, influx_measurement, influx_field) VALUES (:path, :unit, :name, :green_value, :green_direction, :influx_measurement, :influx_field)');
+    $stmt = $db->prepare('INSERT INTO sensors (path, unit, name, green_value, amber_value, green_direction, influx_measurement, influx_field) VALUES (:path, :unit, :name, :green_value, :amber_value, :green_direction, :influx_measurement, :influx_field)');
     foreach ($sensors as $sensor) {
         if (!isset($sensor['path'])) continue;
         $stmt->bindValue(':path', $sensor['path'], SQLITE3_TEXT);
         $stmt->bindValue(':unit', $sensor['unit'] ?? '', SQLITE3_TEXT);
         $stmt->bindValue(':name', $sensor['name'] ?? '', SQLITE3_TEXT);
         $stmt->bindValue(':green_value', $sensor['green'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(':amber_value', $sensor['amber'] ?? '', SQLITE3_TEXT);
         $stmt->bindValue(':green_direction', $sensor['greenDirection'] ?? 'below', SQLITE3_TEXT);
         $stmt->bindValue(':influx_measurement', $sensor['influxMeasurement'] ?? '', SQLITE3_TEXT);
         $stmt->bindValue(':influx_field', $sensor['influxField'] ?? '', SQLITE3_TEXT);

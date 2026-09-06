@@ -421,7 +421,7 @@ input[type="checkbox"] { accent-color: var(--blue); }
 .dashboard-grid .ops-card > .ops-card-header { min-height: 36px; }
 .dashboard-equipment { border-top: 2px solid var(--blue); padding-top: .45rem; }
 .dashboard-roof .roof-diagram { border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background-color: transparent; padding: .4rem 0; }
-.dashboard-roof .roof-diagram svg { height: 60px; }
+.dashboard-roof .roof-diagram svg { height: 84px; }
 .dashboard-roof .ops-card-header { border-bottom: 0; }
 #roofControls .ops-button { min-height: 2rem; }
 #roofControls .ops-button-warning { background: color-mix(in srgb, var(--amber) 10%, var(--panel)); color: var(--amber); border-color: color-mix(in srgb, var(--amber) 35%, var(--border)); }
@@ -435,15 +435,32 @@ input[type="checkbox"] { accent-color: var(--blue); }
 #sensorsContainer > .sensor-reading { position: relative; justify-content: space-between; gap: .1rem; padding: .5rem .65rem; border: 0; border-left: 2px solid var(--border) !important; border-radius: 0; background: color-mix(in srgb, var(--panel-raised) 60%, transparent) !important; }
 #sensorsContainer > .sensor-reading[data-threshold-tone="good"] { border-left-color: var(--green) !important; }
 #sensorsContainer > .sensor-reading[data-threshold-tone="warn"] { border-left-color: var(--amber) !important; }
+#sensorsContainer > .sensor-reading[data-threshold-tone="bad"] { border-left-color: var(--red) !important; }
+.sensor-state { margin-left: auto; font: 600 .55rem var(--font-data); text-transform: uppercase; color: var(--muted-soft); }
+[data-threshold-tone="good"] .sensor-state { color: var(--green); }
+[data-threshold-tone="warn"] .sensor-state { color: var(--amber); }
+[data-threshold-tone="bad"] .sensor-state, [data-threshold-tone="bad"] .sensor-distance { color: var(--red); }
+.dashboard-sensors { display: flex; flex-direction: column; }
+.dashboard-sensors > .ops-card-header { flex: 0 0 auto; flex-wrap: wrap; gap: .4rem; }
+.dashboard-sensors > .ops-card-header > .flex { flex-wrap: wrap; min-width: 0; }
+.dashboard-sensors .sensor-panel-body { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: .5rem; }
+.sensor-panel-body #sensorsContainer { flex: 1; min-height: 0; }
+.observing-status { --condition-color: var(--muted); display: flex; flex: 0 0 auto; align-items: center; gap: .7rem; padding: .6rem .75rem; border: 1px solid var(--condition-color); border-left-width: 5px; background: color-mix(in srgb, var(--condition-color) 13%, var(--panel)); color: var(--condition-color); }
+.observing-status[data-status="green"] { --condition-color: var(--green); }
+.observing-status[data-status="amber"] { --condition-color: var(--amber); }
+.observing-status[data-status="red"] { --condition-color: var(--red); }
+.observing-status > i { font-size: 1.5rem; flex: none; }
+.observing-status strong { display: block; font-size: 1rem; line-height: 1.25; }
+.observing-status p { margin-top: .2rem; font-size: .65rem; line-height: 1.3; max-height: 2.6em; overflow: auto; }
 .sensor-reading .truncate { font-weight: 500; font-size: .68rem; }
 .sensor-value { font-size: 1.7rem; font-weight: 400; letter-spacing: -.06em; line-height: 1.05; }
 .sensor-unit { font-size: .7rem; }
-.sensor-proximity { display: grid; gap: .3rem; }
+.sensor-proximity { display: grid; gap: .15rem; }
 .sensor-rule { font: .55rem var(--font-data); color: var(--muted-soft); }
-.sensor-distance { font: 500 .6rem var(--font-data); color: var(--muted-soft); white-space: nowrap; }
+.sensor-distance { font: 500 .6rem var(--font-data); color: var(--muted-soft); }
 [data-threshold-tone="good"] .sensor-distance { color: var(--green); }
 [data-threshold-tone="warn"] .sensor-distance { color: var(--amber); }
-.sensor-threshold-scale { position: relative; height: 4px; margin: 2px 4px; background: linear-gradient(to right, color-mix(in srgb, var(--amber) 35%, var(--panel)) 50%, color-mix(in srgb, var(--green) 40%, var(--panel)) 50%); }
+.sensor-threshold-scale { position: relative; height: 4px; margin: 2px 4px; background: linear-gradient(to right, color-mix(in srgb, var(--red) 50%, var(--panel)) 0 var(--amber-start, 50%), color-mix(in srgb, var(--amber) 55%, var(--panel)) var(--amber-start, 50%) 50%, color-mix(in srgb, var(--green) 50%, var(--panel)) 50%); }
 .sensor-threshold-scale::after { content: ''; position: absolute; left: 50%; top: -3px; height: 10px; width: 1px; background: var(--muted-soft); }
 .sensor-threshold-marker { position: absolute; z-index: 1; width: 7px; height: 7px; top: -1.5px; border: 1px solid var(--panel); background: var(--text); transform: translateX(-50%) rotate(45deg); transition: left 180ms ease; }
 .dashboard-keogram { border-top: 2px solid var(--survey-accent) !important; }
@@ -459,7 +476,7 @@ input[type="checkbox"] { accent-color: var(--blue); }
 .dashboard-tapo .camera-message { font-size: .62rem; padding: .5rem; }
 .dashboard-tapo .camera-message::before { width: 2rem; height: 2rem; margin-bottom: .45rem; }
 @media (min-width: 1366px) and (min-height: 768px) {
-  .dashboard-grid { grid-template-columns: clamp(305px, 24vw, 360px) repeat(3, minmax(0, 1fr)); grid-template-rows: 252px minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; }
+  .dashboard-grid { grid-template-columns: clamp(305px, 24vw, 360px) repeat(3, minmax(0, 1fr)); grid-template-rows: 340px minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; }
   .dashboard-equipment { grid-column: 1; grid-row: 1 / 4; }
   .dashboard-grid .dashboard-sensors { grid-column: 2 / 5; grid-row: 1; }
   .dashboard-grid .dashboard-keogram { grid-column: 2; grid-row: 2; }
@@ -478,7 +495,7 @@ input[type="checkbox"] { accent-color: var(--blue); }
   .dashboard-grid .ops-card { grid-column: auto; grid-row: auto; order: 0; }
   .dashboard-grid .dashboard-roof { grid-column: 1; grid-row: 1; }
   .dashboard-grid .dashboard-devices { grid-column: 2 / 4; grid-row: 1; }
-  .dashboard-grid .dashboard-sensors { grid-column: 1 / 4; grid-row: 2; height: 260px; }
+  .dashboard-grid .dashboard-sensors { grid-column: 1 / 4; grid-row: 2; min-height: 340px; height: auto; }
   .dashboard-grid .dashboard-keogram { grid-column: 1; grid-row: 3; height: 220px; min-height: 220px !important; }
   .dashboard-grid .dashboard-tapo { grid-column: 2; grid-row: 3; height: 220px; min-height: 220px !important; }
   .dashboard-grid .dashboard-skycam { grid-column: 3; grid-row: 3; height: 220px; min-height: 220px !important; }

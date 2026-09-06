@@ -14,7 +14,7 @@
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css?v=20260906-console2">
+  <link rel="stylesheet" href="css/app.css?v=20260906-amber1">
 </head>
 <body class="settings-page">
   <div class="ops-shell">
@@ -197,19 +197,31 @@
       const row = make('div', 'sensor-row rounded-lg border p-2');
       row.style.borderColor = 'var(--border)';
       row.style.background = 'var(--panel-subtle)';
-      const grid = make('div', 'grid gap-2 md:grid-cols-2 xl:grid-cols-[1.4fr_1fr_.55fr_.65fr_.75fr_1fr_1fr_auto]');
+      const grid = make('div', 'grid gap-2 md:grid-cols-2 xl:grid-cols-4');
       const path = input('MQTT topic', 'sensor-path', data.path, { placeholder: 'Observatory/sensor/value' });
       const name = input('Name', 'sensor-name', data.name);
       const unit = input('Unit', 'sensor-unit', data.unit);
-      const threshold = input('Safe threshold', 'sensor-green', data.green, { type: 'number' });
+      const threshold = input('Green limit', 'sensor-green', data.green, { type: 'number' });
       threshold.field.step = 'any';
-      const direction = input('Safe when', 'sensor-direction', '', { select: true });
+      const amber = input('Amber limit (optional)', 'sensor-amber', data.amber, { type: 'number' });
+      amber.field.step = 'any';
+      const direction = input('Green when', 'sensor-direction', '', { select: true });
       [['below', 'At or below'], ['above', 'At or above']].forEach(([value, label]) => direction.field.add(new Option(label, value)));
       direction.field.value = data.greenDirection || 'below';
       const measurement = input('Influx measurement', 'sensor-measurement', data.influxMeasurement);
       const influxField = input('Influx field', 'sensor-field', data.influxField);
-      grid.append(path.wrap, name.wrap, unit.wrap, threshold.wrap, direction.wrap, measurement.wrap, influxField.wrap, controls(row));
+      grid.append(path.wrap, name.wrap, unit.wrap, direction.wrap, threshold.wrap, amber.wrap, measurement.wrap, influxField.wrap, controls(row));
       row.appendChild(grid);
+      const rule = make('p', 'mt-2 text-xs text-[var(--muted)]');
+      const updateRule = () => {
+        const above = direction.field.value === 'above';
+        const g = threshold.field.value || 'green limit';
+        const a = amber.field.value;
+        rule.textContent = a ? `Triggers: Green ${above ? '≥' : '≤'} ${g}; Amber between green and ${a} (inclusive at amber); Red ${above ? '<' : '>'} ${a}.` : `Triggers: Green ${above ? '≥' : '≤'} ${g}; otherwise Red. Add an amber limit to enable caution.`;
+      };
+      grid.addEventListener('input', updateRule);
+      updateRule();
+      row.appendChild(rule);
       document.getElementById('sensorsList').appendChild(row);
     }
 
@@ -320,6 +332,7 @@
         sensors: Array.from(document.querySelectorAll('.sensor-row')).map(row => ({
           path: row.querySelector('.sensor-path').value.trim(), name: row.querySelector('.sensor-name').value.trim(),
           unit: row.querySelector('.sensor-unit').value.trim(), green: row.querySelector('.sensor-green').value,
+          amber: row.querySelector('.sensor-amber').value,
           greenDirection: row.querySelector('.sensor-direction').value,
           influxMeasurement: row.querySelector('.sensor-measurement').value.trim(), influxField: row.querySelector('.sensor-field').value.trim()
         })),
@@ -334,8 +347,18 @@
     }
 
     function showErrors(body) {
-      document.querySelectorAll('[data-invalid]').forEach(field => { field.removeAttribute('data-invalid'); field.style.borderColor = ''; });
+      document.querySelectorAll('[data-invalid]').forEach(field => { field.removeAttribute('data-invalid'); field.removeAttribute('aria-invalid'); field.style.borderColor = ''; });
       const errors = Object.entries(body.fields || {});
+      errors.forEach(([key]) => {
+        const match = key.match(/^sensors\.(\d+)\.(green|amber|greenDirection)$/);
+        if (!match) return;
+        const field = document.querySelectorAll('.sensor-row')[Number(match[1])]?.querySelector(`.sensor-${match[2] === 'greenDirection' ? 'direction' : match[2]}`);
+        if (field) {
+          field.dataset.invalid = 'true';
+          field.setAttribute('aria-invalid', 'true');
+          field.style.borderColor = 'var(--red)';
+        }
+      });
       document.getElementById('formMessage').textContent = errors.length
         ? errors.slice(0, 4).map(([, message]) => message).join(' ')
         : (body.error || 'Unable to save configuration.');

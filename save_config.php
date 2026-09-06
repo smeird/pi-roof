@@ -49,12 +49,22 @@ if (isset($input['sensors'])) {
             $name = trim((string)($sensor['name'] ?? ''));
             $direction = $sensor['greenDirection'] ?? 'below';
             $green = trim((string)($sensor['green'] ?? ''));
+            $amber = trim((string)($sensor['amber'] ?? ''));
             if ($path === '') $errors["sensors.$index.path"] = 'MQTT topic is required.';
             if ($name === '') $errors["sensors.$index.name"] = 'Sensor name is required.';
             if ($path !== '' && isset($sensorPaths[$path])) $errors["sensors.$index.path"] = 'Sensor topics must be unique.';
             $sensorPaths[$path] = true;
             if (!in_array($direction, ['above', 'below'], true)) $errors["sensors.$index.greenDirection"] = 'Choose above or below.';
-            if ($green !== '' && !is_numeric($green)) $errors["sensors.$index.green"] = 'Threshold must be numeric.';
+            if ($green !== '' && (!is_numeric($green) || !is_finite((float)$green))) $errors["sensors.$index.green"] = 'Threshold must be a finite number.';
+            if ($amber !== '') {
+                if (!is_numeric($amber) || !is_finite((float)$amber)) {
+                    $errors["sensors.$index.amber"] = 'Amber threshold must be a finite number.';
+                } elseif ($green === '' || !is_numeric($green) || !is_finite((float)$green)) {
+                    $errors["sensors.$index.green"] = 'Set a green threshold before adding amber.';
+                } elseif (($direction === 'below' && (float)$amber <= (float)$green) || ($direction === 'above' && (float)$amber >= (float)$green)) {
+                    $errors["sensors.$index.amber"] = $direction === 'below' ? 'Amber must be greater than green.' : 'Amber must be less than green.';
+                }
+            }
             $measurement = trim((string)($sensor['influxMeasurement'] ?? ''));
             $field = trim((string)($sensor['influxField'] ?? ''));
             if (($measurement === '') !== ($field === '')) $errors["sensors.$index.history"] = 'Measurement and field must be provided together.';

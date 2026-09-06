@@ -21,7 +21,12 @@ test('travel settings round-trip, validate, and preserve legacy configuration', 
     return { headers, body: JSON.parse(response.join('\n\n')) };
   }
   try {
+    const seed = spawnSync('php', ['-r', '$db = new SQLite3($argv[1]); $db->exec("CREATE TABLE sensors (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, unit TEXT, name TEXT, green_value TEXT, green_direction TEXT, influx_measurement TEXT, influx_field TEXT)"); $db->exec("INSERT INTO sensors (path, name, green_value, green_direction) VALUES (\'legacy/temp\', \'Legacy temperature\', \'10\', \'below\')");', join(directory, 'config.db')], { encoding: 'utf8' });
+    assert.equal(seed.status, 0, seed.stderr);
     const initial = request('get_config.php').body;
+    assert.equal(initial.sensors[0].green, '10');
+    assert.equal(initial.sensors[0].amber, null, 'old databases gain amber without inventing a threshold');
+    assert.deepEqual(request('get_config.php').body, initial, 'migration is repeatable');
     assert.equal(initial.roofController.openSeconds, 30);
     assert.equal(initial.roofController.closeSeconds, 30);
     const controller = { ...initial.roofController, openSeconds: 42.5, closeSeconds: 37 };
@@ -31,6 +36,7 @@ test('travel settings round-trip, validate, and preserve legacy configuration', 
       switches: [{ name: 'Test light', commandPath: 'test/light/set', statusPath: 'test/light/state' }]
     }).body.status, 'ok');
     const saved = request('get_config.php').body;
+    assert.equal(saved.sensors[0].amber, '');
     assert.deepEqual(saved.roofController, controller);
     const legacy = { ...controller };
     delete legacy.openSeconds;
@@ -48,5 +54,18 @@ test('travel settings round-trip, validate, and preserve legacy configuration', 
     const boundaries = request('get_config.php').body.roofController;
     assert.equal(boundaries.openSeconds, 1);
     assert.equal(boundaries.closeSeconds, 900);
+    for (const [green, amber, greenDirection] of [[10, 15, 'below'], [0, -5, 'above']]) {
+      const sensor = { ...saved.sensors[0], green, amber, greenDirection };
+      assert.equal(request('save_config.php', { sensors: [sensor] }).body.status, 'ok');
+      assert.equal(Number(request('get_config.php').body.sensors[0].amber), amber);
+      const beforeInvalid = request('get_config.php').body;
+      for (const invalidAmber of [green, greenDirection === 'below' ? green - 1 : green + 1, 'bad', '1e999']) {
+        const invalid = request('save_config.php', { sensors: [{ ...sensor, amber: invalidAmber }] });
+        assert.match(invalid.headers, /422/);
+        assert.ok(invalid.body.fields['sensors.0.amber']);
+      }
+      assert.match(request('save_config.php', { sensors: [{ ...sensor, green: '' }] }).headers, /422/);
+      assert.deepEqual(request('get_config.php').body, beforeInvalid);
+    }
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });

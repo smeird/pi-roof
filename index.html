@@ -14,7 +14,7 @@
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css?v=20260906-console2">
+  <link rel="stylesheet" href="css/app.css?v=20260906-amber1">
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script src="js/mqttClient.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highcharts@12.4.0/highcharts.js"></script>
@@ -31,6 +31,7 @@
           <span id="roofSummary" class="ops-status-chip tone-warn"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Roof waiting</span></span>
         </div>
         <div class="ops-topbar-status">
+          <span id="observingTopStatus" class="ops-status-chip">Observing: unconfirmed</span>
           <span id="connectionStatus" class="ops-status-chip tone-warn" role="status" aria-live="polite">
             <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><span id="statusText">Connecting</span>
           </span>
@@ -81,15 +82,19 @@
               <h2 id="sensorTitle" class="ops-card-title">Observing conditions</h2>
               <span id="sensorSummary" class="ops-status-chip tone-warn">Waiting</span>
             </div>
-            <span class="sensor-legend">Threshold at center · green to the right</span>
+            <span class="sensor-legend">Red / Amber / Green</span>
             <div id="sensorPager" class="ops-pager" hidden>
               <button type="button" data-page="previous" aria-label="Previous sensors"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
               <span data-page-label>1/1</span>
               <button type="button" data-page="next" aria-label="Next sensors"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
             </div>
           </header>
-          <div class="ops-card-body h-[calc(100%-2.65rem)]">
-            <div id="sensorsContainer" class="grid h-full grid-cols-2 content-start gap-1.5"></div>
+          <div class="ops-card-body sensor-panel-body">
+            <div id="observingStatus" class="observing-status" data-status="unknown" role="status" aria-live="polite" aria-atomic="true">
+              <i id="observingIcon" class="fa-solid fa-circle-question" aria-hidden="true"></i>
+              <div><strong id="observingTitle">Conditions unknown — safety unconfirmed</strong><p id="observingDetail">Waiting for sensor readings.</p></div>
+            </div>
+            <div id="sensorsContainer" class="grid grid-cols-2 content-start gap-1.5"></div>
           </div>
         </section>
 
@@ -175,7 +180,8 @@
     import { loadConfig } from './js/mqttConfig.js';
     import { createPager, initShell } from './js/shell.js?v=20260906-console2';
     import { createRoofDiagram } from './js/roofDiagram.mjs';
-    import { describeThreshold } from './js/sensorThreshold.mjs';
+    import { describeThreshold } from './js/sensorThreshold.mjs?v=20260906-amber1';
+    import { classifySensor, observingStatus, sensorNumber } from './js/sensorStatus.mjs';
     import { setupCamera } from './js/camera.js';
 
     const fallbackConfig = {
@@ -365,10 +371,12 @@
     }
 
     function renderThreshold(view, value) {
-      const state = describeThreshold(value, view.threshold, view.direction, view.unit);
+      const state = describeThreshold(value, view.threshold, view.direction, view.unit, view.amber);
       view.rule.textContent = state.rule;
       view.distance.textContent = state.distance;
-      view.card.dataset.thresholdTone = state.available ? (state.green ? 'good' : 'warn') : 'unknown';
+      view.card.dataset.thresholdTone = { green: 'good', amber: 'warn', red: 'bad' }[state.status] || 'unknown';
+      view.badge.textContent = state.status || 'unknown';
+      view.scale.style.setProperty('--amber-start', `${state.amberPosition ?? 50}%`);
       view.marker.hidden = !state.available;
       view.scale.hidden = !state.available;
       view.scale.setAttribute('aria-label', state.description || state.distance);
@@ -388,7 +396,8 @@
         dot.setAttribute('role', 'img');
         dot.setAttribute('aria-label', 'Waiting for sensor');
         const name = makeElement('span', 'truncate text-[.7rem] font-bold', sensor.name || sensor.path);
-        identity.append(dot, name);
+        const badge = makeElement('span', 'sensor-state', 'unknown');
+        identity.append(dot, name, badge);
         if (sensor.influxMeasurement && sensor.influxField) {
           const history = makeElement('a', 'text-[var(--blue)]');
           history.href = `history.html?sensor=${encodeURIComponent(sensor.path)}`;
@@ -410,13 +419,13 @@
         scale.append(marker);
         proximity.append(rule, scale, distance);
         card.append(identity, reading, proximity);
-        const thresholdView = { card, rule, distance, scale, marker, threshold: sensor.green, direction: sensor.greenDirection || 'below', unit: sensor.unit || '' };
+        const thresholdView = { card, rule, distance, scale, marker, badge, threshold: sensor.green, amber: sensor.amber, direction: sensor.greenDirection || 'below', unit: sensor.unit || '' };
         renderThreshold(thresholdView, undefined);
         container.appendChild(card);
         cards.push(card);
         sensorValueEls[sensor.path] = { element: value, unit: sensor.unit || '', thresholdView };
         sensorIndicators[sensor.path] = {
-          dot, green: Number.parseFloat(sensor.green), direction: sensor.greenDirection || 'below', isGreen: false, hasValue: false
+          dot, sensor, name: sensor.name || sensor.path, status: 'unknown'
         };
         topics.add(sensor.path);
         staticTopics.add(sensor.path);
@@ -479,9 +488,17 @@
         responsive: { rules: [{ condition: { minWidth: 650 }, chartOptions: { legend: { layout: 'horizontal', align: 'center', verticalAlign: 'bottom' } } }] },
         tooltip: { shared: true, backgroundColor: colors.tooltip, borderColor: colors.border, style: { color: colors.text } },
         series: sensors.map((sensor, index) => {
-          const green = Number.parseFloat(sensor.green);
+          const green = sensorNumber(sensor.green);
+          const amber = sensorNumber(sensor.amber);
           let zones;
-          if (!Number.isNaN(green)) zones = sensor.greenDirection === 'above' ? [{ value: green, dashStyle: 'Dot' }, {}] : [{ value: green }, { dashStyle: 'Dot' }];
+          const above = sensor.greenDirection === 'above';
+          if (Number.isFinite(green)) {
+            const warning = Number.isFinite(amber) && (above ? amber < green : amber > green);
+            // Keep each sensor's series colour; line pattern distinguishes caution and red.
+            zones = above
+              ? [...(warning ? [{ value: amber, dashStyle: 'Dot' }] : []), { value: green, dashStyle: warning ? 'ShortDash' : 'Dot' }, {}]
+              : [{ value: green }, ...(warning ? [{ value: amber, dashStyle: 'ShortDash' }] : []), { dashStyle: 'Dot' }];
+          }
           return { name: sensor.name, data: [], yAxis: index, zones, marker: { enabled: false }, lineWidth: 1.5, tooltip: { valueSuffix: sensor.unit ? ` ${sensor.unit}` : '' } };
         }),
         credits: { enabled: false },
@@ -612,6 +629,15 @@
       setTone(chip, tone);
       icon.className = `fa-solid ${iconName}${spin ? ' fa-spin' : ''}`;
       mqttConnected = status === 'connected';
+      if (!mqttConnected) {
+        Object.entries(sensorIndicators).forEach(([topic, indicator]) => {
+          indicator.status = 'unknown';
+          renderSensorIndicator(indicator);
+          sensorValueEls[topic].element.textContent = '--';
+          renderThreshold(sensorValueEls[topic].thresholdView, undefined);
+        });
+      }
+      updateObservingStatus();
       setControlsDisabled(!mqttConnected);
       updateRoofSafety();
     }
@@ -701,26 +727,40 @@
       card.dataset.tone = tone;
     }
 
+    function renderSensorIndicator(indicator) {
+      const label = { green: 'Green — within observing limits', amber: 'Amber — caution', red: 'Red — outside observing limits', unknown: 'Unknown — awaiting valid reading' }[indicator.status];
+      indicator.dot.setAttribute('aria-label', label);
+      indicator.dot.title = label;
+      indicator.dot.className = `h-2 w-2 flex-none rounded-full ${{ green: 'bg-emerald-500', amber: 'bg-amber-500', red: 'bg-rose-500', unknown: 'bg-slate-400' }[indicator.status]}`;
+    }
+
+    function updateObservingStatus() {
+      const result = observingStatus(Object.values(sensorIndicators), mqttConnected);
+      const tone = { green: 'good', amber: 'warn', red: 'bad' }[result.status] || '';
+      document.getElementById('observingStatus').dataset.status = result.status;
+      document.getElementById('observingTitle').textContent = result.title;
+      document.getElementById('observingDetail').textContent = result.detail;
+      document.getElementById('observingIcon').className = `fa-solid ${{ green: 'fa-circle-check', amber: 'fa-triangle-exclamation', red: 'fa-circle-xmark', unknown: 'fa-circle-question' }[result.status]}`;
+      const topStatus = document.getElementById('observingTopStatus');
+      topStatus.textContent = `Observing: ${result.status === 'unknown' ? 'unconfirmed' : result.status === 'green' ? 'all green' : result.status}`;
+      setTone(topStatus, tone);
+      const summary = document.getElementById('sensorSummary');
+      summary.textContent = Object.entries(result.counts).filter(([, count]) => count).map(([state, count]) => `${count} ${state}`).join(' · ') || 'No sensors';
+      setTone(summary, tone);
+      document.getElementById('sensorCard').dataset.tone = tone;
+    }
+
     function updateSensor(topic, rawValue) {
       const target = sensorValueEls[topic];
       if (!target) return;
-      const numeric = Number.parseFloat(rawValue);
+      const numeric = sensorNumber(rawValue);
       const display = Number.isNaN(numeric) ? rawValue : String(Math.round(numeric * 10) / 10);
       target.element.textContent = display;
       renderThreshold(target.thresholdView, rawValue);
       const indicator = sensorIndicators[topic];
-      indicator.hasValue = true;
-      indicator.isGreen = !Number.isNaN(numeric) && !Number.isNaN(indicator.green) && (indicator.direction === 'above' ? numeric >= indicator.green : numeric <= indicator.green);
-      indicator.dot.setAttribute('role', 'img');
-      indicator.dot.setAttribute('aria-label', indicator.isGreen ? 'Within green threshold' : 'Outside green threshold');
-      indicator.dot.title = indicator.isGreen ? 'Within green threshold' : 'Outside green threshold';
-      indicator.dot.className = `h-2 w-2 flex-none rounded-full ${indicator.isGreen ? 'bg-emerald-500' : 'bg-rose-500'}`;
-      const values = Object.values(sensorIndicators);
-      const safe = values.length > 0 && values.every(item => item.hasValue && item.isGreen);
-      const summary = document.getElementById('sensorSummary');
-      summary.textContent = safe ? 'All green' : `${values.filter(item => item.hasValue && item.isGreen).length}/${values.length} green`;
-      setTone(summary, safe ? 'good' : 'warn');
-      document.getElementById('sensorCard').dataset.tone = safe ? 'good' : '';
+      indicator.status = classifySensor(rawValue, indicator.sensor);
+      renderSensorIndicator(indicator);
+      updateObservingStatus();
       const series = lineSeries[topic];
       if (series && !Number.isNaN(numeric)) {
         const now = Date.now();

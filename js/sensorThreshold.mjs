@@ -1,13 +1,17 @@
-// Presentation only: never authorizes controls or changes configured threshold logic.
-export function describeThreshold(value, threshold, direction = 'below', unit = '') {
-  const limit = Number.parseFloat(threshold);
-  const numeric = Number.parseFloat(value);
+import { classifySensor, sensorNumber } from './sensorStatus.mjs';
+// Presentation only: never authorizes controls.
+export function describeThreshold(value, threshold, direction = 'below', unit = '', amberThreshold) {
+  const limit = sensorNumber(threshold);
+  const numeric = sensorNumber(value);
+  const amber = sensorNumber(amberThreshold);
   const suffix = unit ? ` ${unit}` : '';
   const format = number => String(Math.round(number * 10) / 10);
   if (!Number.isFinite(limit)) return { available: false, rule: 'No green threshold', distance: 'Threshold not configured' };
   const above = direction === 'above';
-  const rule = `Green ${above ? '≥' : '≤'} ${format(limit)}${suffix}`;
+  const rule = `Green ${above ? '≥' : '≤'} ${format(limit)}${suffix}` + (Number.isFinite(amber) ? ` · Amber ${above ? '≥' : '≤'} ${format(amber)}${suffix} · Red beyond` : ' · Red beyond');
+  const status = classifySensor(value, { green: threshold, amber: amberThreshold, greenDirection: direction });
   if (!Number.isFinite(numeric)) return { available: false, rule, distance: 'Waiting for a numeric reading' };
+  if (status === 'unknown') return { available: false, rule, distance: 'Check threshold configuration' };
   const margin = above ? numeric - limit : limit - numeric;
   const deltaUnit = unit === '%' ? ' pp' : suffix;
   const gap = Math.abs(margin);
@@ -16,7 +20,8 @@ export function describeThreshold(value, threshold, direction = 'below', unit = 
   // A fixed scale per sensor keeps the marker comparable across incoming readings.
   // The threshold is centered; ends represent ±max(|threshold|, 1) in native units.
   const span = Math.max(Math.abs(limit), 1);
-  return { available: true, rule, distance, margin, span,
+  return { available: true, rule, distance, margin, span, status,
+    amberPosition: Number.isFinite(amber) ? Math.max(0, 50 - Math.abs(amber - limit) / span * 50) : 50,
     position: 50 + Math.max(-1, Math.min(1, margin / span)) * 50,
     green: margin >= 0,
     description: `${rule}. ${distance}. Margin scale: minus ${format(span)} to plus ${format(span)}${suffix}; green starts at the center. Values beyond the scale are pinned to its ends.`
