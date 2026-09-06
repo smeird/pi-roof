@@ -43,6 +43,8 @@ flowchart TD
 
 - **Shared themes** (`js/theme.js`): consistent Light, Dark, and System modes across the dashboard, settings, and history pages.
 
+The SkyCam panel also shows the live realtime keogram from the SkyCam viewer and refreshes it approximately once per minute.
+
 The site depends on MQTT for live updates. The helper in `js/mqttClient.js` treats broker `offline` events the same as a `close`, prompting the UI to show "Reconnecting..." when the connection silently drops.
 
 ## MQTT Configuration

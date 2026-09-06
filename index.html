@@ -103,9 +103,18 @@
             <h2 id="skyCamTitle" class="ops-card-title">SkyCam</h2>
             <button type="button" class="ops-button ops-button-ghost" data-maximize="skyCamCard" aria-label="Maximize SkyCam" aria-expanded="false"><i class="fa-solid fa-expand"></i></button>
           </header>
-          <div class="ops-card-body flex h-[calc(100%-2.65rem)] items-center justify-center bg-black p-0">
-            <img id="skyCamImage" class="h-full w-full object-contain" alt="Live observatory sky camera" hidden>
-            <span id="skyCamWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-camera mr-2"></i>Waiting for image</span>
+          <div class="ops-card-body skycam-body h-[calc(100%-2.65rem)] bg-black p-1.5">
+            <div class="skycam-feed" aria-label="Live SkyCam feed">
+              <span class="skycam-label">Live feed</span>
+              <img id="skyCamImage" class="h-full w-full object-contain" alt="Live observatory sky camera" hidden>
+              <span id="skyCamWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-camera mr-2"></i>Waiting for MQTT image</span>
+            </div>
+            <div class="skycam-feed" aria-label="Realtime keogram">
+              <span class="skycam-label">Realtime keogram</span>
+              <a href="https://skycam.smeird.com/indi-allsky/realtime_keogram" target="_blank" rel="noopener noreferrer" class="skycam-link">Open viewer</a>
+              <img id="keogramImage" class="h-full w-full object-contain" alt="Realtime SkyCam keogram" loading="lazy">
+              <span id="keogramWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-chart-area mr-2"></i>Waiting for keogram</span>
+            </div>
           </div>
         </section>
 
@@ -162,6 +171,7 @@
     const roofDiagram = createRoofDiagram(document.getElementById('roofDiagram'), config.roofController);
 
     const baseTopic = (config.roofController?.baseTopic || 'Observatory/roof-esp').replace(/\/+$/, '');
+    const keogramImageUrl = 'https://skycam.smeird.com/indi-allsky/images/ccd_5b1f0fe6-0d5b-4b3a-b528-2a147dc5c9db/realtime_keogram.jpg';
     const powerRelayStateTopic = `${baseTopic}/state/relay3`;
     const powerRelayLabel = config.roofController?.relays?.find(relay => relay.key === 'relay3')?.label || '12V Power Supply (CH3)';
     const roofEsp = {
@@ -429,15 +439,25 @@
       const skyCard = document.getElementById('skyCamCard');
       const deviceCard = document.getElementById('devicesCard');
       const showChart = config.dashboard?.showChart !== false;
-      const showSky = config.dashboard?.showSkyCam !== false && !!config.skyCamTopic;
+      const showSky = config.dashboard?.showSkyCam !== false;
       chartCard.hidden = !showChart;
       sensorCard.classList.toggle('dashboard-fill-column', !showChart);
       skyCard.hidden = !showSky;
       deviceCard.classList.toggle('dashboard-fill-column', !showSky);
-      if (showSky) {
+      if (showSky && config.skyCamTopic) {
         topics.add(config.skyCamTopic);
         staticTopics.add(config.skyCamTopic);
       }
+    }
+
+    function setupKeogram() {
+      const image = document.getElementById('keogramImage');
+      const waiting = document.getElementById('keogramWaiting');
+      const load = () => { image.src = `${keogramImageUrl}?t=${Date.now()}`; };
+      image.addEventListener('load', () => { waiting.hidden = true; });
+      image.addEventListener('error', () => { waiting.hidden = false; });
+      load();
+      setInterval(load, 61000);
     }
 
     function setupMaximize() {
@@ -635,6 +655,7 @@
     initChart();
     setupMaximize();
     setupPowerInterlock();
+    setupKeogram();
     window.addEventListener('observatory-theme-change', applyChartTheme);
     setInterval(updateHeartbeat, 5000);
 
