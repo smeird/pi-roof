@@ -24,7 +24,8 @@ cache.mkdir(mode=0o755, exist_ok=True)
 if cache.is_symlink() or cache.stat().st_uid != os.getuid():
     sys.exit('Camera cache must be owned by the service user and not a symlink')
 os.umask(0o022)
-url = f'rtsp://{quote(username, safe="")}:{quote(password, safe="")}@10.0.179.35:554/stream2'
+# The verified VLC URL uses the TC70 high-quality stream.
+url = f'rtsp://{quote(username, safe="")}:{quote(password, safe="")}@10.0.179.35:554/stream1'
 args = [
     '/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'fatal',
     '-rtsp_transport', 'tcp', '-timeout', '10000000', '-i', url,

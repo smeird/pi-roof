@@ -58,7 +58,7 @@ The roof controller follows the standard `roof-esp` topic contract. Configure it
 
 ### Observatory camera (Tapo TC70)
 
-The TC70 at `10.0.179.35` uses its local **Camera Account** (Tapo app → camera settings → Advanced Settings → Camera Account). Browsers receive a rolling HLS video buffer through `/camera.php`; camera credentials are never returned to the browser or saved in Git. The feed is accessible to the same audience as the roof dashboard. There is no permanent recording, and playback is several seconds behind the camera.
+The TC70 at `10.0.179.35` uses its local **Camera Account** (Tapo app → camera settings → Advanced Settings → Camera Account). The bridge uses the verified high-quality `/stream1` RTSP feed. Browsers receive a rolling HLS video buffer through `/camera.php`; camera credentials are never returned to the browser or saved in Git. The feed is accessible to the same audience as the roof dashboard. There is no permanent recording, and playback is several seconds behind the camera.
 
 On `data`, install the user service and enter the account interactively:
 
