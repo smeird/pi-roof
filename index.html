@@ -14,7 +14,7 @@
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/app.css?v=20260906-layout2">
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script src="js/mqttClient.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highcharts@12.4.0/highcharts.js"></script>
@@ -171,7 +171,7 @@
 
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
-    import { createPager, initShell } from './js/shell.js';
+    import { createPager, initShell } from './js/shell.js?v=20260906-layout2';
     import { createRoofDiagram } from './js/roofDiagram.mjs';
     import { setupCamera } from './js/camera.js';
 
