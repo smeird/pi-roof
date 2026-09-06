@@ -6,10 +6,7 @@ $name = $_GET['file'] ?? 'stream.m3u8';
 if (!is_string($name) || !preg_match('/^(stream\.m3u8|segment[0-9]+\.ts)$/D', $name)) {
     http_response_code(400); exit;
 }
-$configuredDirectory = getenv('ROOF_CAMERA_CACHE');
-$directory = ($configuredDirectory && is_file($configuredDirectory . '/stream.m3u8'))
-    ? $configuredDirectory
-    : '/var/tmp/roof-camera';
+$directory = '/var/tmp/roof-camera';
 $manifest = $directory . '/stream.m3u8';
 // TC70 keyframes can arrive in bursts; allow a short network/keyframe pause
 // while still rejecting genuinely abandoned output.
