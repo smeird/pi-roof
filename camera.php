@@ -11,7 +11,9 @@ $directory = ($configuredDirectory && is_dir($configuredDirectory))
     ? $configuredDirectory
     : '/var/tmp/roof-camera';
 $manifest = $directory . '/stream.m3u8';
-if (!is_file($manifest) || time() - filemtime($manifest) > 20) {
+// TC70 keyframes can arrive in bursts; allow a short network/keyframe pause
+// while still rejecting genuinely abandoned output.
+if (!is_file($manifest) || time() - filemtime($manifest) > 90) {
     http_response_code(503); header('Retry-After: 10'); exit;
 }
 $path = $directory . '/' . $name;
