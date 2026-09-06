@@ -13,7 +13,8 @@ $defaults = [
     'INFLUX_BUCKET' => 'Garden',
     'INFLUX_TOKEN' => '',
     'DASHBOARD_SHOW_CHART' => '1',
-    'DASHBOARD_SHOW_SKYCAM' => '1'
+    'DASHBOARD_SHOW_SKYCAM' => '1',
+    'DASHBOARD_SHOW_CAMERA' => '1'
 ];
 
 $stored = getAllSettings();
@@ -42,7 +43,8 @@ echo json_encode([
     'quickLinks' => getQuickLinks(),
     'dashboard' => [
         'showChart' => $config['DASHBOARD_SHOW_CHART'] === '1',
-        'showSkyCam' => $config['DASHBOARD_SHOW_SKYCAM'] === '1'
+        'showSkyCam' => $config['DASHBOARD_SHOW_SKYCAM'] === '1',
+        'showCamera' => $config['DASHBOARD_SHOW_CAMERA'] === '1'
     ],
     'roof' => [
         'open' => ['path' => $roof['open_path'], 'limit' => $roof['open_limit']],

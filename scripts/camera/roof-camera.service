@@ -1,0 +1,13 @@
+[Unit]
+Description=Observatory TC70 camera bridge
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /var/www/roof/scripts/camera/bridge.py
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

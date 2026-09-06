@@ -56,6 +56,23 @@ The roof controller follows the standard `roof-esp` topic contract. Configure it
 
 ## Deployment
 
+### Observatory camera (Tapo TC70)
+
+The TC70 at `10.0.179.35` uses its local **Camera Account** (Tapo app → camera settings → Advanced Settings → Camera Account). Browsers receive a rolling HLS video buffer through `/camera.php`; camera credentials are never returned to the browser or saved in Git. The feed is accessible to the same audience as the roof dashboard. There is no permanent recording, and playback is several seconds behind the camera.
+
+On `data`, install the user service and enter the account interactively:
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp /var/www/roof/scripts/camera/roof-camera.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable roof-camera.service
+python3 /var/www/roof/scripts/camera/configure.py
+loginctl enable-linger dom
+```
+
+The last command keeps the service running after logout and at boot; an administrator may need to run it. Requires Python 3 and FFmpeg. The small rolling buffer is in `/var/tmp/roof-camera`; stale video is refused after 20 seconds. The dashboard retries an unavailable feed automatically. Settings → Dashboard can hide the observatory camera. Use `systemctl --user status roof-camera` to check service status without exposing credentials.
+
 The live checkout is `/var/www/roof` on `data`. To allow the `dom` deployment account to update the application without a repeated root prompt, run this one-time command on `data` as an administrator:
 
 ```bash

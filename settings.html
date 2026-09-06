@@ -52,6 +52,7 @@
             <label><span class="ops-label">SkyCam MQTT topic</span><input name="MQTT_SKYCAM_TOPIC" class="ops-input" placeholder="Observatory/skycam/image"></label>
             <label class="flex min-h-[2.45rem] items-center gap-2 rounded-lg border px-3 text-sm font-bold" style="border-color:var(--border);background:var(--panel-subtle)"><input name="DASHBOARD_SHOW_CHART" type="checkbox" class="h-4 w-4 accent-blue-600"> Show live graph</label>
             <label class="flex min-h-[2.45rem] items-center gap-2 rounded-lg border px-3 text-sm font-bold" style="border-color:var(--border);background:var(--panel-subtle)"><input name="DASHBOARD_SHOW_SKYCAM" type="checkbox" class="h-4 w-4 accent-blue-600"> Show SkyCam</label>
+            <label class="flex min-h-[2.45rem] items-center gap-2 rounded-lg border px-3 text-sm font-bold" style="border-color:var(--border);background:var(--panel-subtle)"><input name="DASHBOARD_SHOW_CAMERA" type="checkbox" class="h-4 w-4 accent-blue-600"> Show observatory camera</label>
           </div>
         </section>
 
@@ -272,6 +273,7 @@
       setNamedValue('MQTT_SKYCAM_TOPIC', config.skyCamTopic);
       form.elements.namedItem('DASHBOARD_SHOW_CHART').checked = config.dashboard?.showChart !== false;
       form.elements.namedItem('DASHBOARD_SHOW_SKYCAM').checked = config.dashboard?.showSkyCam !== false;
+      form.elements.namedItem('DASHBOARD_SHOW_CAMERA').checked = config.dashboard?.showCamera !== false;
       document.getElementById('roofBaseTopic').value = config.roofController?.baseTopic || 'Observatory/roof-esp';
       document.getElementById('roofOpenSeconds').value = config.roofController?.openSeconds ?? 30;
       document.getElementById('roofCloseSeconds').value = config.roofController?.closeSeconds ?? 30;
@@ -305,6 +307,7 @@
         MQTT_SKYCAM_TOPIC: form.elements.namedItem('MQTT_SKYCAM_TOPIC').value.trim(),
         DASHBOARD_SHOW_CHART: form.elements.namedItem('DASHBOARD_SHOW_CHART').checked,
         DASHBOARD_SHOW_SKYCAM: form.elements.namedItem('DASHBOARD_SHOW_SKYCAM').checked,
+        DASHBOARD_SHOW_CAMERA: form.elements.namedItem('DASHBOARD_SHOW_CAMERA').checked,
         roofController: {
           baseTopic: document.getElementById('roofBaseTopic').value.trim(),
           openSeconds: Number(document.getElementById('roofOpenSeconds').value),

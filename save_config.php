@@ -16,7 +16,8 @@ $allowed = [
     'INFLUX_BUCKET',
     'INFLUX_TOKEN',
     'DASHBOARD_SHOW_CHART',
-    'DASHBOARD_SHOW_SKYCAM'
+    'DASHBOARD_SHOW_SKYCAM',
+    'DASHBOARD_SHOW_CAMERA'
 ];
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -137,7 +138,7 @@ try {
     foreach ($allowed as $key) {
         if (array_key_exists($key, $input)) {
             $value = $input[$key];
-            if (in_array($key, ['DASHBOARD_SHOW_CHART', 'DASHBOARD_SHOW_SKYCAM'], true)) {
+            if (in_array($key, ['DASHBOARD_SHOW_CHART', 'DASHBOARD_SHOW_SKYCAM', 'DASHBOARD_SHOW_CAMERA'], true)) {
                 $value = !empty($value) ? '1' : '0';
             }
             setSetting($key, trim((string)$value));
