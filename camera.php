@@ -7,7 +7,7 @@ if (!is_string($name) || !preg_match('/^(stream\.m3u8|segment[0-9]+\.ts)$/D', $n
     http_response_code(400); exit;
 }
 $configuredDirectory = getenv('ROOF_CAMERA_CACHE');
-$directory = ($configuredDirectory && is_dir($configuredDirectory))
+$directory = ($configuredDirectory && is_file($configuredDirectory . '/stream.m3u8'))
     ? $configuredDirectory
     : '/var/tmp/roof-camera';
 $manifest = $directory . '/stream.m3u8';
