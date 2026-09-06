@@ -59,6 +59,11 @@
           <header class="ops-card-header"><h2 id="roofControllerTitle" class="ops-card-title">Roof Controller</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">Standard roof-esp contract</span></header>
           <div class="ops-card-body space-y-3">
             <label><span class="ops-label">Controller base topic</span><input id="roofBaseTopic" class="ops-input" placeholder="Observatory/roof-esp"><span class="ops-help">Commands and telemetry are derived from this base topic.</span></label>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label><span class="ops-label">Opening time (seconds)</span><input id="roofOpenSeconds" class="ops-input" type="number" min="1" max="900" step="any" required value="30"></label>
+              <label><span class="ops-label">Closing time (seconds)</span><input id="roofCloseSeconds" class="ops-input" type="number" min="1" max="900" step="any" required value="30"></label>
+            </div>
+            <p class="ops-help">Full-travel diagram timing (1–900 seconds). Visual estimate only; limit switches confirm the actual position. Does not change controller motor timeouts.</p>
             <div>
               <div class="mb-2 flex items-center justify-between"><h3 class="text-xs font-extrabold uppercase tracking-wide">Controller relays</h3><span class="text-[.68rem] text-[var(--muted)]">Edit labels, visibility, and order</span></div>
               <div id="relaysList" class="space-y-1.5"></div>
@@ -268,6 +273,8 @@
       form.elements.namedItem('DASHBOARD_SHOW_CHART').checked = config.dashboard?.showChart !== false;
       form.elements.namedItem('DASHBOARD_SHOW_SKYCAM').checked = config.dashboard?.showSkyCam !== false;
       document.getElementById('roofBaseTopic').value = config.roofController?.baseTopic || 'Observatory/roof-esp';
+      document.getElementById('roofOpenSeconds').value = config.roofController?.openSeconds ?? 30;
+      document.getElementById('roofCloseSeconds').value = config.roofController?.closeSeconds ?? 30;
       (config.roofController?.relays || []).forEach(createRelayRow);
       (config.sensors || []).forEach(createSensorRow);
       (config.switches || []).forEach(createSwitchRow);
@@ -300,6 +307,8 @@
         DASHBOARD_SHOW_SKYCAM: form.elements.namedItem('DASHBOARD_SHOW_SKYCAM').checked,
         roofController: {
           baseTopic: document.getElementById('roofBaseTopic').value.trim(),
+          openSeconds: Number(document.getElementById('roofOpenSeconds').value),
+          closeSeconds: Number(document.getElementById('roofCloseSeconds').value),
           relays: Array.from(document.querySelectorAll('.relay-row')).map(row => ({
             key: row.dataset.key, label: row.querySelector('.relay-label').value.trim(), visible: row.querySelector('.relay-visible').checked
           }))

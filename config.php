@@ -237,6 +237,8 @@ function getRoofController() {
     }
     return [
         'baseTopic' => $baseTopic ?: 'Observatory/roof-esp',
+        'openSeconds' => (float)getSetting('ROOF_OPEN_SECONDS', '30'),
+        'closeSeconds' => (float)getSetting('ROOF_CLOSE_SECONDS', '30'),
         'relays' => $relays
     ];
 }
@@ -245,6 +247,10 @@ function setRoofController($controller) {
     $db = getDb();
     $db->exec('BEGIN IMMEDIATE');
     try {
+        // Optional keys preserve saved durations when an older client saves configuration.
+        foreach (['openSeconds' => 'ROOF_OPEN_SECONDS', 'closeSeconds' => 'ROOF_CLOSE_SECONDS'] as $field => $key) {
+            if (array_key_exists($field, $controller)) setSetting($key, (string)$controller[$field]);
+        }
         $stmt = $db->prepare('REPLACE INTO roof_controller (id, base_topic) VALUES (1, :base_topic)');
         $stmt->bindValue(':base_topic', $controller['baseTopic'], SQLITE3_TEXT);
         $stmt->execute();

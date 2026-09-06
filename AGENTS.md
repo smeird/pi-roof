@@ -71,3 +71,5 @@
 - Live Trends and SkyCam panels support an in-page maximize overlay and must reflow correctly when restored.
 - Configuration tests may override the SQLite location with `ROOF_CONFIG_DB_PATH`; production continues to default to `/var/www/data/config.db`.
 - Open and Close roof commands require the controller `relay3` 12V state topic to report `1`; otherwise the dashboard blocks publication and shows the power interlock dialog.
+- The horizontal SVG roof diagram uses motor telemetry and `roofController.openSeconds` / `closeSeconds` (30-second defaults, 1–900 seconds) for estimated travel. Limit lights use actual limit topics, never elapsed time. Stop, fault, unavailable telemetry, or conflicting signals pause estimation; diagram state never authorizes commands. Durations persist in SQLite settings without changing controller motor timeouts.
+- Focused roof diagram/configuration tests run with `node --test tests/*.test.mjs` (configuration tests require `php-cgi`); there is still no npm test script.

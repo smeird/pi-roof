@@ -89,6 +89,13 @@ if (isset($input['roofController'])) {
             $errors['roofController.baseTopic'] = 'Enter a base topic without MQTT wildcards.';
         }
         $requiredRelayKeys = ['relay3', 'relay4', 'relay5', 'relay6', 'relay7', 'relay8'];
+        foreach (['openSeconds', 'closeSeconds'] as $field) {
+            if (!array_key_exists($field, $controller)) continue;
+            $value = $controller[$field];
+            if ((!is_int($value) && !is_float($value) && !is_string($value)) || !is_numeric($value) || !is_finite((float)$value) || (float)$value < 1 || (float)$value > 900) {
+                $errors["roofController.$field"] = 'Enter a travel time between 1 and 900 seconds.';
+            }
+        }
         $relays = is_array($controller['relays'] ?? null) ? $controller['relays'] : [];
         $relayKeys = [];
         foreach ($relays as $index => $relay) {

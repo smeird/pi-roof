@@ -49,6 +49,25 @@
               <span id="lastCommand" class="text-[.65rem] font-semibold text-[var(--muted-soft)]">No command sent</span>
             </div>
             <div id="roofStatus" class="grid min-h-0 flex-1 grid-cols-2 content-start gap-1.5"></div>
+            <figure id="roofDiagram" class="roof-diagram" aria-label="Roof position and limit switches">
+              <figcaption class="flex items-center justify-between gap-2"><span class="ops-card-title">Roof position</span><span data-roof-status class="ops-status-chip tone-warn">Position unknown</span></figcaption>
+              <svg viewBox="0 0 380 120" role="img" aria-labelledby="roofDiagramTitle roofDiagramDescription">
+                <title id="roofDiagramTitle">Horizontal roll-off roof</title>
+                <desc id="roofDiagramDescription">Waiting for controller telemetry. Intermediate position is estimated.</desc>
+                <g class="roof-structure" stroke-width="2" stroke-linejoin="round">
+                  <path d="M24 57H178V108H24Z" fill="var(--panel)"/>
+                  <path d="M74 108V75H111V108M178 58H354M208 58V108M344 58V108M14 109H366" fill="none"/>
+                  <path d="M208 59L238 89M344 59L314 89" fill="none"/>
+                </g>
+                <g data-roof transform="translate(86 0)" fill="var(--panel-raised)" stroke="var(--blue)" stroke-width="2" stroke-linejoin="round">
+                  <path d="M17 45L101 17L185 45V51H17Z"/>
+                  <path d="M37 39L101 18L165 39M17 45H185" fill="none"/>
+                  <circle cx="35" cy="54" r="3"/><circle cx="167" cy="54" r="3"/>
+                </g>
+              </svg>
+              <div class="roof-limit-lights"><div data-limit="closeLimit"><i aria-hidden="true"></i><span>Closed limit: unknown</span></div><div data-limit="openLimit"><i aria-hidden="true"></i><span>Open limit: unknown</span></div></div>
+              <p class="text-[.6rem] text-[var(--muted)]">Travel is estimated · lights show controller limit signals</p>
+            </figure>
           </div>
         </section>
 
@@ -123,6 +142,7 @@
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
     import { createPager, initShell } from './js/shell.js';
+    import { createRoofDiagram } from './js/roofDiagram.mjs';
 
     const fallbackConfig = {
       brokerUrl: '', port: 0, username: '', password: '', sensors: [], switches: [],
@@ -139,6 +159,7 @@
     }
 
     initShell({ activePage: 'dashboard', quickLinks: config.quickLinks });
+    const roofDiagram = createRoofDiagram(document.getElementById('roofDiagram'), config.roofController);
 
     const baseTopic = (config.roofController?.baseTopic || 'Observatory/roof-esp').replace(/\/+$/, '');
     const powerRelayStateTopic = `${baseTopic}/state/relay3`;
@@ -558,6 +579,12 @@
       const online = stateValues[roofEsp.state.online];
       const heartbeatStale = lastHeartbeatAt && Date.now() - lastHeartbeatAt.getTime() > 90000;
       const motorAllowed = mqttConnected && online !== '0' && !heartbeatStale;
+      roofDiagram.update({
+        available: motorAllowed,
+        openLimit: stateValues[roofEsp.state.openLimit], closeLimit: stateValues[roofEsp.state.closeLimit],
+        openMotor: stateValues[roofEsp.state.openMotor], closeMotor: stateValues[roofEsp.state.closeMotor],
+        moving: stateValues[roofEsp.state.moving], fault: stateValues[roofEsp.state.fault]
+      });
       const baseAllowed = enabled !== '0' && !fault;
       roofMotionButtons.open.disabled = !motorAllowed || !baseAllowed || open;
       roofMotionButtons.close.disabled = !motorAllowed || !baseAllowed || closed;
