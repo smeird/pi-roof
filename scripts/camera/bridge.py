@@ -19,7 +19,9 @@ try:
 except (OSError, ValueError, KeyError):
     sys.exit('Camera account unavailable. Run scripts/camera/configure.py on data.')
 
-cache = Path('/var/tmp/roof-camera')
+# Keep the bridge output inside the shared web root; Apache may have a
+# private /var/tmp namespace (PrivateTmp), which would hide that cache.
+cache = Path('/var/www/roof/.camera-cache')
 cache.mkdir(mode=0o755, exist_ok=True)
 if cache.is_symlink() or cache.stat().st_uid != os.getuid():
     sys.exit('Camera cache must be owned by the service user and not a symlink')

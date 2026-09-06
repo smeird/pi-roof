@@ -6,7 +6,7 @@ $name = $_GET['file'] ?? 'stream.m3u8';
 if (!is_string($name) || !preg_match('/^(stream\.m3u8|segment[0-9]+\.ts)$/D', $name)) {
     http_response_code(400); exit;
 }
-$directory = '/var/tmp/roof-camera';
+$directory = __DIR__ . '/.camera-cache';
 $manifest = $directory . '/stream.m3u8';
 header('X-Camera-Manifest-Exists: ' . (is_file($manifest) ? 'yes' : 'no'));
 header('X-Camera-Manifest-Age: ' . (is_file($manifest) ? (string)(time() - filemtime($manifest)) : 'na'));
