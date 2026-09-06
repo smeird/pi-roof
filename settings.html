@@ -7,26 +7,27 @@
   <title>Observatory Settings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/app.css?v=20260906-observatory">
 </head>
-<body>
+<body class="settings-page">
   <div class="ops-shell">
     <aside id="appRail" class="ops-rail" aria-label="Application navigation"></aside>
-    <main class="ops-main min-w-0">
+    <main id="mainContent" tabindex="-1" class="ops-main min-w-0">
       <header class="ops-topbar sticky top-0 z-30">
-        <h1 class="ops-page-title">Observatory Settings</h1>
-        <span id="settingsState" class="ops-status-chip tone-warn" role="status" aria-live="polite"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading</span></span>
+        <div class="ops-heading"><p class="ops-eyebrow">Observatory / System settings</p><h1 class="ops-page-title">Configuration</h1></div>
+        <span id="settingsState" class="ops-status-chip tone-warn" role="status" aria-live="polite"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><span>Loading</span></span>
       </header>
 
+      <div class="ops-page-intro"><p class="ops-eyebrow">System configuration</p><h2>Set up your observatory.</h2><p>Connections, instruments and the workspace. Save your changes when ready.</p></div>
       <form id="settingsForm" class="mx-auto w-full max-w-[90rem] space-y-3 p-3 pb-24">
-        <section class="ops-card" aria-labelledby="connectionTitle">
+        <section id="connectionTitleSection" class="ops-card" aria-labelledby="connectionTitle">
           <header class="ops-card-header"><h2 id="connectionTitle" class="ops-card-title">Connection</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">MQTT WebSocket broker</span></header>
           <div class="ops-card-body grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <label><span class="ops-label">Broker URL</span><input name="MQTT_BROKER_URL" class="ops-input" placeholder="wss://broker.example.com" autocomplete="url"></label>
@@ -36,7 +37,7 @@
           </div>
         </section>
 
-        <section class="ops-card" aria-labelledby="historyTitle">
+        <section id="historyTitleSection" class="ops-card" aria-labelledby="historyTitle">
           <header class="ops-card-header"><h2 id="historyTitle" class="ops-card-title">History</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">InfluxDB query connection</span></header>
           <div class="ops-card-body grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <label><span class="ops-label">Host</span><input name="INFLUX_HOST" class="ops-input" placeholder="http://influxdb:8086"></label>
@@ -46,7 +47,7 @@
           </div>
         </section>
 
-        <section class="ops-card" aria-labelledby="dashboardTitle">
+        <section id="dashboardTitleSection" class="ops-card" aria-labelledby="dashboardTitle">
           <header class="ops-card-header"><h2 id="dashboardTitle" class="ops-card-title">Dashboard</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">Live monitoring panels</span></header>
           <div class="ops-card-body grid items-end gap-3 md:grid-cols-[1fr_auto_auto]">
             <label><span class="ops-label">SkyCam MQTT topic</span><input name="MQTT_SKYCAM_TOPIC" class="ops-input" placeholder="Observatory/skycam/image"></label>
@@ -56,7 +57,7 @@
           </div>
         </section>
 
-        <section class="ops-card" aria-labelledby="roofControllerTitle">
+        <section id="roofControllerTitleSection" class="ops-card" aria-labelledby="roofControllerTitle">
           <header class="ops-card-header"><h2 id="roofControllerTitle" class="ops-card-title">Roof Controller</h2><span class="text-[.68rem] font-semibold text-[var(--muted)]">Standard roof-esp contract</span></header>
           <div class="ops-card-body space-y-3">
             <label><span class="ops-label">Controller base topic</span><input id="roofBaseTopic" class="ops-input" placeholder="Observatory/roof-esp"><span class="ops-help">Commands and telemetry are derived from this base topic.</span></label>
@@ -72,35 +73,35 @@
           </div>
         </section>
 
-        <section class="ops-card" aria-labelledby="sensorsTitle">
+        <section id="sensorsTitleSection" class="ops-card" aria-labelledby="sensorsTitle">
           <header class="ops-card-header">
             <h2 id="sensorsTitle" class="ops-card-title">Sensors</h2>
-            <button id="addSensor" type="button" class="ops-button"><i class="fa-solid fa-plus"></i>Add sensor</button>
+            <button id="addSensor" type="button" class="ops-button"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add sensor</button>
           </header>
           <div class="ops-card-body"><div id="sensorsList" class="space-y-2"></div></div>
         </section>
 
-        <section class="ops-card" aria-labelledby="devicesTitle">
+        <section id="devicesTitleSection" class="ops-card" aria-labelledby="devicesTitle">
           <header class="ops-card-header">
             <h2 id="devicesTitle" class="ops-card-title">Auxiliary Devices</h2>
-            <button id="addSwitch" type="button" class="ops-button"><i class="fa-solid fa-plus"></i>Add device</button>
+            <button id="addSwitch" type="button" class="ops-button"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add device</button>
           </header>
           <div class="ops-card-body"><div id="switchesList" class="space-y-2"></div></div>
         </section>
 
-        <section class="ops-card" aria-labelledby="linksTitle">
+        <section id="linksTitleSection" class="ops-card" aria-labelledby="linksTitle">
           <header class="ops-card-header">
             <h2 id="linksTitle" class="ops-card-title">Quick Links</h2>
-            <button id="addLink" type="button" class="ops-button"><i class="fa-solid fa-plus"></i>Add link</button>
+            <button id="addLink" type="button" class="ops-button"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add link</button>
           </header>
           <div class="ops-card-body"><div id="linksList" class="space-y-2"></div></div>
         </section>
 
-        <div class="sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-[var(--panel)] p-3 shadow-lg" style="border-color:var(--border)">
+        <div class="settings-actions sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-[var(--panel)] p-3 shadow-lg" style="border-color:var(--border)">
           <div id="formMessage" class="min-w-0 text-xs font-semibold text-[var(--muted)]">Changes apply after the dashboard reloads.</div>
           <div class="flex gap-2">
-            <a href="/" class="ops-button"><i class="fa-solid fa-arrow-left"></i>Dashboard</a>
-            <button id="saveButton" type="submit" class="ops-button ops-button-primary"><i class="fa-solid fa-floppy-disk"></i>Save configuration</button>
+            <a href="/" class="ops-button"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Dashboard</a>
+            <button id="saveButton" type="submit" class="ops-button ops-button-primary"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Save configuration</button>
           </div>
         </div>
       </form>
@@ -109,7 +110,7 @@
 
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
-    import { initShell } from './js/shell.js';
+    import { initShell } from './js/shell.js?v=20260906-observatory';
 
     const iconOptions = [
       ['fa-mountain-sun', 'Landscape'], ['fa-chart-line', 'Chart'], ['fa-cloud-sun', 'Weather'],

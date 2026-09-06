@@ -1,37 +1,40 @@
 :root {
-  --canvas: #f1f5f9;
+  --radius-panel: .45rem;
+  --font-data: "IBM Plex Mono", ui-monospace, monospace;
+  --transition-fast: 140ms ease;
+  --canvas: #edf2f5;
   --panel: #ffffff;
-  --panel-subtle: #f8fafc;
+  --panel-subtle: #f7fafc;
   --panel-raised: #ffffff;
-  --border: #cbd5e1;
-  --border-strong: #94a3b8;
-  --text: #0f172a;
-  --muted: #475569;
+  --border: #c7d5df;
+  --border-strong: #8a9fb0;
+  --text: #132a3c;
+  --muted: #526778;
   --muted-soft: #64748b;
-  --rail: #0f172a;
+  --rail: #132a3c;
   --rail-border: #1e293b;
-  --rail-text: #cbd5e1;
-  --blue: #2563eb;
-  --green: #059669;
-  --amber: #d97706;
+  --rail-text: #c7d5df;
+  --blue: #14738d;
+  --green: #047857;
+  --amber: #9a4b0b;
   --red: #dc2626;
   --shadow-overlay: 0 24px 60px rgba(15, 23, 42, 0.28);
 }
 
 .dark {
-  --canvas: #020617;
-  --panel: #0f172a;
-  --panel-subtle: #111c2f;
-  --panel-raised: #172033;
-  --border: #334155;
-  --border-strong: #475569;
-  --text: #f8fafc;
-  --muted: #cbd5e1;
-  --muted-soft: #94a3b8;
-  --rail: #020617;
+  --canvas: #060c14;
+  --panel: #0c1622;
+  --panel-subtle: #0b1825;
+  --panel-raised: #122333;
+  --border: #243848;
+  --border-strong: #526778;
+  --text: #e6f0f6;
+  --muted: #b4c6d4;
+  --muted-soft: #8fa7b9;
+  --rail: #060c14;
   --rail-border: #1e293b;
-  --rail-text: #cbd5e1;
-  --blue: #60a5fa;
+  --rail-text: #c7d5df;
+  --blue: #78d7ed;
   --green: #34d399;
   --amber: #fbbf24;
   --red: #fb7185;
@@ -43,7 +46,7 @@
 html { background: var(--canvas); }
 body {
   margin: 0;
-  background: var(--canvas);
+  background: var(--canvas) url("../assets/celestial-grid.svg") center top / 1440px auto fixed;
   color: var(--text);
   font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 }
@@ -85,20 +88,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   flex: 0 0 2.75rem;
   place-items: center;
   border: 1px solid transparent;
-  border-radius: .625rem;
+  border-radius: .4rem;
   background: transparent;
   color: var(--rail-text);
   text-decoration: none;
   cursor: pointer;
 }
 
-.ops-rail-brand { background: #1d4ed8; border-color: #3b82f6; color: white; }
+.ops-rail-brand { background: #123347; border-color: #326279; color: white; }
 .ops-rail-link:hover, .ops-icon-button:hover, .ops-rail-link[aria-current="page"] {
   background: #1e293b;
-  border-color: #334155;
+  border-color: #243848;
   color: white;
 }
-.ops-rail-link[aria-current="page"] { box-shadow: inset 3px 0 #60a5fa; }
+.ops-rail-link[aria-current="page"] { box-shadow: inset 3px 0 #78d7ed; }
 .ops-rail-spacer { flex: 1; min-height: .5rem; }
 .ops-link-stack { display: flex; min-height: 0; flex-direction: column; gap: .375rem; overflow-y: auto; scrollbar-width: none; }
 .ops-link-stack::-webkit-scrollbar { display: none; }
@@ -111,8 +114,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   max-width: 14rem;
   padding: .35rem .55rem;
   border-radius: .4rem;
-  background: #0f172a;
-  color: #f8fafc;
+  background: #132a3c;
+  color: #f7fafc;
   font-size: .7rem;
   font-weight: 700;
   letter-spacing: .02em;
@@ -144,23 +147,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .ops-main { min-width: 0; min-height: 100dvh; }
 .ops-topbar {
-  min-height: 3.5rem;
+  min-height: 4.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: .55rem .75rem;
+  padding: .65rem 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--panel);
 }
-.ops-page-title { margin: 0; font-size: .9rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.ops-page-title { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -.025em; }
 .ops-topbar-status { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
 
 .ops-card {
   min-width: 0;
   min-height: 0;
   border: 1px solid var(--border);
-  border-radius: .7rem;
+  border-radius: var(--radius-panel);
   background: var(--panel);
   overflow: hidden;
 }
@@ -168,7 +171,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ops-card[data-tone="warn"] { border-color: color-mix(in srgb, var(--amber) 58%, var(--border)); }
 .ops-card[data-tone="bad"] { border-color: color-mix(in srgb, var(--red) 65%, var(--border)); }
 .ops-card-header { min-height: 2.65rem; display: flex; align-items: center; justify-content: space-between; gap: .65rem; padding: .55rem .7rem; border-bottom: 1px solid var(--border); }
-.ops-card-title { margin: 0; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.ops-card-title { margin: 0; font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .ops-card-body { min-height: 0; padding: .65rem; }
 
 .ops-status-chip { display: inline-flex; min-height: 1.75rem; align-items: center; gap: .4rem; padding: .25rem .5rem; border: 1px solid var(--border); border-radius: .45rem; background: var(--panel-subtle); color: var(--muted); font-size: .68rem; font-weight: 750; white-space: nowrap; }
@@ -180,9 +183,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ops-button { min-height: 2.3rem; display: inline-flex; align-items: center; justify-content: center; gap: .45rem; padding: .45rem .65rem; border: 1px solid var(--border-strong); border-radius: .5rem; background: var(--panel-raised); color: var(--text); font-size: .72rem; font-weight: 800; cursor: pointer; }
 .ops-button:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
 .ops-button:disabled { cursor: not-allowed; opacity: .45; }
-.ops-button-primary { border-color: #2563eb; background: #2563eb; color: white; }
+.ops-button-primary { border-color: #288fa7; background: #14738d; color: white; }
+.ops-button-primary:hover:not(:disabled), .ops-button-danger:hover:not(:disabled), .ops-button-warning:hover:not(:disabled) { color: white; filter: brightness(1.12); }
 .ops-button-danger { border-color: #e11d48; background: #e11d48; color: white; }
-.ops-button-warning { border-color: #d97706; background: #d97706; color: white; }
+.ops-button-warning { border-color: #ad5916; background: #9a4b0b; color: white; }
 .ops-button-ghost { border-color: transparent; background: transparent; color: var(--muted); }
 
 .ops-toggle { position: relative; width: 2.5rem; height: 1.4rem; flex: 0 0 2.5rem; border: 0; border-radius: 999px; background: #64748b; cursor: pointer; transition: background .16s; }
@@ -202,8 +206,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ops-help { margin: .3rem 0 0; color: var(--muted-soft); font-size: .68rem; line-height: 1.45; }
 
 .dashboard-main { height: 100dvh; display: flex; flex-direction: column; min-width: 0; }
-.dashboard-grid { flex: 1; min-height: 0; padding: .625rem; display: grid; grid-template-columns: clamp(330px, 27vw, 400px) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 126px clamp(180px, 24dvh, 300px); gap: .625rem; }
-.dashboard-equipment { grid-column: 1; grid-row: 1 / 4; min-height: 0; display: flex; flex-direction: column; gap: .625rem; }
+.dashboard-grid { flex: 1; min-height: 0; padding: .875rem; display: grid; grid-template-columns: clamp(330px, 27vw, 400px) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 164px clamp(180px, 24dvh, 300px); gap: .75rem; }
+.dashboard-equipment { grid-column: 1; grid-row: 1 / 4; min-height: 0; display: flex; flex-direction: column; gap: .75rem; }
 .dashboard-equipment .dashboard-roof { flex: 0 0 auto; }
 .dashboard-equipment .dashboard-devices { flex: 1; min-height: 0; }
 .dashboard-grid .ops-card { display: flex; flex-direction: column; }
@@ -238,11 +242,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .dashboard-grid.without-camera.without-sky .dashboard-sensors { grid-row: 1 / 3; }
 #skyCamCard .ops-card-body { position: relative; }
 .skycam-body { display: grid; grid-template-rows: minmax(0, 1fr); }
-.camera-body { position: relative; height: calc(100% - 2.65rem); padding: 0; background: #020617; }
+.camera-body { position: relative; height: calc(100% - 2.65rem); padding: 0; background: #060c14; }
 .camera-body video { width: 100%; height: 100%; object-fit: contain; }
-.camera-message { position: absolute; inset: 0; display: grid; place-content: center; margin: 0; padding: 1rem; text-align: center; color: #cbd5e1; background: #020617; font-size: .75rem; pointer-events: none; }
+.camera-message { position: absolute; inset: 0; display: grid; place-content: center; margin: 0; padding: 1rem; text-align: center; color: #c7d5df; background: #060c14; font-size: .75rem; pointer-events: none; }
 .skycam-feed > .absolute { inset: 0; display: grid; place-content: center; text-align: center; }
-.skycam-feed { position: relative; min-height: 0; overflow: hidden; border: 1px solid #334155; background: #020617; }
+.skycam-feed { position: relative; min-height: 0; overflow: hidden; border: 1px solid #243848; background: #060c14; }
 .skycam-feed img { display: block; }
 .skycam-label { position: absolute; left: .4rem; top: .35rem; z-index: 2; padding: .15rem .35rem; border-radius: .25rem; background: rgba(2, 6, 23, .78); color: #e2e8f0; font-size: .58rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .skycam-link { position: absolute; right: .4rem; top: .35rem; z-index: 2; padding: .15rem .35rem; border-radius: .25rem; background: rgba(2, 6, 23, .78); color: #93c5fd; font-size: .58rem; font-weight: 800; text-decoration: none; }
@@ -296,4 +300,117 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .dashboard-tapo { height: 22rem; }
   .dashboard-keogram { height: 12rem; min-height: 12rem !important; }
   .dashboard-skycam { min-height: 22rem !important; }
+}
+
+/* Observatory instrument system: shared across operations, configuration and archive. */
+body { font-size: .875rem; -webkit-font-smoothing: antialiased; }
+::selection { background: #26728a; color: white; }
+.ops-main:focus { outline: none; }
+.ops-skip-link { position: fixed; top: .5rem; left: 5rem; z-index: 150; padding: .75rem 1rem; background: var(--panel); color: var(--text); transform: translateY(-160%); }
+.ops-skip-link:focus { transform: none; }
+.ops-eyebrow { margin: 0 0 .2rem; font-family: var(--font-data); font-size: .58rem; font-weight: 500; letter-spacing: .15em; text-transform: uppercase; color: var(--muted-soft); }
+.ops-heading { min-width: 0; }
+.ops-topbar { flex-shrink: 0; background: var(--panel); }
+.ops-rail { background: linear-gradient(180deg, #0e1d2c, #060c14); }
+.ops-rail-brand { margin-bottom: .8rem; }
+.ops-rail-brand svg { width: 26px; height: 26px; }
+.ops-rail-brand:hover .ops-tooltip, .ops-rail-brand:focus-visible .ops-tooltip { opacity: 1; transform: none; }
+.ops-card { box-shadow: 0 2px 8px #00000008; }
+.ops-card-header { background: linear-gradient(90deg, var(--panel-raised), var(--panel)); }
+.ops-card-title { display: inline-flex; align-items: center; gap: .55rem; line-height: 1.5; }
+.ops-section-index { font: 500 .6rem var(--font-data); color: var(--blue); letter-spacing: .02em; border-right: 1px solid var(--border); padding-right: .5rem; }
+.ops-status-chip { border-radius: .25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ops-button, .ops-input, .ops-pager button { border-radius: .3rem; transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast); }
+.ops-button { font-weight: 600; }
+.ops-button-ghost:hover { background: var(--panel-raised); }
+.ops-input { font-size: .8rem; min-width: 0; }
+.ops-input:hover { border-color: var(--border-strong); }
+.ops-input:focus { border-color: var(--blue); }
+.ops-label { font-weight: 600; }
+.ops-help { font-size: .72rem; }
+input[type="checkbox"] { accent-color: var(--blue); }
+.roof-diagram { border-radius: .3rem; background: var(--panel-subtle) url('../assets/celestial-grid.svg') center / 640px; }
+.roof-diagram .ops-card-title { font-size: .6rem; }
+#roofStatus > div { border-color: transparent !important; border-bottom-color: var(--border) !important; border-radius: 0; background: transparent !important; }
+#devicesContainer > div { border-radius: .3rem; }
+#sensorsContainer { gap: .35rem; }
+#sensorsContainer > .sensor-reading { display: flex; align-items: stretch; flex-direction: column; justify-content: center; gap: .15rem; padding: .3rem .55rem; border-radius: .25rem; }
+.sensor-reading > div:first-child { font-size: .65rem; }
+.sensor-measurement { display: flex; align-items: baseline; gap: .35rem; min-width: 0; }
+.sensor-value { font-family: var(--font-data); font-size: 1.1rem; font-weight: 500; line-height: 1.2; overflow-wrap: anywhere; }
+.sensor-unit { font: 400 .65rem var(--font-data); color: var(--muted-soft); }
+#roofStatus, .skycam-label, .skycam-link, .ops-pager, #lastCommand { font-family: var(--font-data); }
+.camera-message, .skycam-feed { background-color: #060c14; background-image: radial-gradient(ellipse at center, #132b3d70, transparent 70%), url('../assets/celestial-grid.svg'); background-size: auto, 1000px; }
+.camera-message::before { content: ''; display: block; width: 3rem; height: 3rem; margin: 0 auto 1rem; border: 1px solid #365368; border-radius: 50%; background: radial-gradient(circle, #78d7ed 0 2px, transparent 3px 10px, #365368 11px 12px, transparent 13px); }
+.skycam-feed { border-color: #1d3445; }
+.skycam-label, .skycam-link { font-weight: 500; }
+.ops-page-intro { max-width: 90rem; margin: 0 auto; padding: 1.8rem 1.25rem 1rem; }
+.ops-page-intro h2 { margin: .35rem 0; font-size: 1.6rem; font-weight: 600; letter-spacing: -.04em; }
+.ops-page-intro > p:last-child { margin: .4rem 0 0; color: var(--muted); font-size: .8rem; line-height: 1.6; }
+#settingsForm { padding: .5rem 1.25rem 4rem; }
+#settingsForm .ops-card-body { padding: 1rem; }
+#settingsForm .ops-card-header { padding: .75rem 1rem; }
+#settingsForm .ops-card { scroll-margin-top: 5rem; }
+#settingsForm label { min-width: 0; }
+.settings-actions { border-radius: .4rem; box-shadow: 0 8px 30px #00000020; }
+#debugPanel summary::after { content: '+'; color: var(--blue); font-family: var(--font-data); }
+#debugPanel[open] summary::after { content: '−'; }
+#historyChart { font-variant-numeric: tabular-nums; }
+@media (min-width: 1100px) {
+  #settingsForm { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+  #settingsForm > * { margin: 0; }
+  #settingsForm > :nth-child(n+3) { grid-column: 1 / -1; }
+  #settingsForm > :nth-child(-n+2) .ops-card-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1365px), (max-height: 767px) {
+  .ops-rail-brand { margin-bottom: 0; }
+  .ops-topbar.sticky { top: 3.75rem; }
+  .dashboard-grid { gap: .75rem; }
+  .dashboard-grid > .dashboard-sensors { min-height: 0; }
+  #sensorsContainer { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .dashboard-sensors .ops-card-body { padding: .65rem; }
+  .sensor-value { font-size: 1.2rem; }
+}
+/* Retain paired instruments on laptops/tablets instead of a single long column. */
+@media (min-width: 760px) and (max-width: 1365px), (min-width: 760px) and (max-height: 767px) {
+  .dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; align-items: stretch; }
+  .dashboard-grid .ops-card { grid-column: auto !important; grid-row: auto !important; order: 0; }
+  .dashboard-grid .dashboard-roof { grid-column: 1 !important; grid-row: 1 !important; }
+  .dashboard-grid .dashboard-devices { grid-column: 2 !important; grid-row: 1 !important; }
+  .dashboard-grid .dashboard-sensors { grid-column: 1 / -1 !important; grid-row: 2 !important; }
+  .dashboard-grid .dashboard-tapo { grid-column: 1 !important; grid-row: 3 !important; }
+  .dashboard-grid .dashboard-skycam { grid-column: 2 !important; grid-row: 3 !important; height: 22rem; }
+  .dashboard-grid .dashboard-chart, .dashboard-grid .dashboard-keogram { height: 18rem; min-height: 18rem !important; }
+  .dashboard-grid.without-camera .dashboard-skycam, .dashboard-grid.without-sky .dashboard-tapo { grid-column: 1 / -1 !important; }
+}
+@media (max-width: 759px) {
+  .ops-topbar { align-items: flex-start; gap: .5rem; padding: .75rem; }
+  .ops-topbar > .flex { flex-wrap: wrap; gap: .5rem; }
+  .ops-topbar-status { flex-shrink: 0; }
+  .ops-page-title { font-size: .95rem; }
+  .ops-eyebrow { font-size: .52rem; letter-spacing: .1em; }
+  .dashboard-grid { padding: .6rem; }
+  #sensorsContainer { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #sensorsContainer > .sensor-reading { padding: .55rem; }
+  .ops-page-intro { padding: 1.25rem .75rem .75rem; }
+  .ops-page-intro h2 { font-size: 1.35rem; }
+  #settingsForm { padding: .5rem .6rem 2rem; }
+  #settingsForm .ops-card-header { flex-wrap: wrap; }
+  .settings-actions > div, .settings-actions .ops-button { flex: 1; }
+  .ops-pager button { width: 2.25rem; height: 2.25rem; }
+  .ops-maximized { inset: .35rem !important; }
+  .ops-rail { gap: .2rem; }
+  .ops-rail-link, .ops-rail-brand, .ops-icon-button { width: 2.5rem; flex-basis: 2.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+.ops-mobile-nav-toggle { display: none; }
+@media (max-width: 759px) {
+  .ops-mobile-nav-toggle { display: grid; }
+  .ops-link-stack { display: none; position: absolute; top: 100%; left: .5rem; right: .5rem; max-height: calc(100dvh - 5rem); padding: .5rem; border: 1px solid var(--rail-border); border-radius: .4rem; background: var(--rail); box-shadow: var(--shadow-overlay); overflow-y: auto; }
+  .ops-link-stack.is-open { display: flex; flex-direction: column; }
+  .ops-link-stack .ops-rail-link { display: flex; width: 100%; padding: .65rem; gap: .8rem; flex-basis: auto; }
+  .ops-link-stack .ops-tooltip { display: block; position: static; opacity: 1; transform: none; padding: 0; background: none; font-size: .8rem; font-weight: 500; }
+  #sensorsContainer .truncate { white-space: normal; line-height: 1.35; }
 }

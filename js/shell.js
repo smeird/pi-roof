@@ -9,6 +9,7 @@ function makeRailLink({ href, label, icon, external = false, current = false }) 
   link.className = 'ops-rail-link';
   link.href = href;
   link.setAttribute('aria-label', label);
+  link.title = label;
   if (external) {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -73,6 +74,22 @@ function setupThemeMenu(container) {
     menu.hidden = !menu.hidden;
     button.setAttribute('aria-expanded', menu.hidden ? 'false' : 'true');
   });
+  wrap.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      menu.hidden = true;
+      button.setAttribute('aria-expanded', 'false');
+      button.focus();
+    }
+    if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+      event.preventDefault();
+      menu.hidden = false;
+      button.setAttribute('aria-expanded', 'true');
+      const items = [...menu.querySelectorAll('button')];
+      const current = items.indexOf(document.activeElement);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : current < 0 ? (event.key === 'ArrowUp' ? items.length - 1 : 0) : (current + (event.key === 'ArrowUp' ? -1 : 1) + items.length) % items.length;
+      items[next].focus();
+    }
+  });
   document.addEventListener('click', event => {
     if (!wrap.contains(event.target)) {
       menu.hidden = true;
@@ -87,9 +104,26 @@ export function initShell({ activePage = '', quickLinks = [] } = {}) {
   const rail = document.getElementById('appRail');
   if (!rail) return;
   rail.replaceChildren();
+  if (!document.querySelector('.ops-skip-link')) {
+    const skip = document.createElement('a');
+    skip.className = 'ops-skip-link';
+    skip.href = '#mainContent';
+    skip.textContent = 'Skip to main content';
+    document.body.prepend(skip);
+  }
+  document.querySelectorAll('section > .ops-card-header .ops-card-title').forEach((title, index) => {
+    if (title.querySelector('.ops-section-index')) return;
+    const number = document.createElement('span');
+    number.className = 'ops-section-index';
+    number.setAttribute('aria-hidden', 'true');
+    const instrumentNumbers = { roofTitle: '01', devicesTitle: '02', tapoTitle: '03', skyCamTitle: '04', sensorTitle: '05', chartTitle: '06', keogramTitle: '07' };
+    number.textContent = activePage === 'dashboard' ? instrumentNumbers[title.id] : String(index + 1).padStart(2, '0');
+    title.prepend(number);
+  });
 
   const brand = makeRailLink({ href: '/', label: 'Observatory dashboard', icon: 'fa-gauge-high', current: activePage === 'dashboard' });
   brand.classList.replace('ops-rail-link', 'ops-rail-brand');
+  brand.querySelector('i').outerHTML = '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 12 17-7 3 7-17 7zM4 14l3-1 2 4-3 1M22 4l5 9M16 17v5m0 0-7 7m7-7 7 7m-7-7v7"/></svg>';
   rail.appendChild(brand);
 
   const links = document.createElement('nav');
@@ -98,7 +132,33 @@ export function initShell({ activePage = '', quickLinks = [] } = {}) {
   quickLinks.filter(link => link.visible !== false).forEach(link => {
     links.appendChild(makeRailLink({ href: link.url, label: link.label, icon: link.icon, external: true }));
   });
-  rail.appendChild(links);
+  links.id = 'observatoryNavigation';
+  const navigationButton = document.createElement('button');
+  navigationButton.type = 'button';
+  navigationButton.hidden = links.childElementCount === 0;
+  navigationButton.className = 'ops-icon-button ops-mobile-nav-toggle';
+  navigationButton.setAttribute('aria-label', 'Observatory links');
+  navigationButton.setAttribute('aria-controls', links.id);
+  navigationButton.setAttribute('aria-expanded', 'false');
+  navigationButton.innerHTML = '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+  const closeNavigation = () => {
+    links.classList.remove('is-open');
+    navigationButton.setAttribute('aria-expanded', 'false');
+  };
+  navigationButton.addEventListener('click', () => {
+    const open = links.classList.toggle('is-open');
+    navigationButton.setAttribute('aria-expanded', String(open));
+  });
+  rail.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && links.classList.contains('is-open')) {
+      closeNavigation();
+      navigationButton.focus();
+    }
+  });
+  document.addEventListener('click', event => {
+    if (!links.contains(event.target) && !navigationButton.contains(event.target)) closeNavigation();
+  });
+  rail.append(navigationButton, links);
 
   const spacer = document.createElement('div');
   spacer.className = 'ops-rail-spacer';

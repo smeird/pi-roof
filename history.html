@@ -7,33 +7,34 @@
   <title>Sensor History</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css">
-  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <link rel="stylesheet" href="css/app.css?v=20260906-observatory">
+  <script src="https://cdn.jsdelivr.net/npm/highcharts@12.4.0/highcharts.js"></script>
 </head>
-<body>
+<body class="history-page">
   <div class="ops-shell">
     <aside id="appRail" class="ops-rail" aria-label="Application navigation"></aside>
-    <main class="ops-main min-w-0">
+    <main id="mainContent" tabindex="-1" class="ops-main min-w-0">
       <header class="ops-topbar sticky top-0 z-30">
-        <div class="flex items-center gap-3"><a href="/" class="ops-button ops-button-ghost" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a><h1 class="ops-page-title">Sensor History</h1></div>
-        <span id="queryState" class="ops-status-chip tone-warn" role="status" aria-live="polite"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading</span></span>
+        <div class="flex items-center gap-3"><a href="/" class="ops-button ops-button-ghost" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a><div class="ops-heading"><p class="ops-eyebrow">Observatory / Data archive</p><h1 class="ops-page-title">Sensor history</h1></div></div>
+        <span id="queryState" class="ops-status-chip tone-warn" role="status" aria-live="polite"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><span>Loading</span></span>
       </header>
 
+      <div class="ops-page-intro"><p class="ops-eyebrow">Instrument archive</p><h2>Observe the longer view.</h2><p>Sensor measurements over time. The dotted series compares the previous period.</p></div>
       <div class="mx-auto w-full max-w-[100rem] space-y-3 p-3">
         <section class="ops-card">
           <header class="ops-card-header flex-wrap">
             <h2 id="sensorTitle" class="ops-card-title">Sensor History</h2>
             <div class="flex flex-wrap gap-1.5" role="group" aria-label="History range">
-              <button type="button" data-range="day" class="range-btn ops-button ops-button-primary"><i class="fa-solid fa-clock"></i>Last 24h</button>
-              <button type="button" data-range="yesterday" class="range-btn ops-button"><i class="fa-solid fa-calendar-day"></i>Yesterday</button>
-              <button type="button" data-range="week" class="range-btn ops-button"><i class="fa-solid fa-calendar-week"></i>This week</button>
+              <button type="button" data-range="day" class="range-btn ops-button ops-button-primary"><i class="fa-solid fa-clock" aria-hidden="true"></i>Last 24h</button>
+              <button type="button" data-range="yesterday" class="range-btn ops-button"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i>Yesterday</button>
+              <button type="button" data-range="week" class="range-btn ops-button"><i class="fa-solid fa-calendar-week" aria-hidden="true"></i>This week</button>
             </div>
           </header>
           <div class="ops-card-body">
@@ -42,7 +43,7 @@
         </section>
 
         <details id="debugPanel" class="ops-card">
-          <summary class="ops-card-header cursor-pointer list-none"><span class="ops-card-title"><i class="fa-solid fa-bug mr-2 text-blue-600"></i>Debug details</span></summary>
+          <summary class="ops-card-header cursor-pointer list-none"><span class="ops-card-title"><i class="fa-solid fa-bug mr-2 text-blue-600" aria-hidden="true"></i>Debug details</span></summary>
           <div class="ops-card-body space-y-3">
             <div id="debugList" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4"></div>
             <pre id="debugLog" class="max-h-52 overflow-auto rounded-lg border bg-[var(--panel-subtle)] p-3 text-xs text-[var(--muted)]" style="border-color:var(--border)"></pre>
@@ -54,7 +55,7 @@
 
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
-    import { initShell } from './js/shell.js';
+    import { initShell } from './js/shell.js?v=20260906-observatory';
 
     const params = new URLSearchParams(window.location.search);
     const sensorPath = params.get('sensor');
@@ -67,10 +68,9 @@
     if (params.has('debug')) document.getElementById('debugPanel').open = true;
 
     function chartColors() {
-      const dark = document.documentElement.classList.contains('dark');
-      return dark
-        ? { text: '#cbd5e1', muted: '#94a3b8', grid: '#334155', tooltip: '#172033', border: '#475569' }
-        : { text: '#334155', muted: '#64748b', grid: '#cbd5e1', tooltip: '#ffffff', border: '#94a3b8' };
+      const style = getComputedStyle(document.documentElement);
+      const token = name => style.getPropertyValue(name).trim();
+      return { text: token('--text'), muted: token('--muted-soft'), grid: token('--border'), tooltip: token('--panel-raised'), border: token('--border-strong') };
     }
 
     function applyChartTheme() {
@@ -189,6 +189,7 @@
         const range = ranges[rangeKey];
         document.querySelectorAll('.range-btn').forEach(button => {
           button.classList.toggle('ops-button-primary', button.dataset.range === rangeKey);
+          button.setAttribute('aria-pressed', String(button.dataset.range === rangeKey));
         });
         setQueryState('Querying', 'info', 'fa-circle-notch', true);
         const stop = Date.now() - range.offset;
@@ -204,7 +205,7 @@
           const previous = parseInfluxCsv(previousText).map(([timestamp, value]) => [timestamp + range.duration, value]);
           historyChart?.destroy();
           historyChart = Highcharts.chart('historyChart', {
-            chart: { type: 'line', backgroundColor: 'transparent', animation: false },
+            chart: { style: { fontFamily: 'IBM Plex Mono, monospace' }, type: 'line', backgroundColor: 'transparent', animation: false },
             title: { text: null }, xAxis: { type: 'datetime' },
             yAxis: { title: { text: sensor.unit || null }, labels: { formatter() { return Highcharts.numberFormat(this.value, 1); } } },
             series: [

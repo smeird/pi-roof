@@ -7,14 +7,14 @@
   <title>Observatory Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css?v=20260906-layout2">
+  <link rel="stylesheet" href="css/app.css?v=20260906-observatory">
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script src="js/mqttClient.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highcharts@12.4.0/highcharts.js"></script>
@@ -24,10 +24,10 @@
   <div class="ops-shell">
     <aside id="appRail" class="ops-rail" aria-label="Application navigation"></aside>
 
-    <main class="ops-main dashboard-main">
+    <main id="mainContent" tabindex="-1" class="ops-main dashboard-main">
       <header class="ops-topbar">
         <div class="flex min-w-0 items-center gap-3">
-          <h1 class="ops-page-title">Observatory Control</h1>
+          <div class="ops-heading"><p class="ops-eyebrow">Operations / Live telemetry</p><h1 class="ops-page-title">Observatory control</h1></div>
           <span id="roofSummary" class="ops-status-chip tone-warn"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Roof waiting</span></span>
         </div>
         <div class="ops-topbar-status">
@@ -81,9 +81,9 @@
               <span id="sensorSummary" class="ops-status-chip tone-warn">Waiting</span>
             </div>
             <div id="sensorPager" class="ops-pager" hidden>
-              <button type="button" data-page="previous" aria-label="Previous sensors"><i class="fa-solid fa-chevron-left"></i></button>
+              <button type="button" data-page="previous" aria-label="Previous sensors"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
               <span data-page-label>1/1</span>
-              <button type="button" data-page="next" aria-label="Next sensors"><i class="fa-solid fa-chevron-right"></i></button>
+              <button type="button" data-page="next" aria-label="Next sensors"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
             </div>
           </header>
           <div class="ops-card-body h-[calc(100%-2.65rem)]">
@@ -94,7 +94,7 @@
         <section id="chartCard" class="ops-card dashboard-chart" aria-labelledby="chartTitle">
           <header class="ops-card-header">
             <h2 id="chartTitle" class="ops-card-title">Live Trends</h2>
-            <button type="button" class="ops-button ops-button-ghost" data-maximize="chartCard" aria-label="Maximize live trends" aria-expanded="false"><i class="fa-solid fa-expand"></i></button>
+            <button type="button" class="ops-button ops-button-ghost" data-maximize="chartCard" aria-label="Maximize live trends" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button>
           </header>
           <div class="ops-card-body h-[calc(100%-2.65rem)] p-1.5">
             <div id="lineChart" class="h-full min-h-0"></div>
@@ -104,25 +104,25 @@
         <section id="skyCamCard" class="ops-card dashboard-skycam" aria-labelledby="skyCamTitle">
           <header class="ops-card-header">
             <h2 id="skyCamTitle" class="ops-card-title">SkyCam</h2>
-            <button type="button" class="ops-button ops-button-ghost" data-maximize="skyCamCard" aria-label="Maximize SkyCam" aria-expanded="false"><i class="fa-solid fa-expand"></i></button>
+            <button type="button" class="ops-button ops-button-ghost" data-maximize="skyCamCard" aria-label="Maximize SkyCam" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button>
           </header>
           <div class="ops-card-body skycam-body h-[calc(100%-2.65rem)] bg-black p-1.5">
             <div class="skycam-feed" aria-label="Live SkyCam feed">
               <span class="skycam-label">Live feed</span>
               <img id="skyCamImage" class="h-full w-full object-contain" alt="Live observatory sky camera" hidden>
-              <span id="skyCamWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-camera mr-2"></i>Waiting for MQTT image</span>
+              <span id="skyCamWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-camera mr-2" aria-hidden="true"></i>Waiting for MQTT image</span>
             </div>
           </div>
         </section>
 
         <section id="keogramCard" class="ops-card dashboard-keogram" aria-labelledby="keogramTitle">
-          <header class="ops-card-header"><h2 id="keogramTitle" class="ops-card-title">Realtime Keogram</h2><button type="button" class="ops-button ops-button-ghost" data-maximize="keogramCard" aria-label="Maximize keogram" aria-expanded="false"><i class="fa-solid fa-expand"></i></button></header>
+          <header class="ops-card-header"><h2 id="keogramTitle" class="ops-card-title">Realtime Keogram</h2><button type="button" class="ops-button ops-button-ghost" data-maximize="keogramCard" aria-label="Maximize keogram" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button></header>
           <div class="ops-card-body h-[calc(100%-2.65rem)] bg-black p-1.5">
             <div class="skycam-feed h-full" aria-label="Realtime keogram">
               <span class="skycam-label">Realtime keogram</span>
               <a href="https://skycam.smeird.com/indi-allsky/realtime_keogram" target="_blank" rel="noopener noreferrer" class="skycam-link">Open viewer</a>
               <img id="keogramImage" class="h-full w-full object-contain" alt="Realtime SkyCam keogram" hidden>
-              <span id="keogramWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-chart-area mr-2"></i>Waiting for keogram</span>
+              <span id="keogramWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-chart-area mr-2" aria-hidden="true"></i>Waiting for keogram</span>
             </div>
           </div>
         </section>
@@ -131,7 +131,7 @@
           <header class="ops-card-header">
             <h2 id="tapoTitle" class="ops-card-title">Observatory Camera</h2>
             <span id="tapoStatus" class="ops-status-chip tone-warn" role="status">Connecting</span>
-            <button type="button" class="ops-button ops-button-ghost" data-maximize="tapoCard" aria-label="Maximize observatory camera" aria-expanded="false"><i class="fa-solid fa-expand"></i></button>
+            <button type="button" class="ops-button ops-button-ghost" data-maximize="tapoCard" aria-label="Maximize observatory camera" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button>
           </header>
           <div class="ops-card-body camera-body">
             <video id="tapoVideo" muted autoplay playsinline controls aria-label="Live Tapo TC70 observatory camera"></video>
@@ -143,9 +143,9 @@
           <header class="ops-card-header">
             <h2 id="devicesTitle" class="ops-card-title">Devices</h2>
             <div id="devicePager" class="ops-pager" hidden>
-              <button type="button" data-page="previous" aria-label="Previous devices"><i class="fa-solid fa-chevron-left"></i></button>
+              <button type="button" data-page="previous" aria-label="Previous devices"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
               <span data-page-label>1/1</span>
-              <button type="button" data-page="next" aria-label="Next devices"><i class="fa-solid fa-chevron-right"></i></button>
+              <button type="button" data-page="next" aria-label="Next devices"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
             </div>
           </header>
           <div class="ops-card-body h-[calc(100%-2.65rem)]">
@@ -171,7 +171,7 @@
 
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
-    import { createPager, initShell } from './js/shell.js?v=20260906-layout2';
+    import { createPager, initShell } from './js/shell.js?v=20260906-observatory';
     import { createRoofDiagram } from './js/roofDiagram.mjs';
     import { setupCamera } from './js/camera.js';
 
@@ -362,11 +362,13 @@
       const container = document.getElementById('sensorsContainer');
       const cards = [];
       (config.sensors || []).forEach(sensor => {
-        const card = makeElement('div', 'flex min-h-[2.4rem] items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5');
+        const card = makeElement('div', 'sensor-reading flex min-h-[2.4rem] items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5');
         card.style.borderColor = 'var(--border)';
         card.style.background = 'var(--panel-subtle)';
         const identity = makeElement('div', 'flex min-w-0 items-center gap-2');
         const dot = makeElement('span', 'h-2 w-2 flex-none rounded-full bg-slate-400');
+        dot.setAttribute('role', 'img');
+        dot.setAttribute('aria-label', 'Waiting for sensor');
         const name = makeElement('span', 'truncate text-[.7rem] font-bold', sensor.name || sensor.path);
         identity.append(dot, name);
         if (sensor.influxMeasurement && sensor.influxField) {
@@ -376,8 +378,11 @@
           history.innerHTML = '<i class="fa-solid fa-chart-line" aria-hidden="true"></i>';
           identity.appendChild(history);
         }
-        const value = makeElement('span', 'flex-none font-mono text-[.76rem] font-bold tabular-nums', '--');
-        card.append(identity, value);
+        const value = makeElement('span', 'sensor-value flex-none font-mono font-bold tabular-nums', '--');
+        const unit = makeElement('span', 'sensor-unit', sensor.unit || '');
+        const reading = makeElement('div', 'sensor-measurement');
+        reading.append(value, unit);
+        card.append(identity, reading);
         container.appendChild(card);
         cards.push(card);
         sensorValueEls[sensor.path] = { element: value, unit: sensor.unit || '' };
@@ -419,10 +424,9 @@
     }
 
     function chartColors() {
-      const dark = document.documentElement.classList.contains('dark');
-      return dark
-        ? { text: '#cbd5e1', muted: '#94a3b8', grid: '#334155', tooltip: '#172033', border: '#475569' }
-        : { text: '#334155', muted: '#64748b', grid: '#cbd5e1', tooltip: '#ffffff', border: '#94a3b8' };
+      const style = getComputedStyle(document.documentElement);
+      const token = name => style.getPropertyValue(name).trim();
+      return { text: token('--text'), muted: token('--muted-soft'), grid: token('--border'), tooltip: token('--panel-raised'), border: token('--border-strong') };
     }
 
     function initChart() {
@@ -434,7 +438,7 @@
       const colors = chartColors();
       const sensors = config.sensors || [];
       lineChart = Highcharts.chart('lineChart', {
-        chart: { type: 'line', backgroundColor: 'transparent', animation: false, marginTop: 8, spacing: [4, 4, 4, 4] },
+        chart: { style: { fontFamily: 'IBM Plex Mono, monospace' }, type: 'line', backgroundColor: 'transparent', animation: false, marginTop: 8, spacing: [4, 4, 4, 4] },
         title: { text: null },
         xAxis: { type: 'datetime', lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted, fontSize: '9px' } } },
         yAxis: sensors.map((sensor, index) => ({
@@ -672,10 +676,13 @@
       if (!target) return;
       const numeric = Number.parseFloat(rawValue);
       const display = Number.isNaN(numeric) ? rawValue : String(Math.round(numeric * 10) / 10);
-      target.element.textContent = target.unit ? `${display} ${target.unit}` : display;
+      target.element.textContent = display;
       const indicator = sensorIndicators[topic];
       indicator.hasValue = true;
       indicator.isGreen = !Number.isNaN(numeric) && !Number.isNaN(indicator.green) && (indicator.direction === 'above' ? numeric >= indicator.green : numeric <= indicator.green);
+      indicator.dot.setAttribute('role', 'img');
+      indicator.dot.setAttribute('aria-label', indicator.isGreen ? 'Within green threshold' : 'Outside green threshold');
+      indicator.dot.title = indicator.isGreen ? 'Within green threshold' : 'Outside green threshold';
       indicator.dot.className = `h-2 w-2 flex-none rounded-full ${indicator.isGreen ? 'bg-emerald-500' : 'bg-rose-500'}`;
       const values = Object.values(sensorIndicators);
       const received = values.filter(item => item.hasValue).length;
