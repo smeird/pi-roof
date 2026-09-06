@@ -128,6 +128,10 @@ export function createPager(container, pageSize, onPage) {
   next?.addEventListener('click', () => { page += 1; render(); });
   return {
     setCount(value) { count = value; render(); },
+    setPageSize(value) {
+      if (value === pageSize) return;
+      pageSize = Math.max(1, value); page = 0; render();
+    },
     refresh: render
   };
 }

@@ -202,30 +202,40 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ops-help { margin: .3rem 0 0; color: var(--muted-soft); font-size: .68rem; line-height: 1.45; }
 
 .dashboard-main { height: 100dvh; display: flex; flex-direction: column; min-width: 0; }
-.dashboard-grid { flex: 1; min-height: 0; padding: .625rem; display: grid; grid-template-columns: minmax(19rem, 3.6fr) minmax(20rem, 3.8fr) minmax(20rem, 4.6fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) 180px; gap: .625rem; }
-.dashboard-roof { grid-column: 1; grid-row: 1 / 4; }
-.dashboard-grid > .ops-card { display: flex; flex-direction: column; }
-.dashboard-grid > .ops-card > .ops-card-header { flex-shrink: 0; }
-.dashboard-grid > .ops-card > .ops-card-body { flex: 1; height: auto !important; min-height: 0; }
+.dashboard-grid { flex: 1; min-height: 0; padding: .625rem; display: grid; grid-template-columns: clamp(330px, 27vw, 400px) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 126px clamp(180px, 24dvh, 300px); gap: .625rem; }
+.dashboard-equipment { grid-column: 1; grid-row: 1 / 4; min-height: 0; display: flex; flex-direction: column; gap: .625rem; }
+.dashboard-equipment .dashboard-roof { flex: 0 0 auto; }
+.dashboard-equipment .dashboard-devices { flex: 1; min-height: 0; }
+.dashboard-grid .ops-card { display: flex; flex-direction: column; }
+.dashboard-grid .ops-card > .ops-card-header { flex-shrink: 0; min-height: 38px; padding: .35rem .65rem; }
+.dashboard-grid .ops-card > .ops-card-header .ops-button { min-height: 1.8rem; padding: .2rem .4rem; }
+.dashboard-grid .ops-card > .ops-card-body { flex: 1; height: auto !important; min-height: 0; }
+.dashboard-roof > .ops-card-body { gap: .4rem; padding: .5rem; }
+#roofControls { gap: .35rem; }
+#roofControls .ops-button, #roofControls > div { min-height: 2rem; padding-top: .3rem; padding-bottom: .3rem; }
+#roofStatus { flex: none; gap: .25rem; }
+#roofStatus > div { min-height: 1.6rem; padding-top: .15rem; padding-bottom: .15rem; }
+#devicesContainer > div { height: 48px; min-height: 0; }
 .roof-diagram { flex-shrink: 0; margin: 0; padding: .5rem; border: 1px solid var(--border); border-radius: .625rem; background: var(--panel-subtle); }
 .roof-diagram figcaption { flex-wrap: wrap; }
-.roof-diagram svg { display: block; width: 100%; height: 106px; }
+.roof-diagram svg { display: block; width: 100%; height: 66px; }
 .roof-structure { stroke: var(--muted-soft); }
 .roof-limit-lights { display: flex; justify-content: space-between; gap: .5rem; margin: .2rem 0; font-size: .65rem; font-weight: 700; color: var(--muted); }
 .roof-limit-lights > div { display: flex; align-items: center; gap: .35rem; }
 .roof-limit-lights i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--border-strong); border: 1px solid var(--muted-soft); }
 .roof-limit-lights [data-active="true"] i { background: var(--green); border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 15%, transparent); }
-.dashboard-sensors { grid-column: 2; grid-row: 1; }
+.dashboard-sensors { grid-column: 2 / 4; grid-row: 2; }
+.dashboard-sensors .ops-card-body { padding: .4rem .6rem; }
+#sensorsContainer { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#sensorsContainer > div { min-height: 2rem; padding-top: .2rem; padding-bottom: .2rem; }
 .dashboard-chart { grid-column: 2; grid-row: 3; }
-.dashboard-tapo { grid-column: 3; grid-row: 1; }
-.dashboard-skycam { grid-column: 3; grid-row: 2; }
+.dashboard-tapo { grid-column: 2; grid-row: 1; }
+.dashboard-skycam { grid-column: 3; grid-row: 1; }
 .dashboard-keogram { grid-column: 3; grid-row: 3; }
-.dashboard-devices { grid-column: 2; grid-row: 2; }
-.dashboard-grid.without-chart .dashboard-devices { grid-row: 2 / 4; }
-.dashboard-grid.without-sky .dashboard-tapo { grid-row: 1 / 4; }
-.dashboard-grid.without-sky .dashboard-chart { grid-column: 2; }
-.dashboard-grid.without-camera .dashboard-skycam { grid-row: 1 / 3; }
-.dashboard-grid.without-camera.without-sky { grid-template-columns: minmax(19rem, 1fr) minmax(20rem, 2fr); }
+.dashboard-grid.without-chart .dashboard-keogram { grid-column: 2 / 4; }
+.dashboard-grid.without-sky .dashboard-tapo, .dashboard-grid.without-sky .dashboard-chart { grid-column: 2 / 4; }
+.dashboard-grid.without-camera .dashboard-skycam { grid-column: 2 / 4; }
+.dashboard-grid.without-camera.without-sky .dashboard-sensors { grid-row: 1 / 3; }
 #skyCamCard .ops-card-body { position: relative; }
 .skycam-body { display: grid; grid-template-rows: minmax(0, 1fr); }
 .camera-body { position: relative; height: calc(100% - 2.65rem); padding: 0; background: #020617; }
@@ -270,8 +280,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .theme-menu { left: auto; right: 0; bottom: auto; top: calc(100% + .5rem); }
   .ops-main, .dashboard-main { min-height: calc(100dvh - 3.75rem); height: auto; }
   .dashboard-grid { display: flex; flex-direction: column; }
+  .dashboard-equipment { display: contents; }
+  .dashboard-sensors { order: 1; }
+  .dashboard-devices { order: 2; }
+  .dashboard-tapo { order: 3; }
+  .dashboard-skycam { order: 4; }
+  .dashboard-chart { order: 5; }
+  .dashboard-keogram { order: 6; }
+  #sensorsContainer { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-grid > .ops-card { min-height: 18rem; }
-  .dashboard-roof { min-height: 34rem !important; }
+  .dashboard-roof { min-height: 0 !important; }
+  .dashboard-devices { min-height: 15rem !important; }
   .dashboard-roof > .ops-card-body { height: auto; overflow: visible; }
   .dashboard-chart { min-height: 14rem !important; height: 14rem; }
   .dashboard-tapo { height: 22rem; }

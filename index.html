@@ -38,6 +38,7 @@
       </header>
 
       <div class="dashboard-grid">
+        <div class="dashboard-equipment">
         <section id="roofCard" class="ops-card dashboard-roof" aria-labelledby="roofTitle">
           <header class="ops-card-header">
             <h2 id="roofTitle" class="ops-card-title">Roof Control</h2>
@@ -71,6 +72,7 @@
             </figure>
           </div>
         </section>
+        </div>
 
         <section id="sensorCard" class="ops-card dashboard-sensors" aria-labelledby="sensorTitle">
           <header class="ops-card-header">
@@ -188,6 +190,7 @@
     }
 
     initShell({ activePage: 'dashboard', quickLinks: config.quickLinks });
+    document.querySelector('.dashboard-equipment').appendChild(document.getElementById('devicesCard'));
     const roofDiagram = createRoofDiagram(document.getElementById('roofDiagram'), config.roofController);
 
     const baseTopic = (config.roofController?.baseTopic || 'Observatory/roof-esp').replace(/\/+$/, '');
@@ -263,7 +266,9 @@
       row.style.borderColor = 'var(--border)';
       row.style.background = 'var(--panel-subtle)';
       const text = makeElement('div', 'min-w-0');
-      text.appendChild(makeElement('div', 'truncate text-[.72rem] font-bold text-[var(--text)]', label));
+      const name = makeElement('div', 'truncate text-[.72rem] font-bold text-[var(--text)]', label);
+      name.title = label;
+      text.appendChild(name);
       const state = makeElement('div', 'text-[.62rem] font-semibold text-[var(--muted-soft)]', 'Waiting for state');
       text.appendChild(state);
       const button = makeElement('button', 'ops-toggle');
@@ -406,6 +411,11 @@
         cards.forEach((card, index) => { card.hidden = index < page * size || index >= (page + 1) * size; });
       });
       pager.setCount(cards.length);
+      new ResizeObserver(() => {
+        const desktop = matchMedia('(min-width: 1366px) and (min-height: 768px)').matches;
+        const height = container.parentElement.clientHeight - 22;
+        pager.setPageSize(desktop ? Math.max(2, Math.min(12, Math.floor((height + 6) / 54) * 2)) : 6);
+      }).observe(container.parentElement);
     }
 
     function chartColors() {
