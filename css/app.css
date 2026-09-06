@@ -236,10 +236,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .dashboard-tapo { grid-column: 2; grid-row: 1; }
 .dashboard-skycam { grid-column: 3; grid-row: 1; }
 .dashboard-keogram { grid-column: 3; grid-row: 3; }
-.dashboard-grid.without-chart .dashboard-keogram { grid-column: 2 / 4; }
-.dashboard-grid.without-sky .dashboard-tapo, .dashboard-grid.without-sky .dashboard-chart { grid-column: 2 / 4; }
-.dashboard-grid.without-camera .dashboard-skycam { grid-column: 2 / 4; }
-.dashboard-grid.without-camera.without-sky .dashboard-sensors { grid-row: 1 / 3; }
 #skyCamCard .ops-card-body { position: relative; }
 .skycam-body { display: grid; grid-template-rows: minmax(0, 1fr); }
 .camera-body { position: relative; height: calc(100% - 2.65rem); padding: 0; background: #060c14; }
@@ -371,18 +367,6 @@ input[type="checkbox"] { accent-color: var(--blue); }
   .dashboard-sensors .ops-card-body { padding: .65rem; }
   .sensor-value { font-size: 1.2rem; }
 }
-/* Retain paired instruments on laptops/tablets instead of a single long column. */
-@media (min-width: 760px) and (max-width: 1365px), (min-width: 760px) and (max-height: 767px) {
-  .dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; align-items: stretch; }
-  .dashboard-grid .ops-card { grid-column: auto !important; grid-row: auto !important; order: 0; }
-  .dashboard-grid .dashboard-roof { grid-column: 1 !important; grid-row: 1 !important; }
-  .dashboard-grid .dashboard-devices { grid-column: 2 !important; grid-row: 1 !important; }
-  .dashboard-grid .dashboard-sensors { grid-column: 1 / -1 !important; grid-row: 2 !important; }
-  .dashboard-grid .dashboard-tapo { grid-column: 1 !important; grid-row: 3 !important; }
-  .dashboard-grid .dashboard-skycam { grid-column: 2 !important; grid-row: 3 !important; height: 22rem; }
-  .dashboard-grid .dashboard-chart, .dashboard-grid .dashboard-keogram { height: 18rem; min-height: 18rem !important; }
-  .dashboard-grid.without-camera .dashboard-skycam, .dashboard-grid.without-sky .dashboard-tapo { grid-column: 1 / -1 !important; }
-}
 @media (max-width: 759px) {
   .ops-topbar { align-items: flex-start; gap: .5rem; padding: .75rem; }
   .ops-topbar > .flex { flex-wrap: wrap; gap: .5rem; }
@@ -413,4 +397,113 @@ input[type="checkbox"] { accent-color: var(--blue); }
   .ops-link-stack .ops-rail-link { display: flex; width: 100%; padding: .65rem; gap: .8rem; flex-basis: auto; }
   .ops-link-stack .ops-tooltip { display: block; position: static; opacity: 1; transform: none; padding: 0; background: none; font-size: .8rem; font-weight: 500; }
   #sensorsContainer .truncate { white-space: normal; line-height: 1.35; }
+}
+
+/* Operations console: conditions and the sky survey lead; video is supporting context. */
+:root { --radius-panel: .25rem; --survey-accent: #8065b5; }
+.dark { --canvas: #05090e; --panel: #0b121a; --panel-subtle: #0d1822; --panel-raised: #111e2a; --border: #233440; --blue: #8bdcea; --survey-accent: #b5a1e3; }
+.ops-topbar { border-bottom: 1px solid var(--border-strong); }
+.ops-topbar .ops-page-title { font-size: 1.3rem; font-weight: 500; letter-spacing: -.045em; }
+.ops-title-accent { color: var(--blue); font-weight: 300; }
+.ops-card-header { background: transparent; }
+.ops-card-title { font-weight: 500; letter-spacing: .13em; }
+.ops-section-index { border: 0; color: var(--muted-soft); font-size: .55rem; }
+.dashboard-page .ops-topbar { min-height: 5rem; padding-inline: 1rem; }
+.dashboard-page .ops-page-title { font-size: 1.65rem; }
+.dashboard-page .ops-eyebrow { letter-spacing: .2em; margin-bottom: .3rem; }
+.dashboard-grid .ops-card { border-color: var(--border); box-shadow: none; }
+.dashboard-grid .ops-card[data-tone="good"] { border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
+.dashboard-grid .ops-card[data-tone="warn"] { border-color: color-mix(in srgb, var(--amber) 45%, var(--border)); }
+.dashboard-grid .ops-card[data-tone="bad"] { border-color: var(--red); }
+.dashboard-grid .ops-card > .ops-card-header { min-height: 36px; }
+.dashboard-equipment { border-top: 2px solid var(--blue); padding-top: .45rem; }
+.dashboard-roof .roof-diagram { border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background-color: transparent; padding: .4rem 0; }
+.dashboard-roof .roof-diagram svg { height: 60px; }
+.dashboard-roof .ops-card-header { border-bottom: 0; }
+#roofControls .ops-button { min-height: 2rem; }
+#roofControls .ops-button-warning { background: color-mix(in srgb, var(--amber) 10%, var(--panel)); color: var(--amber); border-color: color-mix(in srgb, var(--amber) 35%, var(--border)); }
+#roofControls .ops-button-warning:hover:not(:disabled) { color: var(--amber); }
+#roofStatus > div { min-height: 1.2rem; }
+.dashboard-sensors { background: linear-gradient(135deg, color-mix(in srgb, var(--blue) 4%, var(--panel)), var(--panel)); }
+.dashboard-sensors > .ops-card-header { border-bottom: 0; }
+.sensor-legend { margin-left: auto; font: .55rem var(--font-data); color: var(--muted-soft); }
+.dashboard-sensors .ops-card-body { padding: .3rem .65rem .65rem; }
+#sensorsContainer { gap: .55rem; grid-template-rows: repeat(2, minmax(0, 1fr)); }
+#sensorsContainer > .sensor-reading { position: relative; justify-content: space-between; gap: .1rem; padding: .5rem .65rem; border: 0; border-left: 2px solid var(--border) !important; border-radius: 0; background: color-mix(in srgb, var(--panel-raised) 60%, transparent) !important; }
+#sensorsContainer > .sensor-reading[data-threshold-tone="good"] { border-left-color: var(--green) !important; }
+#sensorsContainer > .sensor-reading[data-threshold-tone="warn"] { border-left-color: var(--amber) !important; }
+.sensor-reading .truncate { font-weight: 500; font-size: .68rem; }
+.sensor-value { font-size: 1.7rem; font-weight: 400; letter-spacing: -.06em; line-height: 1.05; }
+.sensor-unit { font-size: .7rem; }
+.sensor-proximity { display: grid; gap: .3rem; }
+.sensor-rule { font: .55rem var(--font-data); color: var(--muted-soft); }
+.sensor-distance { font: 500 .6rem var(--font-data); color: var(--muted-soft); white-space: nowrap; }
+[data-threshold-tone="good"] .sensor-distance { color: var(--green); }
+[data-threshold-tone="warn"] .sensor-distance { color: var(--amber); }
+.sensor-threshold-scale { position: relative; height: 4px; margin: 2px 4px; background: linear-gradient(to right, color-mix(in srgb, var(--amber) 35%, var(--panel)) 50%, color-mix(in srgb, var(--green) 40%, var(--panel)) 50%); }
+.sensor-threshold-scale::after { content: ''; position: absolute; left: 50%; top: -3px; height: 10px; width: 1px; background: var(--muted-soft); }
+.sensor-threshold-marker { position: absolute; z-index: 1; width: 7px; height: 7px; top: -1.5px; border: 1px solid var(--panel); background: var(--text); transform: translateX(-50%) rotate(45deg); transition: left 180ms ease; }
+.dashboard-keogram { border-top: 2px solid var(--survey-accent) !important; }
+.dashboard-keogram .ops-card-header { min-height: 42px !important; }
+.dashboard-keogram .ops-card-title { color: var(--survey-accent); }
+.panel-subtitle { color: var(--muted-soft); font-size: .58rem; letter-spacing: .06em; }
+.dashboard-keogram .skycam-feed { border: 0; }
+.dashboard-keogram .ops-card-body { padding: 0 .45rem .45rem; }
+.dashboard-tapo .ops-card-title, .dashboard-skycam .ops-card-title { font-size: .6rem; }
+.dashboard-tapo .ops-section-index, .dashboard-skycam .ops-section-index { display: none; }
+.dashboard-tapo .ops-card-header { gap: .3rem; }
+.dashboard-tapo .ops-status-chip { font-size: .55rem; min-height: 1.3rem; padding: .1rem .25rem; margin-left: auto; }
+.dashboard-tapo .camera-message { font-size: .62rem; padding: .5rem; }
+.dashboard-tapo .camera-message::before { width: 2rem; height: 2rem; margin-bottom: .45rem; }
+@media (min-width: 1366px) and (min-height: 768px) {
+  .dashboard-grid { grid-template-columns: clamp(305px, 24vw, 360px) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 252px minmax(0, 1fr) 172px; gap: .75rem; }
+  .dashboard-equipment { grid-column: 1; grid-row: 1 / 4; }
+  .dashboard-grid .dashboard-sensors { grid-column: 2 / 5; grid-row: 1; }
+  .dashboard-grid .dashboard-keogram { grid-column: 2 / 5; grid-row: 2; }
+  .dashboard-grid .dashboard-chart { grid-column: 2; grid-row: 3; }
+  .dashboard-grid .dashboard-tapo { grid-column: 3; grid-row: 3; }
+  .dashboard-grid .dashboard-skycam { grid-column: 4; grid-row: 3; }
+  .dashboard-grid.without-camera .dashboard-chart, .dashboard-grid.without-sky .dashboard-chart { grid-column: 2 / 4; }
+  .dashboard-grid.without-sky .dashboard-tapo { grid-column: 4; }
+  .dashboard-grid.without-chart .dashboard-tapo { grid-column: 2 / 4; }
+  .dashboard-grid.without-chart .dashboard-skycam { grid-column: 4; }
+  .dashboard-grid.without-camera.without-chart .dashboard-skycam, .dashboard-grid.without-sky.without-chart .dashboard-tapo { grid-column: 2 / 5; }
+  .dashboard-grid.without-camera.without-sky .dashboard-chart { grid-column: 2 / 5; }
+  .dashboard-grid.without-sky .dashboard-sensors { grid-row: 1 / 3; }
+  .dashboard-grid.without-sky #sensorsContainer { align-content: stretch; }
+}
+@media (min-width: 760px) and (max-width: 1365px), (min-width: 760px) and (max-height: 767px) {
+  .dashboard-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: auto; align-items: stretch; }
+  .dashboard-grid .ops-card { grid-column: auto; grid-row: auto; order: 0; }
+  .dashboard-grid .dashboard-roof { grid-column: 1 / 3; grid-row: 1; }
+  .dashboard-grid .dashboard-devices { grid-column: 3 / 5; grid-row: 1; }
+  .dashboard-grid .dashboard-sensors { grid-column: 1 / 5; grid-row: 2; height: 260px; }
+  .dashboard-grid .dashboard-keogram { grid-column: 1 / 5; grid-row: 3; height: 300px; min-height: 300px !important; }
+  .dashboard-grid .dashboard-chart { grid-column: 1 / 3; grid-row: 4; height: 190px; min-height: 190px !important; }
+  .dashboard-grid .dashboard-tapo { grid-column: 3; grid-row: 4; height: 190px; min-height: 190px !important; }
+  .dashboard-grid .dashboard-skycam { grid-column: 4; grid-row: 4; height: 190px; min-height: 190px !important; }
+  .dashboard-grid.without-camera .dashboard-skycam, .dashboard-grid.without-sky .dashboard-tapo { grid-column: 3 / 5; }
+  .dashboard-grid.without-chart .dashboard-tapo { grid-column: 1 / 3; }
+  .dashboard-grid.without-chart .dashboard-skycam { grid-column: 3 / 5; }
+  .dashboard-grid.without-camera.without-chart .dashboard-skycam, .dashboard-grid.without-sky.without-chart .dashboard-tapo, .dashboard-grid.without-camera.without-sky .dashboard-chart { grid-column: 1 / 5; }
+  .dashboard-grid.without-sky .dashboard-tapo, .dashboard-grid.without-sky .dashboard-chart { grid-row: 3; }
+}
+@media (max-width: 759px) {
+  .dashboard-page .ops-page-title { font-size: 1.25rem; }
+  .dashboard-page .ops-eyebrow { letter-spacing: .05em; font-size: .48rem; }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: auto; }
+  .dashboard-grid .ops-card { grid-column: 1 / -1; grid-row: auto; }
+  .dashboard-grid .dashboard-roof { order: 0; }
+  .dashboard-grid .dashboard-devices { order: 1; }
+  .dashboard-grid .dashboard-sensors { order: 2; }
+  .dashboard-grid .dashboard-keogram { order: 3; min-height: 260px !important; height: 260px; }
+  .dashboard-grid .dashboard-tapo, .dashboard-grid .dashboard-skycam { grid-column: auto; order: 4; min-height: 165px !important; height: 165px; }
+  .dashboard-grid .dashboard-chart { order: 5; }
+  #sensorsContainer { height: auto; grid-auto-rows: minmax(115px, auto); grid-template-rows: none; }
+  .sensor-value { font-size: 1.8rem; }
+  .sensor-legend { display: none; }
+  .sensor-distance { font-size: .57rem; }
+  .panel-subtitle { font-size: .5rem; }
+  .dashboard-tapo .ops-card-header { flex-wrap: wrap; }
+  .dashboard-grid.without-camera .dashboard-skycam, .dashboard-grid.without-sky .dashboard-tapo { grid-column: 1 / -1; }
 }

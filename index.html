@@ -14,7 +14,7 @@
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css?v=20260906-observatory">
+  <link rel="stylesheet" href="css/app.css?v=20260906-console2">
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script src="js/mqttClient.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highcharts@12.4.0/highcharts.js"></script>
@@ -27,7 +27,7 @@
     <main id="mainContent" tabindex="-1" class="ops-main dashboard-main">
       <header class="ops-topbar">
         <div class="flex min-w-0 items-center gap-3">
-          <div class="ops-heading"><p class="ops-eyebrow">Operations / Live telemetry</p><h1 class="ops-page-title">Observatory control</h1></div>
+          <div class="ops-heading"><p class="ops-eyebrow">Remote observatory · Operations console</p><h1 class="ops-page-title">Observatory<span class="ops-title-accent"> / </span>Control</h1></div>
           <span id="roofSummary" class="ops-status-chip tone-warn"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Roof waiting</span></span>
         </div>
         <div class="ops-topbar-status">
@@ -46,11 +46,6 @@
           </header>
           <div class="ops-card-body flex h-[calc(100%-2.65rem)] flex-col gap-3 overflow-hidden">
             <div id="roofControls" class="grid grid-cols-2 gap-2" aria-label="Roof commands"></div>
-            <div class="flex items-center justify-between border-t pt-2" style="border-color: var(--border)">
-              <h3 class="text-[.68rem] font-extrabold uppercase tracking-[.08em] text-[var(--muted)]">Controller telemetry</h3>
-              <span id="lastCommand" class="text-[.65rem] font-semibold text-[var(--muted-soft)]">No command sent</span>
-            </div>
-            <div id="roofStatus" class="grid min-h-0 flex-1 grid-cols-2 content-start gap-1.5"></div>
             <figure id="roofDiagram" class="roof-diagram" aria-label="Roof position and limit switches">
               <figcaption class="flex items-center justify-between gap-2"><span class="ops-card-title">Roof position</span><span data-roof-status class="ops-status-chip tone-warn">Position unknown</span></figcaption>
               <svg viewBox="0 0 380 120" role="img" aria-labelledby="roofDiagramTitle roofDiagramDescription">
@@ -70,6 +65,12 @@
               <div class="roof-limit-lights"><div data-limit="closeLimit"><i aria-hidden="true"></i><span>Closed limit: unknown</span></div><div data-limit="openLimit"><i aria-hidden="true"></i><span>Open limit: unknown</span></div></div>
               <p class="text-[.6rem] text-[var(--muted)]">Travel is estimated · lights show controller limit signals</p>
             </figure>
+            <div class="flex items-center justify-between border-t pt-2" style="border-color: var(--border)">
+              <h3 class="text-[.68rem] font-extrabold uppercase tracking-[.08em] text-[var(--muted)]">Controller telemetry</h3>
+              <span id="lastCommand" class="text-[.65rem] font-semibold text-[var(--muted-soft)]">No command sent</span>
+            </div>
+            <div id="roofStatus" class="grid min-h-0 flex-1 grid-cols-2 content-start gap-1.5"></div>
+
           </div>
         </section>
         </div>
@@ -77,9 +78,10 @@
         <section id="sensorCard" class="ops-card dashboard-sensors" aria-labelledby="sensorTitle">
           <header class="ops-card-header">
             <div class="flex items-center gap-2">
-              <h2 id="sensorTitle" class="ops-card-title">Sensors</h2>
+              <h2 id="sensorTitle" class="ops-card-title">Observing conditions</h2>
               <span id="sensorSummary" class="ops-status-chip tone-warn">Waiting</span>
             </div>
+            <span class="sensor-legend">Threshold at center · green to the right</span>
             <div id="sensorPager" class="ops-pager" hidden>
               <button type="button" data-page="previous" aria-label="Previous sensors"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
               <span data-page-label>1/1</span>
@@ -116,7 +118,7 @@
         </section>
 
         <section id="keogramCard" class="ops-card dashboard-keogram" aria-labelledby="keogramTitle">
-          <header class="ops-card-header"><h2 id="keogramTitle" class="ops-card-title">Realtime Keogram</h2><button type="button" class="ops-button ops-button-ghost" data-maximize="keogramCard" aria-label="Maximize keogram" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button></header>
+          <header class="ops-card-header"><h2 id="keogramTitle" class="ops-card-title">Sky survey <span class="panel-subtitle">/ Realtime keogram</span></h2><button type="button" class="ops-button ops-button-ghost" data-maximize="keogramCard" aria-label="Maximize keogram" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button></header>
           <div class="ops-card-body h-[calc(100%-2.65rem)] bg-black p-1.5">
             <div class="skycam-feed h-full" aria-label="Realtime keogram">
               <span class="skycam-label">Realtime keogram</span>
@@ -129,7 +131,7 @@
 
         <section id="tapoCard" class="ops-card dashboard-tapo" aria-labelledby="tapoTitle">
           <header class="ops-card-header">
-            <h2 id="tapoTitle" class="ops-card-title">Observatory Camera</h2>
+            <h2 id="tapoTitle" class="ops-card-title">Camera</h2>
             <span id="tapoStatus" class="ops-status-chip tone-warn" role="status">Connecting</span>
             <button type="button" class="ops-button ops-button-ghost" data-maximize="tapoCard" aria-label="Maximize observatory camera" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button>
           </header>
@@ -171,8 +173,9 @@
 
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js';
-    import { createPager, initShell } from './js/shell.js?v=20260906-observatory';
+    import { createPager, initShell } from './js/shell.js?v=20260906-console2';
     import { createRoofDiagram } from './js/roofDiagram.mjs';
+    import { describeThreshold } from './js/sensorThreshold.mjs';
     import { setupCamera } from './js/camera.js';
 
     const fallbackConfig = {
@@ -358,6 +361,18 @@
       });
     }
 
+    function renderThreshold(view, value) {
+      const state = describeThreshold(value, view.threshold, view.direction, view.unit);
+      view.rule.textContent = state.rule;
+      view.distance.textContent = state.distance;
+      view.card.dataset.thresholdTone = state.available ? (state.green ? 'good' : 'warn') : 'unknown';
+      view.marker.hidden = !state.available;
+      view.scale.hidden = !state.available;
+      view.scale.setAttribute('aria-label', state.description || state.distance);
+      view.scale.title = state.description || state.distance;
+      if (state.available) view.marker.style.left = `${state.position}%`;
+    }
+
     function renderSensors() {
       const container = document.getElementById('sensorsContainer');
       const cards = [];
@@ -382,10 +397,21 @@
         const unit = makeElement('span', 'sensor-unit', sensor.unit || '');
         const reading = makeElement('div', 'sensor-measurement');
         reading.append(value, unit);
-        card.append(identity, reading);
+        const proximity = makeElement('div', 'sensor-proximity');
+        const rule = makeElement('span', 'sensor-rule');
+        const distance = makeElement('span', 'sensor-distance');
+        const scale = makeElement('div', 'sensor-threshold-scale');
+        scale.setAttribute('role', 'img');
+        const marker = makeElement('span', 'sensor-threshold-marker');
+        marker.setAttribute('aria-hidden', 'true');
+        scale.append(marker);
+        proximity.append(rule, scale, distance);
+        card.append(identity, reading, proximity);
+        const thresholdView = { card, rule, distance, scale, marker, threshold: sensor.green, direction: sensor.greenDirection || 'below', unit: sensor.unit || '' };
+        renderThreshold(thresholdView, undefined);
         container.appendChild(card);
         cards.push(card);
-        sensorValueEls[sensor.path] = { element: value, unit: sensor.unit || '' };
+        sensorValueEls[sensor.path] = { element: value, unit: sensor.unit || '', thresholdView };
         sensorIndicators[sensor.path] = {
           dot, green: Number.parseFloat(sensor.green), direction: sensor.greenDirection || 'below', isGreen: false, hasValue: false
         };
@@ -440,13 +466,14 @@
       lineChart = Highcharts.chart('lineChart', {
         chart: { style: { fontFamily: 'IBM Plex Mono, monospace' }, type: 'line', backgroundColor: 'transparent', animation: false, marginTop: 8, spacing: [4, 4, 4, 4] },
         title: { text: null },
-        xAxis: { type: 'datetime', lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted, fontSize: '9px' } } },
+        xAxis: { type: 'datetime', tickPixelInterval: 110, dateTimeLabelFormats: { millisecond: '%H:%M:%S', second: '%H:%M:%S', minute: '%H:%M', hour: '%H:%M' }, lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted, fontSize: '9px' } } },
         yAxis: sensors.map((sensor, index) => ({
           title: { text: index < 2 ? (sensor.unit || sensor.name) : null, style: { color: colors.muted, fontSize: '9px' } },
           labels: { enabled: index < 2, style: { color: colors.muted, fontSize: '9px' } },
           gridLineColor: colors.grid, opposite: index % 2 === 1
         })),
-        legend: { itemStyle: { color: colors.text, fontSize: '9px' }, itemHoverStyle: { color: colors.text }, symbolWidth: 14, itemDistance: 8 },
+        legend: { layout: 'vertical', align: 'right', verticalAlign: 'middle', padding: 0, itemMarginTop: 0, itemMarginBottom: 0, itemWidth: 125, itemStyle: { color: colors.text, fontSize: '9px', textOverflow: 'ellipsis' }, itemHoverStyle: { color: colors.text }, symbolWidth: 10, symbolPadding: 4, itemDistance: 8, navigation: { activeColor: colors.text, inactiveColor: colors.muted, style: { color: colors.text } } },
+        responsive: { rules: [{ condition: { minWidth: 650 }, chartOptions: { legend: { layout: 'horizontal', align: 'center', verticalAlign: 'bottom' } } }] },
         tooltip: { shared: true, backgroundColor: colors.tooltip, borderColor: colors.border, style: { color: colors.text } },
         series: sensors.map((sensor, index) => {
           const green = Number.parseFloat(sensor.green);
@@ -677,6 +704,7 @@
       const numeric = Number.parseFloat(rawValue);
       const display = Number.isNaN(numeric) ? rawValue : String(Math.round(numeric * 10) / 10);
       target.element.textContent = display;
+      renderThreshold(target.thresholdView, rawValue);
       const indicator = sensorIndicators[topic];
       indicator.hasValue = true;
       indicator.isGreen = !Number.isNaN(numeric) && !Number.isNaN(indicator.green) && (indicator.direction === 'above' ? numeric >= indicator.green : numeric <= indicator.green);
@@ -685,10 +713,9 @@
       indicator.dot.title = indicator.isGreen ? 'Within green threshold' : 'Outside green threshold';
       indicator.dot.className = `h-2 w-2 flex-none rounded-full ${indicator.isGreen ? 'bg-emerald-500' : 'bg-rose-500'}`;
       const values = Object.values(sensorIndicators);
-      const received = values.filter(item => item.hasValue).length;
       const safe = values.length > 0 && values.every(item => item.hasValue && item.isGreen);
       const summary = document.getElementById('sensorSummary');
-      summary.textContent = safe ? 'All safe' : `${received}/${values.length} received`;
+      summary.textContent = safe ? 'All green' : `${values.filter(item => item.hasValue && item.isGreen).length}/${values.length} green`;
       setTone(summary, safe ? 'good' : 'warn');
       document.getElementById('sensorCard').dataset.tone = safe ? 'good' : '';
       const series = lineSeries[topic];
