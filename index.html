@@ -486,7 +486,7 @@
       const colors = chartColors();
       const sensors = config.sensors || [];
       lineChart = Highcharts.chart('lineChart', {
-        chart: { style: { fontFamily: 'IBM Plex Mono, monospace' }, type: 'line', backgroundColor: 'transparent', animation: false, marginTop: 8, spacing: [4, 4, 4, 4] },
+        chart: { style: { fontFamily: 'IBM Plex Mono, monospace' }, type: 'spline', backgroundColor: 'transparent', animation: false, marginTop: 8, spacing: [4, 4, 4, 4] },
         title: { text: null },
         xAxis: { type: 'datetime', min: liveTrendStartedAt, tickPixelInterval: 110, dateTimeLabelFormats: { millisecond: '%H:%M:%S', second: '%H:%M:%S', minute: '%H:%M', hour: '%H:%M' }, lineColor: colors.grid, tickColor: colors.grid, labels: { style: { color: colors.muted, fontSize: '9px' } } },
         yAxis: sensors.map((sensor, index) => ({
