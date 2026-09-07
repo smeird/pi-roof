@@ -14,7 +14,7 @@
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css?v=20260907-forecast1">
+  <link rel="stylesheet" href="css/app.css?v=20260907-conditions2">
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script src="js/mqttClient.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highcharts@12.4.0/highcharts.js"></script>
@@ -93,7 +93,7 @@
           <header class="ops-card-header">
             <div class="flex items-center gap-2">
               <h2 id="sensorTitle" class="ops-card-title">Observing conditions</h2>
-              <span id="sensorSummary" class="ops-status-chip tone-warn">Waiting</span>
+              <span id="sensorSummary" class="ops-status-chip tone-warn" role="status" aria-live="polite" aria-atomic="true">Waiting</span>
             </div>
             <span class="sensor-legend">Red / Amber / Green</span>
             <div id="sensorPager" class="ops-pager" hidden>
@@ -103,10 +103,6 @@
             </div>
           </header>
           <div class="ops-card-body sensor-panel-body">
-            <div id="observingStatus" class="observing-status" data-status="unknown" role="status" aria-live="polite" aria-atomic="true">
-              <i id="observingIcon" class="fa-solid fa-circle-question" aria-hidden="true"></i>
-              <div><strong id="observingTitle">Conditions unknown — safety unconfirmed</strong><p id="observingDetail">Waiting for sensor readings.</p></div>
-            </div>
             <div id="sensorsContainer" class="grid grid-cols-2 content-start gap-1.5"></div>
           </div>
         </section>
@@ -751,14 +747,12 @@
     function updateObservingStatus() {
       const result = observingStatus(Object.values(sensorIndicators), mqttConnected);
       const tone = { green: 'good', amber: 'warn', red: 'bad' }[result.status] || '';
-      document.getElementById('observingStatus').dataset.status = result.status;
-      document.getElementById('observingTitle').textContent = result.title;
-      document.getElementById('observingDetail').textContent = result.detail;
-      document.getElementById('observingIcon').className = `fa-solid ${{ green: 'fa-circle-check', amber: 'fa-triangle-exclamation', red: 'fa-circle-xmark', unknown: 'fa-circle-question' }[result.status]}`;
       const topStatus = document.getElementById('observingTopStatus');
       topStatus.textContent = `Observing: ${result.status === 'unknown' ? 'unconfirmed' : result.status === 'green' ? 'all green' : result.status}`;
       setTone(topStatus, tone);
       const summary = document.getElementById('sensorSummary');
+      summary.title = `${result.title}. ${result.detail}`;
+      summary.setAttribute('aria-label', `${result.title}. ${result.detail}`);
       summary.textContent = Object.entries(result.counts).filter(([, count]) => count).map(([state, count]) => `${count} ${state}`).join(' · ') || 'No sensors';
       setTone(summary, tone);
       document.getElementById('sensorCard').dataset.tone = tone;
