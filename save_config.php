@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/lib/forecast/rules.php';
 
 // Always return JSON so the client can parse the response reliably
 header('Content-Type: application/json');
@@ -28,6 +29,20 @@ if (!is_array($input)) {
 }
 
 $errors = [];
+
+if (isset($input['forecast'])) {
+    $rules = $input['forecast'];
+    if (!is_array($rules)) {
+        $errors['forecast'] = 'Forecast rules must be an object.';
+    } else {
+        foreach (['greenCloud' => 100, 'amberCloud' => 100, 'greenSeeing' => 10, 'amberSeeing' => 10] as $key => $max) {
+            if (astro_forecast_number($rules[$key] ?? null, $max) === null) $errors["forecast.$key"] = "Enter a forecast value between 0 and $max.";
+        }
+        if (!is_bool($rules['useSeeing'] ?? null)) $errors['forecast.useSeeing'] = 'Choose whether to include seeing.';
+        if (!$errors && $rules['greenCloud'] > $rules['amberCloud']) $errors['forecast.amberCloud'] = 'Amber cloud limit must be at least the green limit.';
+        if (!$errors && $rules['greenSeeing'] < $rules['amberSeeing']) $errors['forecast.greenSeeing'] = 'Green seeing minimum must be at least the amber minimum.';
+    }
+}
 
 if (isset($input['MQTT_BROKER_URL']) && !preg_match('#^wss?://#i', trim((string)$input['MQTT_BROKER_URL']))) {
     $errors['MQTT_BROKER_URL'] = 'Use a ws:// or wss:// broker URL.';
@@ -145,6 +160,7 @@ if ($errors) {
 }
 
 try {
+    if (isset($input['forecast'])) setSetting('FORECAST_RULES', json_encode(array_intersect_key($input['forecast'], forecast_defaults())));
     foreach ($allowed as $key) {
         if (array_key_exists($key, $input)) {
             $value = $input[$key];

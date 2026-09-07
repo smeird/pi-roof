@@ -10,6 +10,7 @@ export async function loadConfig() {
     username: data.username,
     password: data.password,
     sensors: data.sensors || [],
+    forecast: data.forecast,
     switches: data.switches || [],
     roof: data.roof || { open: { path: '', limit: '' }, close: { path: '', limit: '' } },
     roofController: data.roofController || { baseTopic: 'Observatory/roof-esp', relays: [] },

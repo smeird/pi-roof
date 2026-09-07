@@ -88,6 +88,22 @@ deploy-roof
 
 The helper performs a fast-forward-only pull from `origin/main` and runs PHP syntax checks. The SQLite database remains outside the checkout at `/var/www/data/config.db`.
 
+### Night forecast
+
+The Night planner uses the Metcheck astronomy forecast for the Weather site's
+observatory location. Settings → Night forecast controls green/amber cloud limits
+and the optional seeing-index check. This planning guide does not change live
+sensor status or roof controls. The sunset-to-sunrise timeline uses UK local time
+and retains the current night after midnight until sunrise. Tap or focus a
+segment for details.
+
+The server needs outbound HTTPS to `ws1.metcheck.com` and a writable temporary
+directory for the hourly cache (`roof-forecast-v1.json` in PHP's system temporary
+directory, overridable with `ROOF_FORECAST_CACHE_PATH`). Failed refreshes show a
+stale label; after six hours the sky forecast is unavailable while darkness/moon
+calculations remain visible. Reused astronomy code and notices are in
+`lib/forecast/`.
+
 ### First-time database setup
 The application will create tables automatically the first time `/get_config.php` or `/save_config.php` is accessed, but you still need to create the directory and database file with permissions that your web server user can write to. A typical setup looks like:
 

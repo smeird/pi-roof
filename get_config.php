@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/lib/forecast/rules.php';
 
 $defaults = [
     'MQTT_BROKER_URL' => 'ws://homeassistant.smeird.com',
@@ -38,6 +39,7 @@ echo json_encode([
     'influxBucket' => $config['INFLUX_BUCKET'],
     'influxToken' => $config['INFLUX_TOKEN'],
     'sensors' => getSensors(),
+    'forecast' => forecast_settings(),
     'switches' => getSwitches(),
     'roofController' => getRoofController(),
     'quickLinks' => getQuickLinks(),

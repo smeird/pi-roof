@@ -14,7 +14,7 @@
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css?v=20260906-amber1">
+  <link rel="stylesheet" href="css/app.css?v=20260907-forecast1">
 </head>
 <body class="settings-page">
   <div class="ops-shell">
@@ -73,6 +73,25 @@
           </div>
         </section>
 
+        <section class="ops-card" aria-labelledby="forecastSettingsTitle">
+          <header class="ops-card-header"><h2 id="forecastSettingsTitle" class="ops-card-title">Night forecast · planning only</h2></header>
+          <div class="ops-card-body">
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <label><span class="ops-label">Green: maximum cloud per layer (%)</span><input name="FORECAST_GREEN_CLOUD" class="ops-input" type="number" min="0" max="100" step="any" required value="0"></label>
+              <label><span class="ops-label">Amber: maximum cloud per layer (%)</span><input name="FORECAST_AMBER_CLOUD" class="ops-input" type="number" min="0" max="100" step="any" required value="40"></label>
+              <label><span class="ops-label">Green: minimum seeing index (0–10)</span><input name="FORECAST_GREEN_SEEING" class="ops-input" type="number" min="0" max="10" step="any" required value="5.5"></label>
+              <label><span class="ops-label">Amber: minimum seeing index (0–10)</span><input name="FORECAST_AMBER_SEEING" class="ops-input" type="number" min="0" max="10" step="any" required value="4"></label>
+            </div>
+            <label class="mt-3 flex cursor-pointer items-center gap-2 text-sm">
+              <input name="FORECAST_USE_SEEING" type="checkbox" role="switch" class="peer sr-only">
+              <span aria-hidden="true" class="relative h-6 w-11 shrink-0 rounded-full bg-slate-400 dark:bg-slate-600 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-emerald-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500"></span>
+              Include seeing index in the forecast colour
+            </label>
+            <p class="ops-help">Green requires every cloud layer (low, middle and high) to meet the green limit. Otherwise amber requires every layer to meet the amber limit; beyond that is red. With seeing enabled, its minimum must also be met. Missing data is unknown. Defaults: completely cloud-free green, up to 40% amber, seeing check off.</p>
+            <p class="ops-help">Metcheck forecast for the observatory (51.81, −0.29), refreshed hourly. UK local time, sunset to next sunrise. Forecast rules do not affect live sensor status or roof controls.</p>
+          </div>
+        </section>
+
         <section id="sensorsTitleSection" class="ops-card" aria-labelledby="sensorsTitle">
           <header class="ops-card-header">
             <h2 id="sensorsTitle" class="ops-card-title">Sensors</h2>
@@ -109,7 +128,7 @@
   </div>
 
   <script type="module">
-    import { loadConfig } from './js/mqttConfig.js';
+    import { loadConfig } from './js/mqttConfig.js?v=20260907-forecast1';
     import { initShell } from './js/shell.js?v=20260906-console2';
 
     const iconOptions = [
@@ -284,6 +303,11 @@
       setNamedValue('INFLUX_BUCKET', config.influxBucket);
       setNamedValue('INFLUX_TOKEN', config.influxToken);
       setNamedValue('MQTT_SKYCAM_TOPIC', config.skyCamTopic);
+      setNamedValue('FORECAST_GREEN_CLOUD', config.forecast?.greenCloud ?? 0);
+      setNamedValue('FORECAST_AMBER_CLOUD', config.forecast?.amberCloud ?? 40);
+      setNamedValue('FORECAST_GREEN_SEEING', config.forecast?.greenSeeing ?? 5.5);
+      setNamedValue('FORECAST_AMBER_SEEING', config.forecast?.amberSeeing ?? 4);
+      form.elements.namedItem('FORECAST_USE_SEEING').checked = config.forecast?.useSeeing === true;
       form.elements.namedItem('DASHBOARD_SHOW_CHART').checked = config.dashboard?.showChart !== false;
       form.elements.namedItem('DASHBOARD_SHOW_SKYCAM').checked = config.dashboard?.showSkyCam !== false;
       form.elements.namedItem('DASHBOARD_SHOW_CAMERA').checked = config.dashboard?.showCamera !== false;
@@ -328,6 +352,13 @@
           relays: Array.from(document.querySelectorAll('.relay-row')).map(row => ({
             key: row.dataset.key, label: row.querySelector('.relay-label').value.trim(), visible: row.querySelector('.relay-visible').checked
           }))
+        },
+        forecast: {
+          greenCloud: Number(form.elements.namedItem('FORECAST_GREEN_CLOUD').value),
+          amberCloud: Number(form.elements.namedItem('FORECAST_AMBER_CLOUD').value),
+          greenSeeing: Number(form.elements.namedItem('FORECAST_GREEN_SEEING').value),
+          amberSeeing: Number(form.elements.namedItem('FORECAST_AMBER_SEEING').value),
+          useSeeing: form.elements.namedItem('FORECAST_USE_SEEING').checked
         },
         sensors: Array.from(document.querySelectorAll('.sensor-row')).map(row => ({
           path: row.querySelector('.sensor-path').value.trim(), name: row.querySelector('.sensor-name').value.trim(),

@@ -14,7 +14,7 @@
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css?v=20260906-amber1">
+  <link rel="stylesheet" href="css/app.css?v=20260907-forecast1">
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script src="js/mqttClient.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highcharts@12.4.0/highcharts.js"></script>
@@ -75,6 +75,19 @@
           </div>
         </section>
         </div>
+
+        <section id="forecastCard" class="ops-card dashboard-forecast" aria-labelledby="forecastTitle">
+          <header class="ops-card-header">
+            <h2 id="forecastTitle" class="ops-card-title">Night planner <span class="panel-subtitle">/ Forecast, not live conditions</span></h2>
+            <span id="forecastDate" class="forecast-date">Sunset → sunrise</span>
+          </header>
+          <div class="ops-card-body forecast-body">
+            <div class="forecast-summary"><strong id="forecastWindow">Loading night forecast…</strong><span id="forecastMoon"></span></div>
+            <div id="forecastTracks" class="forecast-tracks" aria-label="Night forecast timeline" hidden></div>
+            <p id="forecastSegment" class="forecast-segment-detail" aria-live="polite">Select a segment for its forecast details.</p>
+            <div class="forecast-footer"><span>Sky: <b class="forecast-key good">Green</b> / <b class="forecast-key fair">Amber</b> / <b class="forecast-key poor">Red</b> / Grey: unknown · Darkest: full darkness / moon below</span><span id="forecastUpdated" role="status"></span></div>
+          </div>
+        </section>
 
         <section id="sensorCard" class="ops-card dashboard-sensors" aria-labelledby="sensorTitle">
           <header class="ops-card-header">
@@ -177,12 +190,13 @@
   </div>
 
   <script type="module">
-    import { loadConfig } from './js/mqttConfig.js';
+    import { loadConfig } from './js/mqttConfig.js?v=20260907-forecast1';
     import { createPager, initShell } from './js/shell.js?v=20260906-console2';
     import { createRoofDiagram } from './js/roofDiagram.mjs';
     import { describeThreshold } from './js/sensorThreshold.mjs?v=20260906-amber1';
     import { classifySensor, observingStatus, sensorNumber } from './js/sensorStatus.mjs';
     import { setupCamera } from './js/camera.js';
+    import { setupForecast } from './js/forecast.js';
 
     const fallbackConfig = {
       brokerUrl: '', port: 0, username: '', password: '', sensors: [], switches: [],
@@ -776,6 +790,7 @@
     renderDevices();
     configureDashboardVisibility();
     initChart();
+    setupForecast();
     setupMaximize();
     setupPowerInterlock();
     setupKeogram();
