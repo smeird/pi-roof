@@ -238,15 +238,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .dashboard-keogram { grid-column: 3; grid-row: 3; }
 #skyCamCard .ops-card-body { position: relative; }
 .skycam-body { display: grid; grid-template-rows: minmax(0, 1fr); }
-.camera-body { position: relative; height: calc(100% - 2.65rem); padding: 0; background: #060c14; }
-.camera-body video { width: 100%; height: 100%; object-fit: contain; }
-.camera-message { position: absolute; inset: 0; display: grid; place-content: center; margin: 0; padding: 1rem; text-align: center; color: #c7d5df; background: #060c14; font-size: .75rem; pointer-events: none; }
+.camera-body { position: relative; height: calc(100% - 2.65rem); padding: 0; background: var(--panel-subtle); }
+.camera-body video { width: 100%; height: 100%; object-fit: contain; background: var(--panel-subtle); }
+.camera-message { position: absolute; inset: 0; display: grid; place-content: center; margin: 0; padding: 1rem; text-align: center; color: var(--muted); background: var(--panel-subtle); font-size: .75rem; pointer-events: none; }
 .skycam-feed > .absolute { inset: 0; display: grid; place-content: center; text-align: center; }
-.skycam-feed { position: relative; min-height: 0; overflow: hidden; border: 1px solid #243848; background: #060c14; }
+.skycam-feed { position: relative; min-height: 0; overflow: hidden; border: 1px solid var(--border); background: var(--panel-subtle); }
 .skycam-feed img { display: block; }
-.skycam-label { position: absolute; left: .4rem; top: .35rem; z-index: 2; padding: .15rem .35rem; border-radius: .25rem; background: rgba(2, 6, 23, .78); color: #e2e8f0; font-size: .58rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-.skycam-link { position: absolute; right: .4rem; top: .35rem; z-index: 2; padding: .15rem .35rem; border-radius: .25rem; background: rgba(2, 6, 23, .78); color: #93c5fd; font-size: .58rem; font-weight: 800; text-decoration: none; }
-.skycam-link:hover { color: #dbeafe; }
+.skycam-label { position: absolute; left: .4rem; top: .35rem; z-index: 2; padding: .15rem .35rem; border-radius: .25rem; background: color-mix(in srgb, var(--panel-raised) 92%, transparent); color: var(--text); font-size: .58rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.skycam-link { position: absolute; right: .4rem; top: .35rem; z-index: 2; padding: .15rem .35rem; border-radius: .25rem; background: color-mix(in srgb, var(--panel-raised) 92%, transparent); color: var(--blue); font-size: .58rem; font-weight: 800; text-decoration: none; }
+.skycam-link:hover { color: var(--text); }
 
 .ops-maximized { position: fixed !important; inset: .75rem !important; z-index: 100 !important; width: auto !important; height: auto !important; grid-column: auto !important; grid-row: auto !important; box-shadow: var(--shadow-overlay); }
 .ops-modal-backdrop { position: fixed; inset: 0; z-index: 90; background: rgba(2, 6, 23, .72); }
@@ -336,12 +336,11 @@ input[type="checkbox"] { accent-color: var(--blue); }
 .sensor-value { font-family: var(--font-data); font-size: 1.1rem; font-weight: 500; line-height: 1.2; overflow-wrap: anywhere; }
 .sensor-unit { font: 400 .65rem var(--font-data); color: var(--muted-soft); }
 #roofStatus, .skycam-label, .skycam-link, .ops-pager, #lastCommand { font-family: var(--font-data); }
-.camera-message, .skycam-feed { background-color: #060c14; background-image: radial-gradient(ellipse at center, #132b3d70, transparent 70%), url('../assets/celestial-grid.svg'); background-size: auto, 1000px; }
+.camera-message, .skycam-feed { background-color: var(--panel-subtle); background-image: radial-gradient(ellipse at center, color-mix(in srgb, var(--blue) 8%, transparent), transparent 70%), url('../assets/celestial-grid.svg'); background-size: auto, 1000px; }
 .dashboard-tapo.ops-maximized { height: min(calc((100vw - 1.5rem) * .6875 + 1cm), calc(100dvh + 4rem + 1cm)) !important; }
 .dashboard-tapo.ops-maximized .camera-body { min-height: 0; }
 .dashboard-tapo .camera-body video { display: block; width: 100%; height: 100%; object-fit: contain; }
-.camera-message::before { content: ''; display: block; width: 3rem; height: 3rem; margin: 0 auto 1rem; border: 1px solid #365368; border-radius: 50%; background: radial-gradient(circle, #78d7ed 0 2px, transparent 3px 10px, #365368 11px 12px, transparent 13px); }
-.skycam-feed { border-color: #1d3445; }
+.camera-message::before { content: ''; display: block; width: 3rem; height: 3rem; margin: 0 auto 1rem; border: 1px solid var(--border-strong); border-radius: 50%; background: radial-gradient(circle, var(--blue) 0 2px, transparent 3px 10px, var(--border-strong) 11px 12px, transparent 13px); }
 .skycam-label, .skycam-link { font-weight: 500; }
 .ops-page-intro { max-width: 90rem; margin: 0 auto; padding: 1.8rem 1.25rem 1rem; }
 .ops-page-intro h2 { margin: .35rem 0; font-size: 1.6rem; font-weight: 600; letter-spacing: -.04em; }

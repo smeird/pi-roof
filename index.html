@@ -14,7 +14,7 @@
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'] } } } };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/app.css?v=20260907-conditions2">
+  <link rel="stylesheet" href="css/app.css?v=20260907-feed-theme1">
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script src="js/mqttClient.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highcharts@12.4.0/highcharts.js"></script>
@@ -122,23 +122,23 @@
             <h2 id="skyCamTitle" class="ops-card-title">SkyCam</h2>
             <button type="button" class="ops-button ops-button-ghost" data-maximize="skyCamCard" aria-label="Maximize SkyCam" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button>
           </header>
-          <div class="ops-card-body skycam-body h-[calc(100%-2.65rem)] bg-black p-1.5">
+          <div class="ops-card-body skycam-body h-[calc(100%-2.65rem)] bg-[var(--panel-subtle)] p-1.5">
             <div class="skycam-feed" aria-label="Live SkyCam feed">
               <span class="skycam-label">Live feed</span>
               <img id="skyCamImage" class="h-full w-full object-contain" alt="Live observatory sky camera" hidden>
-              <span id="skyCamWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-camera mr-2" aria-hidden="true"></i>Waiting for MQTT image</span>
+              <span id="skyCamWaiting" class="absolute text-xs font-bold text-[var(--muted)]"><i class="fa-solid fa-camera mr-2" aria-hidden="true"></i>Waiting for MQTT image</span>
             </div>
           </div>
         </section>
 
         <section id="keogramCard" class="ops-card dashboard-keogram" aria-labelledby="keogramTitle">
           <header class="ops-card-header"><h2 id="keogramTitle" class="ops-card-title">Sky survey <span class="panel-subtitle">/ Realtime keogram</span></h2><button type="button" class="ops-button ops-button-ghost" data-maximize="keogramCard" aria-label="Maximize keogram" aria-expanded="false"><i class="fa-solid fa-expand" aria-hidden="true"></i></button></header>
-          <div class="ops-card-body h-[calc(100%-2.65rem)] bg-black p-1.5">
+          <div class="ops-card-body h-[calc(100%-2.65rem)] bg-[var(--panel-subtle)] p-1.5">
             <div class="skycam-feed h-full" aria-label="Realtime keogram">
               <span class="skycam-label">Realtime keogram</span>
               <a href="https://skycam.smeird.com/indi-allsky/realtime_keogram" target="_blank" rel="noopener noreferrer" class="skycam-link">Open viewer</a>
               <img id="keogramImage" class="h-full w-full object-contain" alt="Realtime SkyCam keogram" hidden>
-              <span id="keogramWaiting" class="absolute text-xs font-bold text-slate-400"><i class="fa-solid fa-chart-area mr-2" aria-hidden="true"></i>Waiting for keogram</span>
+              <span id="keogramWaiting" class="absolute text-xs font-bold text-[var(--muted)]"><i class="fa-solid fa-chart-area mr-2" aria-hidden="true"></i>Waiting for keogram</span>
             </div>
           </div>
         </section>
