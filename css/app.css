@@ -402,8 +402,51 @@ input[type="checkbox"] { accent-color: var(--blue); }
 }
 
 /* Operations console: conditions and the sky survey lead; video is supporting context. */
-:root { --radius-panel: .25rem; --survey-accent: #8065b5; }
-.dark { --canvas: #05090e; --panel: #0b121a; --panel-subtle: #0d1822; --panel-raised: #111e2a; --border: #233440; --blue: #8bdcea; --survey-accent: #b5a1e3; }
+:root {
+  --radius-panel: .125rem;
+  --survey-accent: #8065b5;
+  --hud-corner: #428b9c;
+  --hud-glow: transparent;
+}
+.dark {
+  --canvas: #05090e;
+  --panel: #0a121a;
+  --panel-subtle: #0b161f;
+  --panel-raised: #101e28;
+  --border: #1c2d37;
+  --blue: #8bdcea;
+  --survey-accent: #a3cbd6;
+  --hud-corner: #6ab9ca;
+  --hud-glow: #62cce010;
+}
+/* Decorative HUD frame: one-pixel strokes, with no effect on hit targets or layout. */
+.ops-card {
+  position: relative;
+  box-shadow: inset 0 0 24px var(--hud-glow), 0 0 12px var(--hud-glow);
+}
+.ops-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(var(--hud-corner), var(--hud-corner)) left top / 16px 1px,
+    linear-gradient(var(--hud-corner), var(--hud-corner)) left top / 1px 16px,
+    linear-gradient(var(--hud-corner), var(--hud-corner)) right top / 16px 1px,
+    linear-gradient(var(--hud-corner), var(--hud-corner)) right top / 1px 16px,
+    linear-gradient(var(--hud-corner), var(--hud-corner)) left bottom / 16px 1px,
+    linear-gradient(var(--hud-corner), var(--hud-corner)) left bottom / 1px 16px,
+    linear-gradient(var(--hud-corner), var(--hud-corner)) right bottom / 16px 1px,
+    linear-gradient(var(--hud-corner), var(--hud-corner)) right bottom / 1px 16px;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 3px var(--hud-glow));
+}
+.ops-card[data-tone="good"] { --hud-corner: var(--green); }
+.ops-card[data-tone="warn"] { --hud-corner: var(--amber); }
+.ops-card[data-tone="bad"] { --hud-corner: var(--red); }
+.ops-card.ops-maximized { box-shadow: var(--shadow-overlay), inset 0 0 24px var(--hud-glow); }
 .ops-topbar { border-bottom: 1px solid var(--border-strong); }
 .ops-topbar .ops-page-title { font-size: 1.3rem; font-weight: 500; letter-spacing: -.045em; }
 .ops-title-accent { color: var(--blue); font-weight: 300; }
@@ -413,7 +456,7 @@ input[type="checkbox"] { accent-color: var(--blue); }
 .dashboard-page .ops-topbar { min-height: 5rem; padding-inline: 1rem; }
 .dashboard-page .ops-page-title { font-size: 1.65rem; }
 .dashboard-page .ops-eyebrow { letter-spacing: .2em; margin-bottom: .3rem; }
-.dashboard-grid .ops-card { border-color: var(--border); box-shadow: none; }
+.dashboard-grid .ops-card { border-color: var(--border); }
 .dashboard-grid .ops-card[data-tone="good"] { border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
 .dashboard-grid .ops-card[data-tone="warn"] { border-color: color-mix(in srgb, var(--amber) 45%, var(--border)); }
 .dashboard-grid .ops-card[data-tone="bad"] { border-color: var(--red); }

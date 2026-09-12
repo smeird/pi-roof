@@ -1,5 +1,7 @@
 # Agent Guidelines
 
+- Shared panels use delicate HUD frames in `css/app.css`: low-contrast one-pixel borders, 16px L-shaped corner brackets, and restrained cyan glow in dark mode. Corner brackets follow sensor panel status tones; preserve Light/Dark/System preferences and keep decorative frames pointer-transparent.
+
 - Tailwind CSS (via CDN) is used for styling across the site. Prefer Tailwind utility classes and avoid other CSS frameworks.
 - Record any additional project decisions or conventions in this file.
 - Font Awesome (via CDN) is used for interface icons across the site.
