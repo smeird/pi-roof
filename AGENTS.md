@@ -1,6 +1,6 @@
 # Agent Guidelines
 
-- Shared panels use delicate HUD frames in `css/app.css`: low-contrast one-pixel borders, 16px L-shaped corner brackets, and restrained cyan glow in dark mode. Corner brackets follow sensor panel status tones; preserve Light/Dark/System preferences and keep decorative frames pointer-transparent. HUD overlays extend by the 1px border width and panels clip at the border box so corner strokes sit directly on the border, never inset.
+- Shared panels use delicate HUD frames in `css/app.css`: low-contrast one-pixel borders, 16px L-shaped corner brackets, and restrained cyan glow in dark mode. Corner brackets follow sensor panel status tones; preserve Light/Dark/System preferences and keep decorative frames pointer-transparent. HUD overlays extend by the 1px border width; keep panel overflow visible and isolate its stacking context, clipping only the body content. Never clip the panel itself (including mobile camera overrides), which hides the corner strokes in some browsers.
 
 - Tailwind CSS (via CDN) is used for styling across the site. Prefer Tailwind utility classes and avoid other CSS frameworks.
 - Record any additional project decisions or conventions in this file.

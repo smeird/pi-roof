@@ -419,13 +419,14 @@ input[type="checkbox"] { accent-color: var(--blue); }
   --hud-corner: #6ab9ca;
   --hud-glow: #62cce010;
 }
-/* Clip content at the outer border so HUD strokes can cover the border itself. */
+/* Keep the border overlay unclipped; contain panel content in its own layer. */
 .ops-card {
   position: relative;
-  overflow: clip;
-  overflow-clip-margin: border-box;
+  overflow: visible;
+  isolation: isolate;
   box-shadow: inset 0 0 24px var(--hud-glow), 0 0 12px var(--hud-glow);
 }
+.ops-card > .ops-card-body { clip-path: inset(0); }
 .ops-card::after {
   content: '';
   position: absolute;
@@ -557,7 +558,6 @@ input[type="checkbox"] { accent-color: var(--blue); }
   .dashboard-grid .dashboard-sensors { order: 2; }
   .dashboard-grid .dashboard-keogram { grid-column: 1 / -1; order: 3; min-height: 180px !important; height: 180px; }
   .dashboard-grid .dashboard-tapo, .dashboard-grid .dashboard-skycam { grid-column: auto; order: 4; min-height: 180px !important; height: 180px; }
-  .dashboard-grid .dashboard-tapo, .dashboard-grid .dashboard-skycam { overflow: hidden; }
   .dashboard-grid .dashboard-chart { grid-column: 1 / -1; order: 5; min-height: 180px !important; height: 180px; }
   #sensorsContainer { height: auto; grid-auto-rows: minmax(115px, auto); grid-template-rows: none; }
   .sensor-value { font-size: 1.8rem; }
