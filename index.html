@@ -234,6 +234,7 @@
 
     const topics = new Set();
     topics.add(powerRelayStateTopic);
+    topics.add(roofEsp.state.closePending);
     const staticTopics = new Set();
     const stateValues = {};
     const sensorValueEls = {};
@@ -367,8 +368,7 @@
       ['Open motor', 'openMotor', roofEsp.state.openMotor], ['Close motor', 'closeMotor', roofEsp.state.closeMotor],
       ['Enabled', 'enabled', roofEsp.state.enabled], ['Fault', 'fault', roofEsp.state.fault],
       ['Fault code', 'faultCode', roofEsp.state.faultCode], ['Heartbeat', 'heartbeat', roofEsp.state.heartbeat],
-      ['Close request', 'closePending', roofEsp.state.closePending], ['Close retries', 'closeRetryCount', roofEsp.state.closeRetryCount],
-      ['Close result', 'closeResult', roofEsp.state.closeResult]
+      ['Close result', 'closeResult', roofEsp.state.closeResult], ['Close retries', 'closeRetryCount', roofEsp.state.closeRetryCount]
     ];
 
     function renderRoofStatus() {
@@ -677,7 +677,6 @@
       if (key === 'enabled') return [value === '1' ? 'Enabled' : 'Disabled', value === '1' ? 'good' : 'bad'];
       if (key === 'fault') return [value === '1' ? 'Fault' : 'Clear', value === '1' ? 'bad' : 'good'];
       if (key === 'faultCode') return [!value || value === '0' ? 'None' : (faultLabels[value] || value), !value || value === '0' ? 'good' : 'bad'];
-      if (key === 'closePending') return [value === '1' ? 'Pending' : 'None', value === '1' ? 'warn' : null];
       if (key === 'closeRetryCount') return [value === '0' ? '0 / 2' : `${value} / 2`, value === '0' ? null : 'warn'];
       if (key === 'closeResult') {
         const labels = { idle: 'Idle', pending: 'Pending', recovering: 'Recovering', closed: 'Confirmed closed', cancelled: 'Cancelled', failed: 'Failed' };
@@ -696,6 +695,7 @@
       }
       const [label, tone] = formatRoofValue(status.key, rawValue);
       status.element.textContent = label;
+      status.element.title = label;
       status.element.style.color = tone ? `var(--${tone === 'good' ? 'green' : tone === 'warn' ? 'amber' : 'red'})` : 'var(--muted)';
     }
 
