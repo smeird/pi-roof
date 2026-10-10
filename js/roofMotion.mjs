@@ -1,3 +1,5 @@
+import { describeCloseRecovery } from './roofRecovery.mjs';
+
 // Position is an estimate between 0 (closed) and 1 (open), never a safety input.
 export class RoofMotion {
   constructor({ openSeconds = 30, closeSeconds = 30 } = {}) {
@@ -30,21 +32,28 @@ export class RoofMotion {
     this.direction = 0;
     this.tone = 'warn';
     if (!available) { this.label = 'Telemetry unavailable · last estimate'; return this.snapshot(); }
-    if (open && closed) { this.label = 'Limit conflict · check controller'; this.tone = 'bad'; return this.snapshot(); }
+    const recovery = describeCloseRecovery(signals);
     if (openMotor === '1' && closeMotor === '1') {
       this.label = 'Motor conflict · check controller'; this.tone = 'bad'; return this.snapshot();
     }
+    if (recovery.recovering) { this.label = recovery.label; return this.snapshot(); }
+    if (open && closed) { this.label = 'Limit conflict · check controller'; this.tone = 'bad'; return this.snapshot(); }
     const direction = moving === '1' ? (openMotor === '1' ? 1 : closeMotor === '1' ? -1 : 0) : 0;
     // A departing limit can remain active briefly; do not continually reset travel.
     if (open && (direction !== -1 || previousDirection !== -1)) this.position = 1;
     if (closed && (direction !== 1 || previousDirection !== 1)) this.position = 0;
     if (fault === '1') { this.label = 'Fault · motion estimate paused'; this.tone = 'bad'; }
+    else if (recovery.pending && !direction && open) this.label = recovery.label;
     else if (open && direction !== -1) { this.label = 'Open · limit confirmed'; this.tone = 'good'; }
-    else if (closed && direction !== 1) { this.label = 'Closed · limit confirmed'; this.tone = 'good'; }
+    else if (closed && direction !== 1) {
+      this.label = recovery.pending ? recovery.label : recovery.confirmed ? 'Closed · limit confirmed' : 'Closure unconfirmed';
+      this.tone = recovery.confirmed ? 'good' : 'warn';
+    }
     else if (direction) {
       this.direction = direction;
       this.label = direction > 0 ? 'Opening' : 'Closing';
-    } else if (moving === '1') this.label = 'Moving · direction unknown';
+    } else if (recovery.pending) this.label = recovery.label;
+    else if (moving === '1') this.label = 'Moving · direction unknown';
     else this.label = this.position === null ? 'Position unknown' : 'Stopped · estimated position';
     return this.snapshot();
   }

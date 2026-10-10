@@ -64,3 +64,36 @@ test('invalid durations fall back safely', () => {
   assert.equal(model.openSeconds, 30);
   assert.equal(model.closeSeconds, 30);
 });
+
+test('recovery pauses estimation and retains actual conflicting limit lights', () => {
+  const model = started({ openSeconds: 20 });
+  const state = model.update({ ...closing, openLimit: '1', closeLimit: '1', moving: '0', closeMotor: '0', fault: '1', faultCode: 'BOTH_LIMITS', closePending: '1', closeResult: 'recovering' }, 10000);
+  assert.match(state.label, /Recovering.*close pending/);
+  assert.equal(state.position, .5);
+  assert.equal(model.tick(15000).position, .5);
+  assert.equal(state.openLimit, '1');
+  assert.equal(state.closeLimit, '1');
+});
+
+test('an endpoint blip cannot display confirmed closure while close intent is pending', () => {
+  const model = started();
+  const signals = { ...closed, closePending: '1', closeResult: 'pending' };
+  assert.equal(model.update(signals, 1000).label, 'Confirming closed limit');
+  assert.equal(model.update({ ...signals, closePending: '0' }, 1001).label, 'Closure unconfirmed');
+  assert.match(model.update({ ...signals, closePending: '0', closeResult: 'closed' }, 1002).label, /Closed.*confirmed/);
+});
+
+test('recovery does not hide motor conflicts or unavailable telemetry', () => {
+  const model = started();
+  const signals = { ...closed, closePending: '1', closeResult: 'recovering', faultCode: 'BOTH_LIMITS', fault: '1' };
+  assert.match(model.update({ ...signals, openMotor: '1', closeMotor: '1' }, 1000).label, /Motor conflict/);
+  assert.match(model.update({ ...signals, available: false }, 1001).label, /Telemetry unavailable/);
+});
+
+test('a pending close at the open endpoint is still shown as pending during deadtime', () => {
+  const model = new RoofMotion();
+  const state = model.update({ ...closed, openLimit: '1', closeLimit: '0', closePending: '1', closeResult: 'pending' }, 0);
+  assert.equal(state.label, 'Close pending');
+  assert.equal(state.position, 1);
+  assert.equal(state.tone, 'warn');
+});

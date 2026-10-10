@@ -1,5 +1,7 @@
 # Agent Guidelines
 
+- Dashboard recovery status uses `js/roofRecovery.mjs` and the controller's `close_pending`, `close_result`, and `close_retry_count` topics. A pending or unconfirmed close must not display confirmed closure; limit lights retain actual signals. Recovery presentation never publishes commands or changes interlocks. Tests: `node --test tests/roofRecovery.test.mjs tests/roofMotion.test.mjs`.
+
 - Shared panels use delicate HUD frames in `css/app.css`: low-contrast one-pixel borders, 16px L-shaped corner brackets, and restrained cyan glow in dark mode. Corner brackets follow sensor panel status tones; preserve Light/Dark/System preferences and keep decorative frames pointer-transparent. HUD overlays extend by the 1px border width; keep panel overflow visible and isolate its stacking context, clipping only the body content. Never clip the panel itself (including mobile camera overrides), which hides the corner strokes in some browsers.
 
 - Tailwind CSS (via CDN) is used for styling across the site. Prefer Tailwind utility classes and avoid other CSS frameworks.

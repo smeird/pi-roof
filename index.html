@@ -43,7 +43,7 @@
         <section id="roofCard" class="ops-card dashboard-roof" aria-labelledby="roofTitle">
           <header class="ops-card-header">
             <h2 id="roofTitle" class="ops-card-title">Roof Control</h2>
-            <span id="roofMovingBadge" class="ops-status-chip tone-warn" hidden><i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i> Moving</span>
+            <span id="roofMovingBadge" class="ops-status-chip tone-warn" hidden><i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i><span id="roofOperationLabel">Moving</span></span>
           </header>
           <div class="ops-card-body flex h-[calc(100%-2.65rem)] flex-col gap-3 overflow-hidden">
             <div id="roofControls" class="grid grid-cols-2 gap-2" aria-label="Roof commands"></div>
@@ -188,7 +188,8 @@
   <script type="module">
     import { loadConfig } from './js/mqttConfig.js?v=20260907-forecast1';
     import { createPager, initShell } from './js/shell.js?v=20260906-console2';
-    import { createRoofDiagram } from './js/roofDiagram.mjs';
+    import { createRoofDiagram } from './js/roofDiagram.mjs?v=20261010-recovery1';
+    import { describeCloseRecovery } from './js/roofRecovery.mjs';
     import { describeThreshold } from './js/sensorThreshold.mjs?v=20260906-amber1';
     import { classifySensor, observingStatus, sensorNumber } from './js/sensorStatus.mjs';
     import { setupCamera } from './js/camera.js';
@@ -221,7 +222,9 @@
         online: `${baseTopic}/online`, openLimit: `${baseTopic}/open_limit`, closeLimit: `${baseTopic}/close_limit`,
         moving: `${baseTopic}/moving`, enabled: `${baseTopic}/enabled`, fault: `${baseTopic}/fault`,
         faultCode: `${baseTopic}/fault_code`, openMotor: `${baseTopic}/state/open_motor`,
-        closeMotor: `${baseTopic}/state/close_motor`, heartbeat: `${baseTopic}/heartbeat`
+        closeMotor: `${baseTopic}/state/close_motor`, heartbeat: `${baseTopic}/heartbeat`,
+        closePending: `${baseTopic}/close_pending`, closeResult: `${baseTopic}/close_result`,
+        closeRetryCount: `${baseTopic}/close_retry_count`
       },
       command: {
         open: `${baseTopic}/command/open`, close: `${baseTopic}/command/close`, stop: `${baseTopic}/command/stop`,
@@ -241,7 +244,8 @@
     const roofMotionButtons = {};
     const lineSeries = {};
     const faultLabels = {
-      BOTH_LIMITS: 'Both limits active', TIMEOUT_OPEN: 'Open timeout', TIMEOUT_CLOSE: 'Close timeout'
+      BOTH_LIMITS: 'Both limits active', TIMEOUT_OPEN: 'Open timeout', TIMEOUT_CLOSE: 'Close timeout',
+      CLOSE_RECOVERY_EXHAUSTED: 'Close retries exhausted', LIMITS_UNKNOWN: 'Limit signals unavailable'
     };
     let mqttClient;
     let mqttConnected = false;
@@ -362,7 +366,9 @@
       ['Open limit', 'openLimit', roofEsp.state.openLimit], ['Closed limit', 'closeLimit', roofEsp.state.closeLimit],
       ['Open motor', 'openMotor', roofEsp.state.openMotor], ['Close motor', 'closeMotor', roofEsp.state.closeMotor],
       ['Enabled', 'enabled', roofEsp.state.enabled], ['Fault', 'fault', roofEsp.state.fault],
-      ['Fault code', 'faultCode', roofEsp.state.faultCode], ['Heartbeat', 'heartbeat', roofEsp.state.heartbeat]
+      ['Fault code', 'faultCode', roofEsp.state.faultCode], ['Heartbeat', 'heartbeat', roofEsp.state.heartbeat],
+      ['Close request', 'closePending', roofEsp.state.closePending], ['Close retries', 'closeRetryCount', roofEsp.state.closeRetryCount],
+      ['Close result', 'closeResult', roofEsp.state.closeResult]
     ];
 
     function renderRoofStatus() {
@@ -671,6 +677,12 @@
       if (key === 'enabled') return [value === '1' ? 'Enabled' : 'Disabled', value === '1' ? 'good' : 'bad'];
       if (key === 'fault') return [value === '1' ? 'Fault' : 'Clear', value === '1' ? 'bad' : 'good'];
       if (key === 'faultCode') return [!value || value === '0' ? 'None' : (faultLabels[value] || value), !value || value === '0' ? 'good' : 'bad'];
+      if (key === 'closePending') return [value === '1' ? 'Pending' : 'None', value === '1' ? 'warn' : null];
+      if (key === 'closeRetryCount') return [value === '0' ? '0 / 2' : `${value} / 2`, value === '0' ? null : 'warn'];
+      if (key === 'closeResult') {
+        const labels = { idle: 'Idle', pending: 'Pending', recovering: 'Recovering', closed: 'Confirmed closed', cancelled: 'Cancelled', failed: 'Failed' };
+        return [labels[value] || value, value === 'closed' ? 'good' : value === 'failed' ? 'bad' : value === 'idle' ? null : 'warn'];
+      }
       return [value, null];
     }
 
@@ -710,7 +722,13 @@
       const online = stateValues[roofEsp.state.online];
       const heartbeatStale = lastHeartbeatAt && Date.now() - lastHeartbeatAt.getTime() > 90000;
       const motorAllowed = mqttConnected && online !== '0' && !heartbeatStale;
+      const recoverySignals = {
+        closePending: stateValues[roofEsp.state.closePending], closeResult: stateValues[roofEsp.state.closeResult],
+        closeRetryCount: stateValues[roofEsp.state.closeRetryCount], faultCode: stateValues[roofEsp.state.faultCode]
+      };
+      const recovery = describeCloseRecovery({ ...recoverySignals, closeLimit: stateValues[roofEsp.state.closeLimit], fault: stateValues[roofEsp.state.fault] });
       roofDiagram.update({
+        ...recoverySignals,
         available: motorAllowed,
         openLimit: stateValues[roofEsp.state.openLimit], closeLimit: stateValues[roofEsp.state.closeLimit],
         openMotor: stateValues[roofEsp.state.openMotor], closeMotor: stateValues[roofEsp.state.closeMotor],
@@ -723,14 +741,19 @@
       relayToggleButtons.forEach(button => { button.disabled = !mqttConnected || online === '0' || moving; });
 
       const badge = document.getElementById('roofMovingBadge');
-      badge.hidden = !moving;
+      badge.hidden = !motorAllowed || (!moving && !recovery.pending);
+      document.getElementById('roofOperationLabel').textContent = recovery.recovering ? 'Recovering' : moving ? 'Moving' : 'Close pending';
       const summary = document.getElementById('roofSummary');
       const card = document.getElementById('roofCard');
       let label = 'Roof waiting';
       let tone = 'warn';
-      if (fault) { label = 'Roof fault'; tone = 'bad'; }
+      if (!motorAllowed) { label = 'Roof telemetry unavailable'; }
+      else if (recovery.recovering) { label = recovery.label; }
+      else if (fault) { label = 'Roof fault'; tone = 'bad'; }
+      else if (recovery.pending) { label = moving ? 'Roof closing' : recovery.label; }
       else if (moving) { label = 'Roof moving'; tone = 'warn'; }
-      else if (closed) { label = 'Roof closed'; tone = 'good'; }
+      else if (closed && recovery.confirmed) { label = 'Roof closed'; tone = 'good'; }
+      else if (closed) { label = 'Closure unconfirmed'; }
       else if (open) { label = 'Roof open'; tone = 'warn'; }
       summary.querySelector('span').textContent = label;
       setTone(summary, tone);

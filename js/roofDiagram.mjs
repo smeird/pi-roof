@@ -1,4 +1,4 @@
-import { RoofMotion } from './roofMotion.mjs';
+import { RoofMotion } from './roofMotion.mjs?v=20261010-recovery1';
 
 export function createRoofDiagram(root, options) {
   const motion = new RoofMotion(options);
